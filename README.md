@@ -1,7 +1,7 @@
 # Rois de la Pédale
 
-**Windows : [télécharger l’installeur v0.5.1](https://github.com/Ritterschaft69/RoisDeLaPedale_desk/releases/download/v0.5.1/RoisDeLaPedale-0.5.1-Setup.exe)** · [Page de la préversion](https://github.com/Ritterschaft69/RoisDeLaPedale_desk/releases/tag/v0.5.1)
-[Voir les raccords des épaules et des hanches en gros plan et en mouvement](https://github.com/Ritterschaft69/RoisDeLaPedale_desk/releases/tag/v0.5.1)
+**Windows : [télécharger l’installeur v0.5.2](https://github.com/Ritterschaft69/RoisDeLaPedale_desk/releases/download/v0.5.2/RoisDeLaPedale-0.5.2-Setup.exe)** · [Page de la préversion](https://github.com/Ritterschaft69/RoisDeLaPedale_desk/releases/tag/v0.5.2)
+[Voir la caméra stabilisée et la vidéo du suivi](https://github.com/Ritterschaft69/RoisDeLaPedale_desk/releases/tag/v0.5.2)
 
 Prototype **desktop natif** de simulation cycliste, Godot **4.6.3**, sans serveur ni navigateur. Interface en français, mode démo, parcours GPX original et première tranche IGN hors ligne. Ce dépôt initial ne contenait aucun prototype à migrer.
 
