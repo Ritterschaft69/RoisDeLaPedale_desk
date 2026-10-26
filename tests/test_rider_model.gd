@@ -31,6 +31,10 @@ func run():
  var material := S.fabric(Color.WHITE)
  var limb := S.sweep(holder,[[0,.03,.04],[.3,.1,.08],[.6,.08,.09],[1,.04,.03]],material)
  check(geometry(limb),"closed anatomical mesh has finite unit normals, nondegenerate outward faces")
+ var bent := S.curved_sweep(holder,[[0,.03,.04],[.3,.06,.055],[.65,.055,.05],[1,.028,.03]],S.path([Vector3.ZERO,Vector3(.03,.20,-.04),Vector3(0,.4,-.15)]),material)
+ check(geometry(bent),"curved anatomical surfaces remain closed with outward finite normals")
+ var face := S.face(holder,material)
+ check(geometry(face),"integrated nose and jaw preserve valid closed facial geometry")
  var helmet := S.helmet(holder,Vector3.ZERO,material)
  check(geometry(helmet),"helmet shell winding and smooth normals agree")
  var z := -.07
@@ -38,6 +42,10 @@ func run():
  check(not hit(helmet,x,z) and hit(helmet,0,z),"helmet vent is an actual opening beside a solid structural rib")
  var rider = load("res://scripts/rider.gd").new()
  holder.add_child(rider)
+ var all_valid := true
+ for node in rider.find_children("*","MeshInstance3D",true,false):
+  if node.mesh is ArrayMesh and not geometry(node): all_valid=false
+ check(all_valid,"all final cyclist custom meshes preserve finite outward geometry")
  var meshes: int = rider.find_children("*","MeshInstance3D",true,false).size()
  print("RIDER_MESHES=",meshes)
  check(meshes<220,"cyclist avoids hundreds of separate helmet pieces")

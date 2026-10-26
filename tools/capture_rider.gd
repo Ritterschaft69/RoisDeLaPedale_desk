@@ -13,7 +13,7 @@ func run():
  env.environment.background_color = Color(.65,.68,.72)
  env.environment.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
  env.environment.ambient_light_color = Color.WHITE
- env.environment.ambient_light_energy = .25
+ env.environment.ambient_light_energy = .30
  stage.add_child(env)
  var sun := DirectionalLight3D.new()
  sun.rotation_degrees = Vector3(-35,-30,0)
@@ -22,7 +22,7 @@ func run():
  stage.add_child(sun)
  var fill := DirectionalLight3D.new()
  fill.rotation_degrees = Vector3(-20,140,0)
- fill.light_energy = .2
+ fill.light_energy = .25
  stage.add_child(fill)
  var floor_mesh := MeshInstance3D.new()
  floor_mesh.mesh = PlaneMesh.new()
@@ -36,14 +36,16 @@ func run():
  camera.size = 2.03
  stage.add_child(camera)
  camera.current = true
- rider.crank=.85
+ rider.crank=.85+PI
  rider.animate(0,0,0)
  for item in [["side",Vector3(3,1.05,0)],["rear",Vector3(0,1.15,3)],["front",Vector3(0,1.15,-3)]]:
+  sun.rotation_degrees.y = rad_to_deg(atan2(item[1].x,item[1].z))-30
+  fill.rotation_degrees.y = sun.rotation_degrees.y+140
   camera.position = item[1]
   camera.look_at(Vector3(0,.85,0),Vector3.UP)
   for i in range(3): await process_frame
   await RenderingServer.frame_post_draw
-  root.get_texture().get_image().save_png("res://build/v04_"+item[0]+".png")
+  root.get_texture().get_image().save_png("res://build/v05_"+item[0]+".png")
   print("CAPTURE ",item[0])
  var canvas := CanvasLayer.new()
  stage.add_child(canvas)
@@ -53,6 +55,8 @@ func run():
  label.add_theme_color_override("font_color",Color("253143"))
  label.add_theme_font_size_override("font_size",24)
  canvas.add_child(label)
+ sun.rotation_degrees.y = 60
+ fill.rotation_degrees.y = 200
  camera.position = Vector3(3,1.05,0)
  camera.look_at(Vector3(0,.85,0),Vector3.UP)
  for i in range(32):
@@ -60,7 +64,7 @@ func run():
   rider.animate(1.0/32,0,4)
   for j in range(2): await process_frame
   await RenderingServer.frame_post_draw
-  root.get_texture().get_image().save_png("res://build/v04_pedal_%02d.png" % i)
+  root.get_texture().get_image().save_png("res://build/v05_pedal_%02d.png" % i)
  print("PEDAL_CAPTURE_COMPLETE")
  stage.queue_free()
  await process_frame
@@ -73,11 +77,11 @@ func run():
  app.distance = 6200
  app.world.update_at(app.distance,true)
  app.position_scene(0,true)
- app.rider.crank = .85
+ app.rider.crank = .85+PI
  app.rider.animate(0,0,0)
  app.camera.current = true
  for i in range(4): await process_frame
  await RenderingServer.frame_post_draw
- root.get_texture().get_image().save_png("res://build/v04_ride.png")
+ root.get_texture().get_image().save_png("res://build/v05_ride.png")
  print("RIDE_CAPTURE_COMPLETE")
  quit()

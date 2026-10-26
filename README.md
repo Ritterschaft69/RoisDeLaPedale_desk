@@ -5,9 +5,11 @@
 
 Prototype **desktop natif** de simulation cycliste, Godot **4.6.3**, sans serveur ni navigateur. Interface en français, mode démo, parcours GPX original et première tranche IGN hors ligne. Ce dépôt initial ne contenait aucun prototype à migrer.
 
-## Cycliste et fluidité — 0.4.0
+## Cycliste — 0.5.0
 
-Modèle reconstruit d’après les vues fournies : surfaces anatomiques continues, casque blanc ajouré, visage, tenue et chaussures détaillés. Le pédalage a été vérifié de profil ; une limite de progression par image évite les sauts donnant une impression de rotation inverse après un ralentissement du rendu. À très faible FPS, les jambes ralentissent visuellement plutôt que de sauter une grande partie du tour. Les trois parcours utilisent un filtrage spatial borné puis une B-spline cubique et une interpolation entre les pas de simulation. Les GPX sources restent intacts. [Validation : 139 contrôles](docs/VALIDATION_v0.4.0.md).
+Dos arrondi, bras continus, bassin et selle relevés, muscles profilés, casque plus bombé, visage sculpté, chaussettes et chaussures retravaillées d’après la comparaison fournie. Le rendu reste une interprétation 3D stylisée de la référence. Les captures studio utilisent une pose comparable et un éclairage orienté vers le côté observé ; une capture en jeu permet de voir le résultat dans son environnement. [Validation : 142 contrôles](docs/VALIDATION_v0.5.0.md).
+
+Le pédalage vers l’avant, la protection contre les sauts d’animation et le filtrage spatial des trois parcours de la version 0.4.0 sont conservés. Les fichiers GPX sources restent intacts.
 
 ## Lancer
 
@@ -78,7 +80,7 @@ python tools/build.py --installer             # exports + installeur Windows non
 
 Le téléchargement initial des modèles officiels représente environ 1,26 Go. Les exports portables sont générés dans `build/`, exclus du suivi Git. Le paquet Windows est un exécutable x64 avec son fichier PCK ; garder les fichiers ensemble. Ne pas confondre un export produit sous Linux avec une exécution validée sous Windows.
 
-L’installeur `build/RoisDeLaPedale-0.4.0-Setup.exe` installe l’application pour l’utilisateur courant, crée les raccourcis du menu Démarrer et une entrée de désinstallation. Il conserve les activités et préférences dans AppData lors de la désinstallation. Construction vérifiée sous Linux ; installation/désinstallation Windows à valider sur un vrai poste.
+L’installeur `build/RoisDeLaPedale-0.5.0-Setup.exe` installe l’application pour l’utilisateur courant, crée les raccourcis du menu Démarrer et une entrée de désinstallation. Il conserve les activités et préférences dans AppData lors de la désinstallation. Construction vérifiée sous Linux ; installation/désinstallation Windows à valider sur un vrai poste.
 
 ## Limites de ce lot
 
