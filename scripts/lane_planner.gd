@@ -71,7 +71,8 @@ func step(station: float, speed: float, dt: float, observations: Array) -> Dicti
 					locked_until_s = maxf(locked_until_s,float(obstacle.s)+float(obstacle.radius)+2.0)
 		target = selected
 	# Smooth, acceleration-limited lateral motion; never teleport across lanes.
-	velocity = move_toward(velocity,clampf((target-lateral)*2,-MAX_LATERAL_SPEED,MAX_LATERAL_SPEED),LATERAL_ACCELERATION*dt)
+	var steering_limit := minf(MAX_LATERAL_SPEED,maxf(speed,0)*0.30)
+	velocity = clampf(move_toward(velocity,clampf((target-lateral)*2,-steering_limit,steering_limit),LATERAL_ACCELERATION*dt),-steering_limit,steering_limit)
 	lateral = clampf(lateral+velocity*dt,-EDGE_LIMIT,EDGE_LIMIT)
 	avoiding = absf(lateral-DEFAULT_LATERAL)>0.12 or absf(target-DEFAULT_LATERAL)>0.12
 	return {"lateral":lateral,"blocked":blocked,"avoiding":avoiding,"target":target}

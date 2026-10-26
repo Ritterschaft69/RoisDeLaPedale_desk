@@ -16,6 +16,8 @@ func run() -> void:
 	var planner := Planner.new()
 	for i in range(500): planner.step(i*0.1,5,0.02,[])
 	check(absf(planner.lateral-1.55)<0.001,"rider defaults to the right at 1.55 metres")
+	for i in range(300): planner.step(0,0,0.02,[{"s":15.0,"lateral":1.55,"radius":0.55}])
+	check(planner.lateral==1.55 and planner.velocity==0,"stationary bicycle does not slide sideways to avoid an obstacle")
 	for speed in [2.0,8.0,16.0]:
 		planner.reset()
 		var station := 0.0
@@ -112,6 +114,16 @@ func run() -> void:
 		if not snapshot.has(id): stable = false
 		elif snapshot[id].distance_to(life.actors[id].node.position)>0.001: stable = false
 	check(stable and life.actors.size()<=10,"streamed identities are deterministic and old actors are retired")
+	life.set_route(app.world)
+	life.step(0,app.route.start_m,0)
+	var walker: Dictionary = life.actors["walker0"]
+	walker.phase = 8.5
+	for i in range(1000): life.step(0.02,walker.anchor,0,1.55)
+	var waiting: Dictionary = life.state(walker,life.time_s)
+	check(walker.waiting and absf(float(waiting.lateral)-1.55)>=0.64,"crossing pedestrian waits before touching a stopped bicycle")
+	for i in range(50): life.step(0.02,float(walker.anchor)+10,0,1.55)
+	var resumed: Dictionary = life.state(walker,life.time_s)
+	check(not walker.waiting and float(resumed.lateral)>float(waiting.lateral)+0.2,"pedestrian resumes crossing when the stopped bicycle leaves")
 	app.queue_free()
 	await process_frame
 	print("RESULT_NAVIGATION passed=",passed," failed=",failures.size())

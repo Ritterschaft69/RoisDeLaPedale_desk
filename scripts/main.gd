@@ -376,7 +376,7 @@ func _physics_process(dt: float) -> void:
 	var rolling := 0.005
 	if terrain_kind == 1: rolling = 0.0095
 	if terrain_kind == 2: rolling *= 1.12
-	world.life.step(dt,distance,speed)
+	world.life.step(dt,distance,speed,lane.lateral)
 	lane.step(distance,speed,dt,world.life.observations(distance,speed))
 	var smoothed := input.smooth(watts)
 	var braking := physics.effective_mass_kg*3.5 if lane.blocked else 0.0

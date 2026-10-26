@@ -30,6 +30,8 @@ Cycliste et vélo remodelés, asphalte et accotements détaillés, terrain conti
 
 La pause fige aussi la faune et les passants. Les activités conservent l’écart latéral dans `lateral_m`. Les GPX et la couverture IGN existante sont préservés. Voir les [notes 0.2.0](docs/RELEASE_v0.2.0.md) et le [rapport de validation](docs/VALIDATION_v0.2.0.md).
 
+Le correctif **0.2.1** empêche le glissement latéral à l’arrêt et fait attendre les personnages devant un vélo immobilisé. Voir [validation 0.2.1](docs/VALIDATION_v0.2.1.md).
+
 ## Ce qui fonctionne
 
 - Session 3D native avec cycliste/vélo procéduraux, pédalage, caméra poursuite et shader toon à trois niveaux.
@@ -69,7 +71,7 @@ python tools/build.py --installer             # exports + installeur Windows non
 
 Le téléchargement initial des modèles officiels représente environ 1,26 Go. Les exports portables sont générés dans `build/`, exclus du suivi Git. Le paquet Windows est un exécutable x64 avec son fichier PCK ; garder les fichiers ensemble. Ne pas confondre un export produit sous Linux avec une exécution validée sous Windows.
 
-L’installeur `build/RoisDeLaPedale-0.2.0-Setup.exe` installe l’application pour l’utilisateur courant, crée les raccourcis du menu Démarrer et une entrée de désinstallation. Il conserve les activités et préférences dans AppData lors de la désinstallation. Construction vérifiée sous Linux ; installation/désinstallation Windows à valider sur un vrai poste.
+L’installeur `build/RoisDeLaPedale-0.2.1-Setup.exe` installe l’application pour l’utilisateur courant, crée les raccourcis du menu Démarrer et une entrée de désinstallation. Il conserve les activités et préférences dans AppData lors de la désinstallation. Construction vérifiée sous Linux ; installation/désinstallation Windows à valider sur un vrai poste.
 
 ## Limites de ce lot
 

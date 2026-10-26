@@ -48,7 +48,7 @@ func create_actor(id: String, kind: String, index: int, anchor: float) -> void:
 	var root := Node3D.new()
 	root.name = id
 	add_child(root)
-	var record := {"node":root,"kind":kind,"index":index,"anchor":anchor,"phase":float(posmod(index*37+route_seed,64)),"legs":[],"arms":[],"wings":[],"crossing":(kind=="walker" and index%6==0) or (kind=="deer" and index%9==1)}
+	var record := {"node":root,"kind":kind,"index":index,"anchor":anchor,"phase":float(posmod(index*37+route_seed,64)),"legs":[],"arms":[],"wings":[],"wait_delay":0.0,"waiting":false,"crossing":(kind=="walker" and index%6==0) or (kind=="deer" and index%9==1)}
 	if kind=="walker": person(record)
 	elif kind=="deer" or kind=="fox": animal(record)
 	elif kind=="bird": bird(record)
@@ -60,7 +60,7 @@ func state(record: Dictionary, at_time: float) -> Dictionary:
 	var lateral := 0.0
 	var vs := 0.0
 	var vx := 0.0
-	var t: float = at_time+record.phase
+	var t: float = at_time+record.phase-record.wait_delay
 	var side := -1.0 if int(record.index)%3==1 else 1.0
 	if record.kind=="obstacle": lateral = 1.55
 	elif record.kind=="walker":
@@ -91,13 +91,19 @@ func state(record: Dictionary, at_time: float) -> Dictionary:
 		vs = cos(t*0.11)*2.75
 		lateral = sin(t*0.13)*18
 		vx = cos(t*0.13)*2.34
-	return {"s":clampf(s,world.route.start_m,world.route.length_m),"lateral":lateral,"velocity_s":vs,"velocity_lateral":vx}
+	return {"s":clampf(s,world.route.start_m,world.route.length_m),"lateral":lateral,"velocity_s":0.0 if record.waiting else vs,"velocity_lateral":0.0 if record.waiting else vx}
 
-func step(dt: float, station: float, speed: float) -> void:
+func step(dt: float, station: float, speed: float, rider_lateral: float = 1.55) -> void:
 	time_s += dt
 	sync(station)
 	for record in actors.values():
+		record.waiting = false
 		var observation := state(record,time_s)
+		var body_radius := 1.0 if record.kind=="deer" else 0.32
+		if record.crossing and speed<0.2 and absf(float(observation.s)-station)<body_radius+1.2 and absf(float(observation.lateral)-rider_lateral)<body_radius+0.67:
+			record.wait_delay += dt
+			record.waiting = true
+			observation = state(record,time_s)
 		var at: Vector3 = world.roadside(observation.s,observation.lateral,absf(observation.lateral)>4.6)
 		if record.kind=="bird": at.y += 12+sin((time_s+record.phase)*0.2)*3
 		record.node.position = at+Vector3.UP*(0.055 if absf(observation.lateral)<3.3 else 0)
@@ -118,7 +124,7 @@ func observations(station: float, speed: float) -> Array:
 		var current := state(record,time_s)
 		if absf(float(current.s)-station)>maxf(22,speed*5+5): continue
 		var arrival := clampf((float(current.s)-station)/maxf(speed-float(current.velocity_s),1),0,6)
-		var future := state(record,time_s+arrival)
+		var future := current if record.waiting else state(record,time_s+arrival)
 		var radius := 1.0 if record.kind in ["deer","fox"] else (0.55 if record.kind=="obstacle" else 0.32)
 		results.append({"id":record.node.name,"s":current.s,"lateral":current.lateral,"velocity_lateral":current.velocity_lateral,"predicted_lateral":future.lateral,"radius":radius})
 	return results

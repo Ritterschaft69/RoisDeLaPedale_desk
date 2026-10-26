@@ -10,7 +10,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: release-v0.2.0
+  group: release-v0.2.1
   cancel-in-progress: false
 
 jobs:
@@ -78,10 +78,10 @@ jobs:
       - name: Upload installer and publish prerelease
         shell: bash
         run: |
-          if ! gh release view v0.2.0 > /dev/null 2>&1; then
-            gh release create v0.2.0 --target "$GITHUB_SHA" --title "Rois de la Pédale v0.2.0 — Paysages et monde vivant" --notes-file docs/RELEASE_v0.2.0.md --draft --prerelease
+          if ! gh release view v0.2.1 > /dev/null 2>&1; then
+            gh release create v0.2.1 --target "$GITHUB_SHA" --title "Rois de la Pédale v0.2.1 — Paysages et monde vivant" --notes-file docs/RELEASE_v0.2.1.md --draft --prerelease
           fi
           cd build
-          sha256sum RoisDeLaPedale-0.2.0-Setup.exe > SHA256SUMS.txt
-          gh release upload v0.2.0 RoisDeLaPedale-0.2.0-Setup.exe SHA256SUMS.txt ../docs/previews/v0.2.0-*.png --clobber
-          gh release edit v0.2.0 --draft=false --prerelease
+          sha256sum RoisDeLaPedale-0.2.1-Setup.exe > SHA256SUMS.txt
+          gh release upload v0.2.1 RoisDeLaPedale-0.2.1-Setup.exe SHA256SUMS.txt --clobber
+          gh release edit v0.2.1 --draft=false --prerelease
