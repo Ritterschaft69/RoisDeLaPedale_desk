@@ -16,7 +16,7 @@ Godot 4.6.3 standard : rendu, interface, boucle physique et fichiers applicatifs
 | --- | --- |
 | `scripts/physics.gd` | Forces mécaniques et intégrateur implicite au point milieu |
 | `scripts/trainer_input.gd` | Source démo, validation d’observations, expiration à 2 s et lissage 0,5 s |
-| `scripts/route.gd` | Recherche binaire et interpolation sur distance source ; pente sur 12 m |
+| `scripts/route.gd` | Lecture brute par recherche binaire ; géométrie dérivée B-spline cubique C2 sur grille de 2 m, tangentes analytiques et pente sur 12 m |
 | `scripts/world.gd` | Bande de route, terrain, végétation et fenêtre de visibilité |
 | `scripts/geoworld.gd` | Lecture du cache IGN, interpolation terrain, emprises et toitures/fenêtres |
 | `scripts/rider.gd` | Avatar/vélo procéduraux et animation des membres |
@@ -54,3 +54,5 @@ Les échantillons RGE ALTI ne constituent ni un nuage de points LiDAR HD ni un M
 ## Évolution 0.2.0
 
 `lane_planner.gd` décide du décalage latéral et du freinage virtuel au pas physique fixe. `world_life.gd` gère les personnages, animaux et obstacles déterministes dans un ensemble local borné, ainsi que leur mouvement et les observations prévues. `scenery.gd` construit et partage les maillages d’arbres et de rochers ; le terrain Delaunay évite le repli des grands rubans. La physique longitudinale et les données GPX restent séparées de cette couche de conduite et du rendu. Les faunes, personnages, clôtures et obstacles ne sont pas attribués aux données IGN.
+
+Depuis la version 0.3.0, `sample_raw()` conserve l’interpolation source pour les coordonnées et altitudes enregistrées. `sample()` remplace uniquement la position 3D par une B-spline cubique calculée sur une grille spatiale uniforme d’environ 2 m. Route, cycliste et pente physique partagent cette géométrie. Les distances GPX et le D+ brut ne sont pas recalculés à partir de la courbe. Les nœuds fantômes linéaires ancrent les extrémités ; l’extrapolation géométrique est limitée à 12 m. Le rendu interpole les deux derniers états physiques (au plus 20 ms de retard) ; l’évitement travaille sur l’état physique courant.
