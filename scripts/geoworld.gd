@@ -4,6 +4,7 @@ extends RefCounted
 const M = preload("res://scripts/materials.gd")
 var data: Dictionary = {}
 var vegetation: Array[Dictionary] = []
+var building_bounds: Array[Dictionary] = []
 var ground_material := M.toon(Color("c6c0a5"))
 var glass_material := M.toon(Color("465d60"))
 
@@ -11,6 +12,12 @@ func _init() -> void:
 	var path := "res://assets/geodata/world.json"
 	if not FileAccess.file_exists(path): return
 	data = JSON.parse_string(FileAccess.get_file_as_string(path))
+	for building in data.buildings:
+		var ring := PackedVector2Array()
+		for p in building.footprint: ring.append(Vector2(p[0],p[1]))
+		var bounds := Rect2(ring[0],Vector2.ZERO)
+		for p in ring: bounds = bounds.expand(p)
+		building_bounds.append({"ring":ring,"bounds":bounds.grow(0.5)})
 	for zone in data.vegetation:
 		var rings: Array[PackedVector2Array] = []
 		for source_ring in zone.rings:
@@ -20,6 +27,12 @@ func _init() -> void:
 		var bounds := Rect2(rings[0][0],Vector2.ZERO)
 		for p in rings[0]: bounds = bounds.expand(p)
 		vegetation.append({"rings":rings,"bounds":bounds,"nature":zone.nature})
+
+func building_at(point: Vector2) -> bool:
+	if data.is_empty(): return false
+	for building in building_bounds:
+		if building.bounds.has_point(point) and Geometry2D.is_point_in_polygon(point,building.ring): return true
+	return false
 
 func covers(station: float) -> bool:
 	return not data.is_empty() and station >= data.coverage.start_m and station <= data.coverage.end_m
@@ -59,7 +72,7 @@ func buildings(parent: Node3D, station: float) -> void:
 	if data.is_empty(): return
 	for building in data.buildings:
 		if float(building.station)<station-100 or float(building.station)>station+380: continue
-		build(parent,building,absf(float(building.station)-station)<65)
+		build(parent,building,absf(float(building.station)-station)<180)
 
 func build(parent: Node3D, building: Dictionary, detailed: bool) -> void:
 	var polygon := PackedVector2Array()
@@ -94,6 +107,9 @@ func build(parent: Node3D, building: Dictionary, detailed: bool) -> void:
 	var eave := maxf(2.2,float(building.height)-rise)
 	var walls := SurfaceTool.new()
 	walls.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var facade := SurfaceTool.new()
+	facade.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var facade_vertices := 0
 	for i in range(polygon.size()):
 		var a := polygon[i]
 		var b := polygon[(i+1)%polygon.size()]
@@ -107,10 +123,13 @@ func build(parent: Node3D, building: Dictionary, detailed: bool) -> void:
 			var a_top := eave+rise*(1-absf(p.dot(across)-ridge)/half_width)
 			var b_top := eave+rise*(1-absf(q.dot(across)-ridge)/half_width)
 			var vertices := [Vector3(p.x,-1,p.y),Vector3(q.x,-1,q.y),Vector3(q.x,b_top,q.y),Vector3(p.x,a_top,p.y)]
-			for index in [0,1,2,0,2,3]: walls.add_vertex(vertices[index])
-		if detailed: windows(node,a,b,eave)
+			var winding := [0,2,1,0,3,2] if Geometry2D.is_polygon_clockwise(polygon) else [0,1,2,0,2,3]
+			for index in winding: walls.add_vertex(vertices[index])
+		if detailed: facade_vertices += windows(facade,a,b,eave,Geometry2D.is_polygon_clockwise(polygon),int(building.seed),i==0)
 	walls.generate_normals()
 	M.mesh(node,walls.commit(),wall_material,Vector3.ZERO)
+	if facade_vertices>0:
+		M.mesh(node,facade.commit(),M.toon(Color.WHITE,false,true),Vector3.ZERO)
 	var roof := SurfaceTool.new()
 	roof.begin(Mesh.PRIMITIVE_TRIANGLES)
 	for sign_side in [-1.0,1.0]:
@@ -121,23 +140,43 @@ func build(parent: Node3D, building: Dictionary, detailed: bool) -> void:
 			roof.add_vertex(Vector3(p.x,eave+rise*(1-absf(p.dot(across)-ridge)/half_width),p.y))
 	roof.generate_normals()
 	var roof_mesh := M.mesh(node,roof.commit(),roof_material,Vector3.ZERO)
+	if detailed and float(building.height)>4 and longest>36:
+		var chimney_at := axis*sqrt(longest)*0.16
+		var chimney_y := eave+rise*(1-absf(chimney_at.dot(across)-ridge)/half_width)
+		M.box(node,Vector3(chimney_at.x,chimney_y+0.6,chimney_at.y),Vector3(0.55,1.2,0.55),M.toon(Color("9a8d77")))
+		M.box(node,Vector3(chimney_at.x,chimney_y+1.23,chimney_at.y),Vector3(0.68,0.12,0.68),M.toon(Color("655f53")))
 	# Irregular source polygons can have either winding; surface normals are
 	# generated, while two-sided materials preserve both source orientations.
 	if not detailed:
 		roof_mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 
-func windows(parent: Node3D, a: Vector2, b: Vector2, height: float) -> void:
+func windows(surface: SurfaceTool, a: Vector2, b: Vector2, height: float, clockwise: bool, seed_value: int, entrance: bool) -> int:
 	var length := a.distance_to(b)
-	if length<3: return
+	if length<3: return 0
 	var direction := (b-a).normalized()
+	var normal := Vector2(-direction.y,direction.x)*(1.0 if clockwise else -1.0)
+	var angles := Vector3(0,-atan2(direction.y,direction.x),0)
 	var count := mini(6,int(length/2.8))
+	var shutter := Color("526759") if seed_value%2==0 else Color("79554b")
+	var shape := BoxMesh.new()
+	shape.size = Vector3.ONE
 	for floor_index in range(mini(3,maxi(1,int(height/3)))):
 		for i in range(count):
 			var at := a.lerp(b,float(i+1)/(count+1))
-			var pane := BoxMesh.new()
-			pane.size = Vector3(0.85,1.15,0.12)
-			var window := M.mesh(parent,pane,glass_material,Vector3(at.x,1.65+floor_index*2.7,at.y))
-			window.rotation.y = -atan2(direction.y,direction.x)
+			var y := 1.65+floor_index*2.7
+			var center := Vector3(at.x,y,at.y)+Vector3(normal.x,0,normal.y)*0.08
+			if entrance and i==0 and floor_index==0:
+				center.y = 1.05
+				preload("res://scripts/scenery.gd").append_shape(surface,shape,center,Vector3(1.05,2.1,0.18),Color("e7ddc4"),angles)
+				preload("res://scripts/scenery.gd").append_shape(surface,shape,center+Vector3(normal.x,0,normal.y)*0.10,Vector3(0.82,1.95,0.09),shutter,angles)
+				continue
+			preload("res://scripts/scenery.gd").append_shape(surface,shape,center,Vector3(1.02,1.32,0.12),Color("e4dcc4"),angles)
+			preload("res://scripts/scenery.gd").append_shape(surface,shape,center+Vector3(normal.x,0,normal.y)*0.08,Vector3(0.82,1.11,0.08),Color("455b60"),angles)
+			for side in [-1.0,1.0]:
+				var panel_at: Vector3 = center+Vector3(direction.x,0,direction.y)*side*0.65
+				preload("res://scripts/scenery.gd").append_shape(surface,shape,panel_at,Vector3(0.23,1.2,0.10),shutter,angles)
+			preload("res://scripts/scenery.gd").append_shape(surface,shape,center+Vector3(normal.x,0,normal.y)*0.14,Vector3(0.035,1.12,0.03),Color("c7bfa6"),angles)
+	return count
 
 func clip_ridge(polygon: PackedVector2Array, normal: Vector2, offset: float, side: float) -> PackedVector2Array:
 	var result := PackedVector2Array()

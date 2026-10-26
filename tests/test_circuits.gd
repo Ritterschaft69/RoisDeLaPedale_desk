@@ -28,7 +28,7 @@ func run() -> void:
 		await process_frame
 		check(app.screen == "home" and app.selected_circuit.id == id,"menu selects correct circuit "+id)
 		check(app.world.route == app.route and app.distance == app.route.start_m and app.elapsed == 0,"route/world/progress reset for "+id)
-		check(absf(app.world.roadside(-20,0).distance_to(app.route.sample(0).position)-20) < 0.001,"visual start apron supports the chase camera for "+id)
+		check(absf(app.world.roadside(app.route.start_m-20,0).distance_to(app.route.sample(app.route.start_m).position)-20) < 0.001,"visual start apron supports the chase camera for "+id)
 		app.hud.ensure_route_cache()
 		check(app.hud.cached_route == app.route and app.hud.map_points.size() <= 702,"map and profile refresh with bounded display geometry for "+id)
 		check(app.world.geographic.covers(0) == (id == "saint_die"),"IGN cache is scoped and restored correctly for "+id)

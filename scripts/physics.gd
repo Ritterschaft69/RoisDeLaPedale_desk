@@ -18,7 +18,7 @@ func resistance(v: float, grade: float, headwind: float, rolling: float, draftin
 		"aero": 0.5 * rho * cda * (1.0 - clampf(drafting, 0, 0.45)) * relative_air * absf(relative_air)}
 
 func step(speed: float, watts: float, grade: float, dt: float, headwind: float = 0.0,
-	rolling: float = -1.0, drafting: float = 0.0) -> Dictionary:
+	rolling: float = -1.0, drafting: float = 0.0, brake_force: float = 0.0) -> Dictionary:
 	assert(dt > 0.0 and dt <= 0.1)
 	var wheel_power := maxf(watts, 0.0) * efficiency
 	var coefficient := crr if rolling < 0.0 else rolling
@@ -31,7 +31,7 @@ func step(speed: float, watts: float, grade: float, dt: float, headwind: float =
 		var midpoint := (speed + candidate) * 0.5
 		var forces := resistance(midpoint, grade, headwind, coefficient, drafting)
 		var prop := minf(maximum_force, wheel_power / maxf(midpoint, 0.000001))
-		var residual: float = effective_mass_kg * (candidate - speed) / dt - prop + forces.gravity + forces.rolling + forces.aero
+		var residual: float = effective_mass_kg * (candidate - speed) / dt - prop + forces.gravity + forces.rolling + forces.aero + maxf(brake_force,0)
 		if residual > 0: high = candidate
 		else: low = candidate
 	var next_speed := (low + high) * 0.5
@@ -39,5 +39,6 @@ func step(speed: float, watts: float, grade: float, dt: float, headwind: float =
 	var mean_speed := (speed + next_speed) * 0.5
 	var forces := resistance(mean_speed, grade, headwind, coefficient, drafting)
 	forces["propulsion"] = minf(maximum_force, wheel_power / maxf(mean_speed, 0.000001))
+	forces["braking"] = maxf(brake_force,0)
 	return {"speed": next_speed, "distance": mean_speed * dt,
 		"acceleration": (next_speed - speed) / dt, "forces": forces}

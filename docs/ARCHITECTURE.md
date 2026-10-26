@@ -50,3 +50,7 @@ Les échantillons RGE ALTI ne constituent ni un nuage de points LiDAR HD ni un M
 3. Remplacer les modèles de prototype, enrichir les façades et paysages ; instancing/LOD et profilage sur matériel de référence.
 4. Audio local sous licences explicites et réglages de sortie.
 5. Valider sur Windows l’installeur NSIS déjà produit, l’installation/désinstallation et le hors ligne ; sessions longues et signature si certificat disponible.
+
+## Évolution 0.2.0
+
+`lane_planner.gd` décide du décalage latéral et du freinage virtuel au pas physique fixe. `world_life.gd` gère les personnages, animaux et obstacles déterministes dans un ensemble local borné, ainsi que leur mouvement et les observations prévues. `scenery.gd` construit et partage les maillages d’arbres et de rochers ; le terrain Delaunay évite le repli des grands rubans. La physique longitudinale et les données GPX restent séparées de cette couche de conduite et du rendu. Les faunes, personnages, clôtures et obstacles ne sont pas attribués aux données IGN.

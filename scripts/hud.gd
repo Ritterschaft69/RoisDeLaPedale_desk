@@ -70,6 +70,12 @@ func _draw() -> void:
 		text_at(Vector2(w-303,371),"%.1f km   /   D+ brut %.0f m" % [app.route.length_m/1000,app.route.ascent_m],15,CREAM,true)
 		return
 	if app.screen == "summary": return
+	if app.lane.blocked:
+		panel(Rect2(460,190,480,37))
+		text_at(Vector2(478,215),"Passage bloqué · freinage de sécurité",14,GOLD,true)
+	elif app.lane.avoiding:
+		panel(Rect2(510,190,325,37))
+		text_at(Vector2(528,215),"Contournement de l’obstacle",14,CREAM,true)
 	var stats := [["PUISSANCE",str(roundi(app.watts)),"W",GOLD],
 		["VITESSE","%.1f" % (app.speed*3.6),"km/h",Color("85d1bb")],
 		["CADENCE",str(roundi(app.cadence)),"tr/min",Color("9fceec")],
@@ -86,15 +92,18 @@ func _draw() -> void:
 	text_at(Vector2(w-267,86),str(app.selected_circuit.short_name).to_upper(),12,CREAM,true)
 	draw_map(Rect2(w-266,101,214,168))
 	text_at(Vector2(w-267,303),"%.1f km restants" % ((app.route.length_m-app.distance)/1000),16,CREAM,true)
-	# Bottom elevation strip, route progress and session telemetry.
-	panel(Rect2(32,h-168,w-64,126))
-	text_at(Vector2(53,h-139),str(app.selected_circuit.short_name).to_upper(),12,MUTED,true)
-	text_at(Vector2(53,h-108),"%.2f / %.1f km" % [(app.distance-app.route.start_m)/1000,(app.route.length_m-app.route.start_m)/1000],21,CREAM,true)
-	text_at(Vector2(53,h-72),"%02d:%02d   ·   %.0f m d’altitude" % [int(app.elapsed)/60,int(app.elapsed)%60,app.route.sample(app.distance).position.y],13,MUTED)
-	draw_profile(Rect2(350,h-139,w-700,75))
-	text_at(Vector2(w-305,h-137),"MODE DÉMO · %d W" % app.input.demo_watts,12,GOLD,true)
-	text_at(Vector2(w-305,h-110),"↑ ↓  Puissance     Espace  Pause",12,CREAM)
-	text_at(Vector2(w-305,h-85),"F11  Plein écran    Échap  Menu",12,MUTED)
+	# Keep the centre of the screen free so the rider and wheels remain visible.
+	panel(Rect2(32,h-147,320,104))
+	text_at(Vector2(53,h-119),str(app.selected_circuit.short_name).to_upper(),12,MUTED,true)
+	text_at(Vector2(53,h-89),"%.2f / %.1f km" % [(app.distance-app.route.start_m)/1000,(app.route.length_m-app.route.start_m)/1000],21,CREAM,true)
+	text_at(Vector2(53,h-62),"%02d:%02d   ·   %.0f m d’altitude" % [int(app.elapsed)/60,int(app.elapsed)%60,app.route.sample(app.distance).position.y],13,MUTED)
+	panel(Rect2(w-286,338,254,94))
+	text_at(Vector2(w-266,363),"PROFIL DU CIRCUIT",11,MUTED,true)
+	draw_profile(Rect2(w-266,376,214,39))
+	panel(Rect2(w-338,h-147,306,104))
+	text_at(Vector2(w-318,h-118),"MODE DÉMO · %d W" % app.input.demo_watts,12,GOLD,true)
+	text_at(Vector2(w-318,h-91),"↑ ↓  Puissance     Espace  Pause",12,CREAM)
+	text_at(Vector2(w-318,h-66),"F11  Plein écran     H  Interface",12,MUTED)
 	if app.screen == "paused":
 		draw_rect(Rect2(Vector2.ZERO,size),Color(0.03,0.07,0.07,0.38))
 

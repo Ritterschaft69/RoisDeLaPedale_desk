@@ -7,6 +7,7 @@ const Rider = preload("res://scripts/rider.gd")
 const HUD = preload("res://scripts/hud.gd")
 const InputAdapter = preload("res://scripts/trainer_input.gd")
 const Recorder = preload("res://scripts/recorder.gd")
+const LanePlanner = preload("res://scripts/lane_planner.gd")
 
 var route := Route.new()
 var circuits: Array = JSON.parse_string(FileAccess.get_file_as_string("res://assets/routes/catalog.json"))
@@ -14,6 +15,7 @@ var selected_circuit: Dictionary = circuits[0]
 var physics := Physics.new()
 var input := InputAdapter.new()
 var recorder := Recorder.new()
+var lane := LanePlanner.new()
 var world := World.new()
 var rider := Rider.new()
 var camera := Camera3D.new()
@@ -47,8 +49,8 @@ func _ready() -> void:
 	world.update_at(0,true)
 	add_child(rider)
 	add_child(camera)
-	camera.fov = 58
-	camera.far = 900
+	camera.fov = 48
+	camera.far = 2200
 	var layer := CanvasLayer.new()
 	add_child(layer)
 	layer.add_child(hud)
@@ -117,7 +119,7 @@ func card(title: String, subtitle: String, wide: bool = false) -> VBoxContainer:
 	column.add_theme_constant_override("separation",14)
 	panel.add_child(column)
 	var eyebrow := Label.new()
-	eyebrow.text = "ROIS DE LA PÉDALE  /  0.1"
+	eyebrow.text = "ROIS DE LA PÉDALE  /  0.2"
 	eyebrow.add_theme_font_size_override("font_size",12)
 	eyebrow.modulate = Color("efbe76")
 	column.add_child(eyebrow)
@@ -157,6 +159,8 @@ func button_in(parent: Node, text: String, callback: Callable, primary: bool = f
 	return button
 
 func show_home() -> void:
+	hud.show()
+	overlay.show()
 	screen = "home"
 	var column := card("Prenez la route.",str(selected_circuit.short_name)+"\nTrois circuits installés, disponibles hors ligne.")
 	label_in(column,"%.1f km   ·   %s points GPS   ·   D+ brut %.0f m" % [route.length_m/1000,route.points.size(),route.ascent_m])
@@ -205,6 +209,7 @@ func select_circuit(circuit_id: String) -> bool:
 		route = Route.new(entry.data)
 		route.start_m = entry.get("start_m",0.0)
 		world.set_route(route)
+		lane.reset()
 		distance = route.start_m
 		speed = 0
 		elapsed = 0
@@ -282,6 +287,8 @@ func start_session() -> void:
 	speed = 0
 	watts = 0
 	input.samples.clear()
+	lane.reset()
+	world.life.set_route(world)
 	physics.mass_kg = rider_mass+9
 	physics.effective_mass_kg = physics.mass_kg+2
 	recorder.begin(route.sample(route.start_m).position.y)
@@ -308,6 +315,8 @@ func show_ride_controls() -> void:
 
 func toggle_pause() -> void:
 	if screen == "ride":
+		hud.show()
+		overlay.show()
 		screen = "paused"
 		var column := card("Une respiration.","La simulation et le chronomètre sont en pause.")
 		button_in(column,"Reprendre  →",resume_session,true)
@@ -350,6 +359,10 @@ func _unhandled_key_input(event: InputEvent) -> void:
 	if not event is InputEventKey or not event.pressed: return
 	match event.keycode:
 		KEY_F11: toggle_fullscreen()
+		KEY_H:
+			if screen=="ride" and not event.echo:
+				hud.visible = not hud.visible
+				overlay.visible = hud.visible
 		KEY_SPACE,KEY_ESCAPE:
 			if screen == "ride" or screen == "paused": toggle_pause()
 		KEY_UP: input.demo_watts = minf(500,input.demo_watts+10)
@@ -363,22 +376,31 @@ func _physics_process(dt: float) -> void:
 	var rolling := 0.005
 	if terrain_kind == 1: rolling = 0.0095
 	if terrain_kind == 2: rolling *= 1.12
-	var result := physics.step(speed,input.smooth(watts),route.grade(distance),dt,0,rolling)
+	world.life.step(dt,distance,speed)
+	lane.step(distance,speed,dt,world.life.observations(distance,speed))
+	var smoothed := input.smooth(watts)
+	var braking := physics.effective_mass_kg*3.5 if lane.blocked else 0.0
+	var result := physics.step(speed,0.0 if lane.blocked else smoothed,route.grade(distance),dt,0,rolling,0,braking)
 	speed = result.speed
 	distance = minf(route.length_m,distance+result.distance)
 	elapsed += dt
-	recorder.tick(dt,distance-route.start_m,speed,watts,cadence,route.sample(distance))
+	recorder.tick(dt,distance-route.start_m,speed,watts,cadence,route.sample(distance),lane.lateral)
 	if distance >= route.length_m: finish_session()
 
 func position_scene(dt: float, immediate: bool = false) -> void:
-	rider.position = route.sample(distance).position+Vector3.UP*0.06
+	rider.position = world.roadside(distance,lane.lateral)+Vector3.UP*0.065
 	var forward := route.direction(distance)
-	var desired_rotation := atan2(-forward.x,-forward.z)
+	var right := Vector3(-forward.z,0,forward.x).normalized()
+	var steering := forward+right*(lane.velocity/maxf(speed,2))
+	var desired_rotation := atan2(-steering.x,-steering.z)
 	rider.rotation.y = desired_rotation if immediate else lerp_angle(rider.rotation.y,desired_rotation,1-exp(-dt*6))
+	var bend := forward.cross(route.direction(minf(route.length_m,distance+6))).y
+	rider.rotation.z = lerpf(rider.rotation.z,clampf(bend*0.8-lane.velocity*0.10,-0.13,0.13),1-exp(-dt*5))
+	rider.rotation.x = atan(clampf(route.grade(distance),-0.25,0.25))
 	var horizontal := Vector3(forward.x,0,forward.z).normalized()
-	var desired := rider.position-horizontal*4.2+Vector3.UP*2.45
+	var desired := rider.position-horizontal*3.6+Vector3.UP*2.2-right*0.45
 	camera.position = desired if immediate else camera.position.lerp(desired,1-exp(-dt*4))
-	var target := rider.position+horizontal*3+Vector3.UP*1.25
+	var target := rider.position+horizontal*1.8+Vector3.UP*1.3
 	camera.look_at(target,Vector3.UP)
 
 func _process(dt: float) -> void:

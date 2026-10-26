@@ -24,7 +24,7 @@ func begin(altitude: float) -> void:
 	cadence_sum = 0
 	elapsed_s = 0
 
-func tick(dt: float, distance: float, speed: float, watts: float, cadence: float, location: Dictionary) -> void:
+func tick(dt: float, distance: float, speed: float, watts: float, cadence: float, location: Dictionary, lateral_m: float = 0.0) -> void:
 	var previous_second := int(elapsed_s)
 	elapsed_s += dt
 	sum_watts += watts * dt
@@ -34,7 +34,7 @@ func tick(dt: float, distance: float, speed: float, watts: float, cadence: float
 	previous_altitude = location.position.y
 	if int(elapsed_s) > previous_second:
 		points.append({"t": elapsed_s,"distance_m": distance,"speed_mps": speed,"watts": watts,
-			"cadence_rpm": cadence,"lat": location.lat,"lon": location.lon,"alt_m": location.position.y})
+			"cadence_rpm": cadence,"lat": location.lat,"lon": location.lon,"alt_m": location.position.y,"lateral_m":lateral_m})
 
 func save(distance: float, complete: bool) -> Dictionary:
 	var summary := {"schema":1,"started_at_utc":started_at,"duration_s":elapsed_s,"distance_m":distance,

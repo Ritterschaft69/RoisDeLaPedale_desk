@@ -12,7 +12,7 @@ Installer Godot 4.6.3 standard (pas besoin de .NET), puis ouvrir `project.godot`
 godot --path .
 ```
 
-Cliquer sur **Choisir un circuit**, sélectionner un des trois parcours, puis **Démarrer en mode démo**. Le dernier circuit choisi est mémorisé. La carte, le profil, le HUD et les activités enregistrées correspondent au circuit sélectionné. Flèches haut/bas ou boutons : watts simulés ; Espace/Échap : pause ; F11 : plein écran. Le mode démo ne représente jamais une mesure de home trainer. Paramètres et activités JSON sont stockés dans le répertoire applicatif Godot de l’utilisateur, pas dans le dépôt.
+Cliquer sur **Choisir un circuit**, sélectionner un des trois parcours, puis **Démarrer en mode démo**. Le dernier circuit choisi est mémorisé. La carte, le profil, le HUD et les activités enregistrées correspondent au circuit sélectionné. Flèches haut/bas ou boutons : watts simulés ; Espace/Échap : pause ; F11 : plein écran ; H : masquer/afficher l’interface. Le mode démo ne représente jamais une mesure de home trainer. Paramètres et activités JSON sont stockés dans le répertoire applicatif Godot de l’utilisateur, pas dans le dépôt.
 
 | Circuits installés hors ligne | Distance GPX | D+ brut non filtré |
 | --- | --- | --- |
@@ -23,6 +23,12 @@ Cliquer sur **Choisir un circuit**, sélectionner un des trois parcours, puis **
 Les deux nouveaux GPX sont conservés sans modification de leurs 19 641 et 20 459 points. Leur décor est illustratif ; les données IGN installées restent limitées aux trois premiers kilomètres du circuit de Saint-Dié. Le catalogue est dans `assets/routes/catalog.json`. Les deux nouveaux fichiers présentent un saut initial de 18,8 m sur 0,13 m et de 10,8 m sur 0,68 m : le départ jouable est explicitement positionné à 12 m sur ces deux circuits, sans supprimer ni modifier les points sources. Le compteur et les activités ne créditent pas ces 12 m.
 
 Sur cette machine cloud sans écran : `python tools/run_cloud.py --fixed-fps 60 -- --screenshot --geo-screenshot` démarre un affichage logiciel isolé, exécute une courte session et écrit `build/session.png`. Aucun lien web de prévisualisation.
+
+## Nouveautés 0.2.0
+
+Cycliste et vélo remodelés, asphalte et accotements détaillés, terrain continu, arbres variés, façades enrichies, ciel et arrière-plans. Le cycliste roule à droite par défaut, anticipe les obstacles, se décale progressivement puis revient à droite ; si le passage est bloqué, il freine virtuellement. Des passants, chevreuils, renards et oiseaux animent le décor. Ces éléments de jeu sont procéduraux.
+
+La pause fige aussi la faune et les passants. Les activités conservent l’écart latéral dans `lateral_m`. Les GPX et la couverture IGN existante sont préservés. Voir les [notes 0.2.0](docs/RELEASE_v0.2.0.md) et le [rapport de validation](docs/VALIDATION_v0.2.0.md).
 
 ## Ce qui fonctionne
 
@@ -42,6 +48,8 @@ python -m unittest discover -s tests -v
 godot --headless --path . --script tests/test_simulation.gd
 godot --headless --path . --script tests/test_desktop.gd
 godot --headless --path . --script tests/test_circuits.gd
+godot --headless --path . --script tests/test_navigation.gd
+godot --headless --path . --script tests/test_geometry.gd
 godot --headless --path . --fixed-fps 60 -- --smoke
 ```
 
@@ -61,7 +69,7 @@ python tools/build.py --installer             # exports + installeur Windows non
 
 Le téléchargement initial des modèles officiels représente environ 1,26 Go. Les exports portables sont générés dans `build/`, exclus du suivi Git. Le paquet Windows est un exécutable x64 avec son fichier PCK ; garder les fichiers ensemble. Ne pas confondre un export produit sous Linux avec une exécution validée sous Windows.
 
-L’installeur `build/RoisDeLaPedale-0.1.0-Setup.exe` installe l’application pour l’utilisateur courant, crée les raccourcis du menu Démarrer et une entrée de désinstallation. Il conserve les activités et préférences dans AppData lors de la désinstallation. Construction vérifiée sous Linux ; installation/désinstallation Windows à valider sur un vrai poste.
+L’installeur `build/RoisDeLaPedale-0.2.0-Setup.exe` installe l’application pour l’utilisateur courant, crée les raccourcis du menu Démarrer et une entrée de désinstallation. Il conserve les activités et préférences dans AppData lors de la désinstallation. Construction vérifiée sous Linux ; installation/désinstallation Windows à valider sur un vrai poste.
 
 ## Limites de ce lot
 
