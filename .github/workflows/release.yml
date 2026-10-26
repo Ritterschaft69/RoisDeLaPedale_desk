@@ -1,0 +1,79 @@
+name: Publish Windows prototype release
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: [.github/workflows/release.yml]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-v0.1.0
+  cancel-in-progress: false
+
+jobs:
+  windows-installer:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    env:
+      GH_REPO: ${{ github.repository }}
+      GH_TOKEN: ${{ github.token }}
+      XDG_DATA_HOME: ${{ runner.temp }}/rdp-data
+      XDG_CONFIG_HOME: ${{ runner.temp }}/rdp-config
+      XDG_CACHE_HOME: ${{ runner.temp }}/rdp-cache
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install verified Godot and NSIS
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y nsis
+          python - <<'PY'
+          import hashlib, os, pathlib, urllib.request, zipfile
+          version = '4.6.3'
+          base = f'https://github.com/godotengine/godot-builds/releases/download/{version}-stable/'
+          filename = f'Godot_v{version}-stable_linux.x86_64.zip'
+          binary = f'Godot_v{version}-stable_linux.x86_64'
+          folder = pathlib.Path(os.environ['RUNNER_TEMP'])/'godot-bin'
+          folder.mkdir(parents=True, exist_ok=True)
+          with urllib.request.urlopen(base+'SHA512-SUMS.txt', timeout=60) as response:
+              sums = response.read().decode()
+          expected = next(line.split()[0] for line in sums.splitlines() if line.split()[-1] == filename)
+          archive = folder/filename
+          with urllib.request.urlopen(base+filename, timeout=120) as response:
+              archive.write_bytes(response.read())
+          if hashlib.sha512(archive.read_bytes()).hexdigest() != expected:
+              raise RuntimeError('Official Godot archive checksum mismatch')
+          with zipfile.ZipFile(archive) as source:
+              (folder/'godot').write_bytes(source.read(binary))
+          (folder/'godot').chmod(0o755)
+          with open(os.environ['GITHUB_PATH'], 'a') as output:
+              output.write(str(folder)+'\n')
+          print('Official Godot archive SHA512 verified')
+          PY
+      - name: Validate the three circuits and native application
+        shell: bash
+        run: |
+          mkdir -p "$XDG_DATA_HOME" "$XDG_CONFIG_HOME" "$XDG_CACHE_HOME"
+          python tools/prepare_route.py --all
+          godot --headless --editor --path . --import --quit
+          python -m unittest discover -s tests -v
+          godot --headless --path . --script tests/test_simulation.gd
+          godot --headless --path . --script tests/test_desktop.gd
+          godot --headless --path . --script tests/test_circuits.gd
+      - name: Build the Windows installer
+        run: python tools/build.py --templates --target windows --installer
+      - name: Upload installer and publish prerelease
+        shell: bash
+        run: |
+          cd build
+          sha256sum RoisDeLaPedale-0.1.0-Setup.exe > SHA256SUMS.txt
+          gh release upload v0.1.0 RoisDeLaPedale-0.1.0-Setup.exe SHA256SUMS.txt --clobber
+          gh release edit v0.1.0 --draft=false --prerelease
