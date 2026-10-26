@@ -19,6 +19,16 @@ func _init(path: String = "res://assets/routes/saint_die.json") -> void:
 	var count := int(ceil(length_m / 2.0))
 	spacing = length_m / count
 	for i in range(count + 1): curve.append(sample_raw(i * spacing).position)
+	# Remove short GPS/elevation jitter before fitting the continuous curve.
+	# Bound the extra correction: narrow bends stay close to their source track.
+	var grid := curve.duplicate()
+	for i in range(1,count):
+		var filtered := Vector3.ZERO
+		var weights := [1.0,4.0,6.0,4.0,1.0]
+		for j in range(-2,3):
+			filtered += (grid[clampi(i+j,0,count)]-grid[i])*weights[j+2]/16.0
+		var horizontal := Vector2(filtered.x,filtered.z).limit_length(.35)
+		curve[i] += Vector3(horizontal.x,clampf(filtered.y,-.25,.25),horizontal.y)
 
 func sample_raw(distance: float) -> Dictionary:
 	var s := clampf(distance, 0, length_m)

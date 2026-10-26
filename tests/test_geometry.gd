@@ -67,6 +67,9 @@ func run() -> void:
 	var back: Vector3 = app.rider.limbs[0].shoe.position
 	check(front.z<top.z and bottom.y<front.y and back.z>bottom.z,"forward pedal cycle: top, forward (-Z), bottom, rear")
 	check(app.rider.limbs[0].shoe.position.y != app.rider.limbs[1].shoe.position.y or absf(app.rider.limbs[0].shoe.position.z-app.rider.limbs[1].shoe.position.z)>.3,"pedals remain diametrically opposed")
+	app.rider.crank = 0
+	app.rider.animate(.6,90,0)
+	check(app.rider.crank>0 and app.rider.crank<=PI/3+.00001,"render stalls cannot skip backward-looking pedal phases")
 	var crank: float = app.rider.crank
 	app.rider.animate(0.5,0,4)
 	check(app.rider.crank==crank,"coasting stops pedalling while wheels keep turning")

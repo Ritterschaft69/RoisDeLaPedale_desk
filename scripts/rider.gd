@@ -1,6 +1,7 @@
 class_name CyclingRider
 extends Node3D
 
+const S = preload("res://scripts/rider_shapes.gd")
 const M = preload("res://scripts/materials.gd")
 var limbs: Array[Dictionary] = []
 var wheels: Array[Node3D] = []
@@ -12,16 +13,12 @@ func _ready() -> void:
 	var black := M.toon(Color("18232e"),true)
 	var rubber := M.toon(Color("162027"))
 	var carbon := M.toon(Color("273942"),true)
-	var silver := M.toon(Color("b4c0be"))
-	var jersey := M.toon(Color("f45b18"),true)
-	var dark_jersey := M.toon(Color("a53d18"))
-	var skin := M.toon(Color("d59370"),true)
+	var silver := S.fabric(Color("879298"),.45)
 	var cream := M.toon(Color("f4f5f2"),true)
-	var shorts := M.toon(Color("253143"),true)
 	var teal := M.toon(Color("7aafaa"))
 	# Correct road-bike proportions: 700C wheels, narrow tyres, real fork and stays.
-	var rear := Vector3(0,0.35,0.64)
-	var front := Vector3(0,0.35,-0.65)
+	var rear := Vector3(0,0.35,0.49)
+	var front := Vector3(0,0.35,-0.57)
 	var bracket := Vector3(0,0.29,0.06)
 	var seat := Vector3(0,0.82,0.26)
 	var headset := Vector3(0,0.79,-0.46)
@@ -89,91 +86,115 @@ func _ready() -> void:
 	ring.outer_radius = 0.095
 	ring.rings = 40
 	M.mesh(self,ring,silver,bracket+Vector3(0.055,0,0)).rotation.z = PI/2
-	# Contoured clothing, rather than a sphere used as a torso.
-	add_child(upper_body)
-	var torso := M.anatomy(upper_body,[[0,.15,.105],[.15,.175,.13],[.38,.195,.145],[.65,.225,.155],[.83,.23,.14],[1,.08,.07]],jersey)
-	M.place_rod(torso,Vector3(0,1.10,.22),Vector3(0,1.42,-.34))
-	var pelvis := M.loft(self,[
-		{"center":Vector3(0,0.99,0.23),"width":0.13,"depth":0.11},
-		{"center":Vector3(0,1.09,0.25),"width":0.185,"depth":0.145},
-		{"center":Vector3(0,1.17,0.18),"width":0.17,"depth":0.125}
-	],shorts,32)
-	pelvis.position.y = -0.07
-	# Three stitched back pockets and a small original reflective chevron.
-	for x in [-.11,0.0,.11]:
-		M.rod(upper_body,Vector3(x,1.23,.22),Vector3(x,1.34,.03),.002,dark_jersey)
-	M.rod(upper_body,Vector3(-.15,1.26,.18),Vector3(.15,1.26,.18),.002,dark_jersey)
-	M.rod(upper_body,Vector3(-.025,1.38,-.01),Vector3(0,1.40,-.04),.004,cream)
-	M.rod(upper_body,Vector3(0,1.40,-.04),Vector3(.025,1.38,-.01),.004,cream)
-	var head_root := Node3D.new()
-	upper_body.add_child(head_root)
-	head_root.position.y = -0.23
-	M.tapered(head_root,Vector3(0,1.65,-0.34),Vector3(0,1.69,-0.49),0.055,0.05,skin)
-	M.ball(head_root,Vector3(0,1.72,-0.52),Vector3(0.21,0.255,0.215),skin)
-	for side in [-1,1]:
-		M.ball(head_root,Vector3(side*0.095,1.72,-0.51),Vector3(0.026,0.055,0.035),skin)
-	# Aerodynamic helmet shell and dark ventilation channels.
-	M.ball(head_root,Vector3(0,1.83,-0.53),Vector3(0.255,0.155,0.30),black)
-	for x in [-.10,-.055,0,.055,.10]:
-		var last := Vector3(x,1.845,-.675)
-		for j in range(1,21):
-			var t := float(j)/20
-			var y := 1.845+.079*sin(t*PI)*sqrt(maxf(0,1-pow(x/.15,2)))
-			var next := Vector3(x,y,lerpf(-.675,-.39,t))
-			M.rod(head_root,last,next,.018,cream)
-			M.ball(head_root,next,Vector3(.036,.036,.036),cream)
-			last = next
-	M.ball(head_root,Vector3(0,1.815,-.66),Vector3(.24,.045,.055),cream)
-	M.ball(head_root,Vector3(0,1.815,-.405),Vector3(.24,.055,.055),cream)
-	M.rod(head_root,Vector3(-0.095,1.78,-0.49),Vector3(-0.07,1.64,-0.54),0.0045,black)
-	M.rod(head_root,Vector3(0.095,1.78,-0.49),Vector3(0.07,1.64,-0.54),0.0045,black)
-	M.box(head_root,Vector3(0,1.755,-0.619),Vector3(0.18,0.043,0.024),black)
-	for side in [-1,1]:
-		M.ball(head_root,Vector3(side*.103,1.839,-.535),Vector3(.052,.095,.238),cream)
-		for z in [-.60,-.53,-.46]:
-			M.ball(head_root,Vector3(side*.128,1.851,z),Vector3(.009,.027,.042),black)
-	# Sculpted facial landmarks under wraparound lenses, with a visible jaw.
-	M.ball(head_root,Vector3(0,1.66,-0.566),Vector3(.145,.12,.155),skin)
-	M.ball(head_root,Vector3(0,1.715,-0.637),Vector3(.034,.062,.052),skin)
-	M.rod(head_root,Vector3(-.025,1.672,-.648),Vector3(.025,1.672,-.648),.002,dark_jersey)
-	for side in [-1,1]:
-		var lens := M.ball(head_root,Vector3(side*.047,1.752,-.631),Vector3(.088,.055,.025),M.toon(Color("344450")))
-		lens.rotation.z = side*.13
-		M.rod(head_root,Vector3(side*.08,1.78,-.49),Vector3(side*.065,1.64,-.55),.003,black)
-	# Front zip follows the chest rather than floating above the jersey.
-	M.rod(upper_body,Vector3(0,1.19,-.012),Vector3(0,1.32,-.37),.0025,black)
-	M.rod(upper_body,Vector3(0,1.32,-.37),Vector3(0,1.41,-.405),.0025,black)
-	M.ball(upper_body,Vector3(0,1.37,-.393),Vector3(.012,.023,.008),silver)
-	for side in [-1.0,1.0]:
-		var shoulder := Vector3(side*0.225,1.34,-0.23)
-		var elbow := Vector3(side*0.275,1.13,-0.40)
-		var hand := Vector3(side*0.225,1.035,-0.57)
-		var sleeve_end := shoulder.lerp(elbow,0.48)
-		M.tapered(upper_body,shoulder,sleeve_end,0.082,0.070,jersey)
-		M.tapered(upper_body,sleeve_end,elbow,0.061,0.050,skin)
-		M.ball(upper_body,elbow,Vector3(0.10,0.10,0.10),skin)
-		M.tapered(upper_body,elbow,hand,0.052,0.035,skin)
-		M.ball(upper_body,hand,Vector3(0.068,0.058,0.10),black)
-		var thigh := M.anatomy(self,[[0,.087,.085],[.22,.105,.098],[.52,.103,.096],[.82,.088,.083],[1,.073,.071]],skin)
-		var bib := M.anatomy(self,[[0,.099,.098],[.2,.108,.104],[.55,.118,.112],[.85,.115,.110],[1,.105,.10]],shorts)
-		var calf := M.anatomy(self,[[0,.060,.059],[.15,.061,.060],[.35,.072,.077],[.58,.063,.074],[.84,.039,.043],[1,.035,.038]],skin)
-		var sock := M.tapered(self,Vector3.ZERO,Vector3.UP,0.041,0.048,cream)
-		var knee := M.ball(self,Vector3.ZERO,Vector3(0.145,0.15,0.145),skin)
-		var shoe := M.ball(self,Vector3.ZERO,Vector3(0.112,0.075,0.255),cream)
-		# Shoe details use local unit coordinates, scaled with the shoe.
-		for z in [-0.13,0.13]:
-			M.ball(shoe,Vector3(0,0.38,z),Vector3(0.36,0.20,0.13),black)
-		M.box(shoe,Vector3(0,0.34,-0.27),Vector3(0.7,0.10,0.08),black)
-		var stripe := M.tapered(self,Vector3.ZERO,Vector3.UP,0.047,0.047,jersey)
-		var cuff := M.tapered(self,Vector3.ZERO,Vector3.UP,0.049,0.049,cream)
-		var sole := M.box(shoe,Vector3(0,-0.28,0),Vector3(0.88,0.14,0.96),black)
-		sole.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-		limbs.append({"side":side,"thigh":thigh,"bib":bib,"calf":calf,"sock":sock,"stripe":stripe,"cuff":cuff,"knee":knee,"shoe":shoe})
-		crank_parts.append(M.rod(self,Vector3.ZERO,Vector3.UP,0.012,silver))
+	build_cyclist()
 	animate(0,0,0)
 
+const TORSO_PROFILE = [[0,.15,.10],[.15,.166,.118],[.35,.178,.132],[.58,.205,.14],[.78,.223,.125],[.88,.199,.107],[1,.074,.06]]
+var torso_axis := Quaternion(Vector3.UP,(Vector3(0,1.39,-.30)-Vector3(0,1.10,.24)).normalized())
+
+func back_point(t: float, angle: float, lift: float = .002) -> Vector3:
+	var r := S.radii(TORSO_PROFILE,t)+Vector2.ONE*lift
+	return Vector3(0,1.10,.24).lerp(Vector3(0,1.39,-.30),t)+torso_axis*Vector3(r.x*cos(angle),0,r.y*sin(angle))
+
+func stitch(parent: Node3D, coordinates: Array, material: Material, radius: float = .0012) -> void:
+	S.tube(parent,coordinates,radius,material)
+
+func build_cyclist() -> void:
+	var ink := S.fabric(Color("18202b"))
+	var hair := S.fabric(Color("302723"))
+	var orange := S.fabric(Color("ee5013"))
+	var seam := S.fabric(Color("ba3a10"))
+	var navy := S.fabric(Color("252e42"))
+	var skin := S.fabric(Color("d99571"),.7)
+	var white := S.fabric(Color("f4f3ee"))
+	var lens := S.fabric(Color("172936"),.22)
+	add_child(upper_body)
+	var torso := S.sweep(upper_body,TORSO_PROFILE,orange)
+	M.place_rod(torso,Vector3(0,1.10,.24),Vector3(0,1.39,-.30))
+	# Rounded bib seat joins the upper thighs instead of ending in an open tube.
+	S.ellipsoid(self,Vector3(0,1.035,.23),Vector3(.39,.255,.32),navy)
+	# Garment construction follows the actual surface of the sloping torso.
+	for angle in [.72,1.28,1.86,2.42]:
+		var points: Array = []
+		for i in range(11): points.append(back_point(lerpf(.10,.38,float(i)/10),angle))
+		stitch(upper_body,points,seam)
+	for t in [.10,.38]:
+		var points: Array = []
+		for i in range(25): points.append(back_point(t,lerpf(.72,2.42,float(i)/24)))
+		stitch(upper_body,points,seam)
+	var zipper: Array = []
+	for i in range(40): zipper.append(back_point(lerpf(.05,.99,float(i)/39),-PI/2))
+	stitch(upper_body,zipper,ink,.0015)
+	S.ellipsoid(upper_body,back_point(.91,-PI/2,.004),Vector3(.008,.018,.006),ink)
+	# Small original chevrons, matching the reference's placement and contrast.
+	for t in [.27,.70]:
+		stitch(upper_body,[back_point(t,1.43,.004),back_point(t+.035,PI/2,.004),back_point(t,1.71,.004)],white,.003)
+	var collar := S.sweep(upper_body,[[0,.074,.061],[1,.071,.059]],orange,8)
+	M.place_rod(collar,Vector3(0,1.39,-.30),Vector3(0,1.414,-.327))
+	M.tapered(upper_body,Vector3(0,1.405,-.32),Vector3(0,1.465,-.42),.049,.047,skin)
+	var head_root := Node3D.new()
+	upper_body.add_child(head_root)
+	head_root.position = Vector3(0,-.025,.035)
+	# Jaw, cheeks, brow and cranium are one continuous surface.
+	var face := S.sweep(head_root,[[0,.035,.040],[.12,.063,.065],[.30,.083,.079],[.5,.093,.087],[.72,.095,.085],[.9,.082,.077],[1,.045,.045]],skin)
+	face.position = Vector3(0,1.505,-.49)
+	face.scale.y = .225
+	S.ellipsoid(head_root,Vector3(0,1.505,-.581),Vector3(.029,.048,.044),skin)
+	stitch(head_root,[Vector3(-.022,1.451,-.563),Vector3(0,1.448,-.57),Vector3(.022,1.451,-.563)],seam,.0012)
+	S.ellipsoid(head_root,Vector3(0,1.568,-.46),Vector3(.19,.102,.19),hair)
+	for side in [-1,1]:
+		S.ellipsoid(head_root,Vector3(side*.093,1.512,-.468),Vector3(.026,.049,.032),skin)
+		var glass := S.ellipsoid(head_root,Vector3(side*.045,1.547,-.573),Vector3(.092,.057,.035),lens)
+		glass.rotation.z = side*.12
+		stitch(head_root,[Vector3(side*.089,1.551,-.572),Vector3(side*.101,1.548,-.485)],ink,.004)
+		stitch(head_root,[Vector3(side*.106,1.59,-.43),Vector3(side*.086,1.455,-.465),Vector3(side*.076,1.585,-.57)],ink,.003)
+	M.rod(head_root,Vector3(-.012,1.552,-.585),Vector3(.012,1.552,-.585),.005,ink)
+	S.ellipsoid(head_root,Vector3(0,1.613,-.49),Vector3(.255,.085,.32),ink)
+	S.helmet(head_root,Vector3(0,1.60,-.49),white)
+	# Profiled arms retain slight elbow flexion and natural shoulder volume.
+	for side in [-1.0,1.0]:
+		var shoulder := Vector3(side*.205,1.355,-.24)
+		var elbow := Vector3(side*.255,1.135,-.38)
+		var hand := Vector3(side*.225,.99,-.57)
+		var sleeve_end := shoulder.lerp(elbow,.48)
+		var sleeve := S.sweep(upper_body,[[0,.070,.076],[.28,.081,.08],[.65,.076,.071],[1,.064,.061]],orange,24)
+		M.place_rod(sleeve,shoulder,sleeve_end)
+		var arm := S.sweep(upper_body,[[0,.059,.057],[.35,.061,.059],[.7,.047,.051],[1,.044,.044]],skin,24)
+		M.place_rod(arm,sleeve_end,elbow)
+		S.ellipsoid(upper_body,elbow,Vector3(.09,.087,.09),skin)
+		var forearm := S.sweep(upper_body,[[0,.044,.045],[.25,.052,.055],[.55,.045,.049],[1,.029,.032]],skin,24)
+		M.place_rod(forearm,elbow,hand)
+		S.ellipsoid(upper_body,hand,Vector3(.067,.057,.096),ink)
+		# Exposed fingers curl over the brake hoods.
+		for finger in range(3):
+			S.ellipsoid(upper_body,hand+Vector3(side*.012,.002,-.032-finger*.009),Vector3(.054,.019,.017),skin)
+		var thigh := S.sweep(self,[[0,.088,.088],[.3,.09,.09],[.7,.079,.077],[1,.064,.063]],skin)
+		var bib := S.sweep(self,[[0,.105,.105],[.3,.117,.115],[.7,.113,.11],[1,.098,.097]],navy)
+		var calf := S.sweep(self,[[0,.059,.058],[.18,.062,.063],[.4,.069,.074],[.60,.056,.064],[.85,.032,.036],[1,.028,.031]],skin)
+		var sock := S.sweep(self,[[0,.033,.034],[.3,.034,.036],[.75,.042,.044],[1,.045,.047]],white,24)
+		var stripe := M.tapered(self,Vector3.ZERO,Vector3.UP,.044,.045,orange)
+		var cuff := M.tapered(self,Vector3.ZERO,Vector3.UP,.046,.046,white)
+		var knee := S.ellipsoid(self,Vector3.ZERO,Vector3(.128,.13,.129),skin)
+		var shoe := Node3D.new()
+		add_child(shoe)
+		for layer in [0,1]:
+			var profile := [[0,.026,.006],[.15,.046,.009],[.5,.054,.009],[.8,.05,.008],[1,.025,.006]] if layer==0 else [[0,.028,.022],[.15,.044,.030],[.5,.053,.036],[.8,.05,.027],[1,.025,.015]]
+			var shell := S.sweep(shoe,profile,ink if layer==0 else white,32)
+			shell.position.y = -.027 if layer==0 else 0
+			shell.quaternion = Quaternion(Vector3.UP,Vector3.FORWARD)
+			shell.scale.y = .25
+		for z in [-.015,-.065]:
+			S.ellipsoid(shoe,Vector3(side*.025,.032,z),Vector3(.019,.009,.019),ink)
+			M.rod(shoe,Vector3(-.025,.033,z),Vector3(.025,.033,z-.012),.002,ink)
+		limbs.append({"side":side,"thigh":thigh,"bib":bib,"calf":calf,"sock":sock,"stripe":stripe,"cuff":cuff,"knee":knee,"shoe":shoe})
+		crank_parts.append(M.rod(self,Vector3.ZERO,Vector3.UP,.012,S.fabric(Color("b4c0be"))))
+
 func animate(dt: float, cadence: float, speed: float) -> void:
-	crank += dt*cadence*TAU/60
+	# A long render stall must not skip most of a turn and appear to reverse
+	# (temporal aliasing). At normal frame rates phase follows cadence exactly;
+	# below ~9 FPS at 90 RPM, visual pedalling slows rather than reversing.
+	var step := clampf(dt*maxf(0,cadence)*TAU/60,0,PI/3)
+	crank = fposmod(crank + step,TAU)
 	for i in range(limbs.size()):
 		var limb: Dictionary = limbs[i]
 		var phase := crank+i*PI
@@ -182,7 +203,7 @@ func animate(dt: float, cadence: float, speed: float) -> void:
 		var axis := (foot-hip).normalized()
 		var bend := (Vector3.FORWARD-axis*Vector3.FORWARD.dot(axis)).normalized()
 		var knee := (hip+foot)*0.5+bend*sqrt(maxf(0,0.46*0.46-hip.distance_squared_to(foot)*0.25))
-		M.place_rod(limb.thigh,hip,knee)
+		M.place_rod(limb.thigh,hip.lerp(knee,.55),knee)
 		M.place_rod(limb.bib,hip,hip.lerp(knee,0.72))
 		M.place_rod(limb.calf,knee,foot+Vector3.UP*0.025)
 		M.place_rod(limb.sock,foot,foot.lerp(knee,0.32))
@@ -193,4 +214,4 @@ func animate(dt: float, cadence: float, speed: float) -> void:
 		limb.shoe.rotation.x = -sin(phase)*0.12
 		M.place_rod(crank_parts[i],Vector3(float(limb.side)*0.065,0.295,0.06),foot)
 	for wheel in wheels: wheel.rotation.x -= speed*dt/0.349
-	upper_body.position.y = -0.07+(sin(crank*2)*0.004 if cadence>0 else 0.0)
+	upper_body.position.y = (sin(crank*2)*0.004 if cadence>0 else 0.0)

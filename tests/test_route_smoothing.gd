@@ -27,5 +27,16 @@ func _initialize():
   check(route.smooth_position(0).distance_to(route.sample_raw(0).position)<.001 and route.smooth_position(route.length_m).distance_to(route.sample_raw(route.length_m).position)<.01,"source endpoints anchored: "+circuit.id)
   check(route.direction(0).length()>.99 and route.direction(route.length_m).length()>.99,"endpoint lookahead extrapolates a finite tangent: "+circuit.id)
   check(route.smooth_position(-100)==route.smooth_position(-12),"geometric extrapolation bounded to 12 metres: "+circuit.id)
+ # Synthetic jitter makes attenuation measurable independently of the real GPX.
+ var fixture := {"length_m":40.0,"ascent_raw_m":4.0,"points":[]}
+ for i in range(21):
+  fixture.points.append({"s":i*2.0,"x":i*2.0,"z":.2 if i%2==0 else -.2,"alt":366+(.2 if i%2==0 else -.2),"lat":48.0,"lon":7.0})
+ var file := FileAccess.open("user://smoothing_fixture.json",FileAccess.WRITE)
+ file.store_string(JSON.stringify(fixture)); file.close()
+ var synthetic = Route.new("user://smoothing_fixture.json")
+ var jitter := 0.0
+ for i in range(3,18): jitter=maxf(jitter,absf(synthetic.sample(i*2.0).position.z))
+ check(jitter<.02,"spatial filter suppresses alternating GPS jitter by more than 90 percent")
+ check(absf(synthetic.sample_raw(10).position.z+.2)<.0001,"filter never changes authoritative source samples")
  print("RESULT_SMOOTHING passed=",passed," failed=",failures.size())
  quit(0 if failures.is_empty() else 1)
