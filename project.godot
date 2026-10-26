@@ -3,7 +3,7 @@ config_version=5
 
 [application]
 config/name="Rois de la Pédale"
-config/version="0.5.0"
+config/version="0.5.1"
 run/main_scene="res://main.tscn"
 config/features=PackedStringArray("4.6", "GL Compatibility")
 config/icon="res://assets/icon.svg"

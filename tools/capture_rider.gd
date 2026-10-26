@@ -45,8 +45,19 @@ func run():
   camera.look_at(Vector3(0,.85,0),Vector3.UP)
   for i in range(3): await process_frame
   await RenderingServer.frame_post_draw
-  root.get_texture().get_image().save_png("res://build/v05_"+item[0]+".png")
+  root.get_texture().get_image().save_png("res://build/v051_"+item[0]+".png")
   print("CAPTURE ",item[0])
+ # Detail views expose the garment joins instead of hiding them in the full shot.
+ for item in [["shoulders",Vector3(2,1.65,1.1),Vector3(0,1.32,-.13)],["hips",Vector3(2,1.35,1.3),Vector3(0,1.04,.18)]]:
+  camera.size = .76
+  camera.position = item[1]
+  camera.look_at(item[2],Vector3.UP)
+  sun.rotation_degrees.y = rad_to_deg(atan2(item[1].x,item[1].z))-30
+  fill.rotation_degrees.y = sun.rotation_degrees.y+140
+  for i in range(3): await process_frame
+  await RenderingServer.frame_post_draw
+  root.get_texture().get_image().save_png("res://build/v051_"+item[0]+".png")
+ camera.size = 2.03
  var canvas := CanvasLayer.new()
  stage.add_child(canvas)
  var label := Label.new()
@@ -64,8 +75,21 @@ func run():
   rider.animate(1.0/32,0,4)
   for j in range(2): await process_frame
   await RenderingServer.frame_post_draw
-  root.get_texture().get_image().save_png("res://build/v05_pedal_%02d.png" % i)
+  root.get_texture().get_image().save_png("res://build/v051_pedal_%02d.png" % i)
  print("PEDAL_CAPTURE_COMPLETE")
+ camera.size = .90
+ camera.position = Vector3(1,1.30,2.4)
+ camera.look_at(Vector3(0,1.02,.18),Vector3.UP)
+ sun.rotation_degrees.y = -5
+ fill.rotation_degrees.y = 135
+ label.text = "Jonctions bassin / cuisses — cycle complet de pédalage"
+ for i in range(32):
+  rider.crank = TAU*float(i)/32
+  rider.animate(0,0,0)
+  for j in range(2): await process_frame
+  await RenderingServer.frame_post_draw
+  root.get_texture().get_image().save_png("res://build/v051_joint_%02d.png" % i)
+ print("JOINT_CAPTURE_COMPLETE")
  stage.queue_free()
  await process_frame
  var app = load("res://main.tscn").instantiate()
@@ -82,6 +106,6 @@ func run():
  app.camera.current = true
  for i in range(4): await process_frame
  await RenderingServer.frame_post_draw
- root.get_texture().get_image().save_png("res://build/v05_ride.png")
+ root.get_texture().get_image().save_png("res://build/v051_ride.png")
  print("RIDE_CAPTURE_COMPLETE")
  quit()

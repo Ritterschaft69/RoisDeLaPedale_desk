@@ -8,6 +8,15 @@ var wheels: Array[Node3D] = []
 var crank := 0.0
 var crank_parts: Array[Node3D] = []
 var upper_body := Node3D.new()
+# Retained procedural recipe for the optional Blender authoring tool.
+var authoring_source := false
+var source_torso: MeshInstance3D
+var source_sleeves: Array[MeshInstance3D] = []
+var source_pelvis: MeshInstance3D
+var jersey_mesh: MeshInstance3D
+var pants_mesh: MeshInstance3D
+var garment_skeleton: Skeleton3D
+const BIB_REST_AXIS := Vector3(0,-.36,-.12)
 
 func _ready() -> void:
 	var black := M.toon(Color("18232e"),true)
@@ -109,9 +118,13 @@ func build_cyclist() -> void:
 	var white := S.ink(S.fabric(Color("f4f3ee")),.0008)
 	var lens := S.fabric(Color("172936"),.22)
 	add_child(upper_body)
-	S.curved_sweep(upper_body,TORSO_PROFILE,torso_path,orange)
-	# Rounded bib seat joins the upper thighs instead of ending in an open tube.
-	S.ellipsoid(self,Vector3(0,1.095,.23),Vector3(.39,.255,.32),navy)
+	if authoring_source:
+		source_torso = S.curved_sweep(upper_body,TORSO_PROFILE,torso_path,orange)
+		source_pelvis = S.ellipsoid(self,Vector3(0,1.095,.23),Vector3(.39,.255,.32),navy)
+	else:
+		jersey_mesh = M.mesh(upper_body,load("res://assets/models/jersey.res"),orange,Vector3.ZERO)
+		jersey_mesh.name = "ContinuousJersey"
+		build_bib_rig(navy)
 	# Garment construction follows the actual surface of the sloping torso.
 	for angle in [.72,1.28,1.86,2.42]:
 		var points: Array = []
@@ -173,8 +186,13 @@ func build_cyclist() -> void:
 		var elbow := Vector3(side*.255,1.135,-.38)
 		var hand := Vector3(side*.225,.99,-.57)
 		var sleeve_end := shoulder.lerp(elbow,.48)
-		var sleeve := S.sweep(upper_body,[[0,.070,.076],[.28,.081,.08],[.65,.076,.071],[1,.064,.061]],orange,24)
-		M.place_rod(sleeve,shoulder,sleeve_end)
+		if authoring_source:
+			var sleeve := S.sweep(upper_body,[[0,.070,.076],[.28,.081,.08],[.65,.076,.071],[1,.064,.061]],orange,24)
+			M.place_rod(sleeve,shoulder,sleeve_end)
+			source_sleeves.append(sleeve)
+			# Fill the clavicle/deltoid transition before offline surface union.
+			var deltoid := S.ellipsoid(upper_body,shoulder+Vector3(-side*.022,.012,.035),Vector3(.18,.205,.19),orange)
+			source_sleeves.append(deltoid)
 		var arm_path := S.path([sleeve_end,elbow,hand])
 		S.curved_sweep(upper_body,[[0,.059,.058],[.17,.060,.061],[.34,.045,.046],[.53,.052,.055],[.78,.04,.044],[1,.029,.032]],arm_path,skin,48,32)
 		S.ellipsoid(upper_body,hand,Vector3(.067,.057,.096),ink)
@@ -182,7 +200,12 @@ func build_cyclist() -> void:
 		for finger in range(3):
 			S.ellipsoid(upper_body,hand+Vector3(side*.012,.002,-.032-finger*.009),Vector3(.054,.019,.017),skin)
 		var thigh := S.muscle(self,[[0,.088,.088],[.3,.09,.09],[.7,.079,.077],[1,.064,.063]],skin,side)
-		var bib := S.sweep(self,[[0,.105,.105],[.3,.117,.115],[.7,.113,.11],[1,.098,.097]],navy)
+		var bib: Node3D
+		if authoring_source:
+			bib = S.sweep(self,[[0,.105,.105],[.3,.117,.115],[.7,.113,.11],[1,.098,.097]],navy)
+		else:
+			bib = Node3D.new()
+			add_child(bib)
 		S.badge(bib,Vector3(side*.119,.03,0),Vector3(0,0,-side*.012),Vector3(0,.07,0),white)
 		var calf := S.muscle(self,[[0,.059,.058],[.25,.064,.065],[.57,.072,.077],[.86,.059,.065],[1,.049,.057]],skin,side,true)
 		var sock := S.sweep(self,[[0,.034,.039],[.3,.039,.044],[.75,.052,.058],[1,.061,.066]],white,24)
@@ -203,6 +226,35 @@ func build_cyclist() -> void:
 		limbs.append({"side":side,"thigh":thigh,"bib":bib,"calf":calf,"sock":sock,"stripe":stripe,"cuff":cuff,"knee":knee,"shoe":shoe})
 		crank_parts.append(M.rod(self,Vector3.ZERO,Vector3.UP,.012,S.fabric(Color("b4c0be"))))
 
+static func bib_rest_axis(side: float) -> Vector3:
+	# Keep the two legs apart in the bind pose so voxel union joins only the
+	# groin, rather than accidentally bridging the inner thighs.
+	return Vector3(side*.045,BIB_REST_AXIS.y,BIB_REST_AXIS.z).normalized()
+
+func build_bib_rig(material: Material) -> void:
+	garment_skeleton = Skeleton3D.new()
+	garment_skeleton.name = "BibRig"
+	add_child(garment_skeleton)
+	garment_skeleton.add_bone("Pelvis")
+	garment_skeleton.set_bone_rest(0,Transform3D.IDENTITY)
+	var skin := Skin.new()
+	skin.set_bind_count(3)
+	skin.set_bind_bone(0,0)
+	skin.set_bind_pose(0,Transform3D.IDENTITY)
+	for i in range(2):
+		var side := -1 if i==0 else 1
+		var rest := Transform3D(Basis.IDENTITY,Vector3(side*.115,1.08,.24))
+		garment_skeleton.add_bone("LeftThigh" if i==0 else "RightThigh")
+		garment_skeleton.set_bone_parent(i+1,0)
+		garment_skeleton.set_bone_rest(i+1,rest)
+		skin.set_bind_bone(i+1,i+1)
+		skin.set_bind_pose(i+1,rest.affine_inverse())
+	garment_skeleton.reset_bone_poses()
+	pants_mesh = M.mesh(garment_skeleton,load("res://assets/models/bib.res"),material,Vector3.ZERO)
+	pants_mesh.name = "ContinuousBib"
+	pants_mesh.skeleton = NodePath("..")
+	pants_mesh.skin = skin
+
 func animate(dt: float, cadence: float, speed: float) -> void:
 	# A long render stall must not skip most of a turn and appear to reverse
 	# (temporal aliasing). At normal frame rates phase follows cadence exactly;
@@ -219,6 +271,8 @@ func animate(dt: float, cadence: float, speed: float) -> void:
 		var knee := (hip+foot)*0.5+bend*sqrt(maxf(0,0.49*0.49-hip.distance_squared_to(foot)*0.25))
 		M.place_rod(limb.thigh,hip.lerp(knee,.55),knee)
 		M.place_rod(limb.bib,hip,hip.lerp(knee,0.72))
+		if garment_skeleton != null:
+			garment_skeleton.set_bone_pose_rotation(i+1,Quaternion(bib_rest_axis(float(limb.side)),(knee-hip).normalized()))
 		M.place_rod(limb.calf,knee,foot.lerp(knee,.30))
 		M.place_rod(limb.sock,foot,foot.lerp(knee,0.36))
 		M.place_rod(limb.stripe,foot.lerp(knee,0.30),foot.lerp(knee,0.32))

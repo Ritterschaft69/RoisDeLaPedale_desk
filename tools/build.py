@@ -67,8 +67,8 @@ def main():
             shutil.copy(source,output/source.name)
         shutil.copy(ROOT/'assets/fonts/LICENSE.txt',output/'OpenSans-LICENSE.txt')
         shutil.copy(ROOT/'docs/sources/licence_ouverte.md',output/'IGN-Licence-Ouverte.md')
-        (output/'LISEZMOI.txt').write_text('Rois de la Pédale 0.5.0 — prototype démo natif\nLancer '+binary+' depuis ce dossier, sans serveur ni Internet.\nConserver les fichiers du dossier ensemble. F11 : plein écran.\nChoisir un circuit : Saint-Dié, Sortie vélo le matin, Oderen / Grand Ballon.\nFlèches haut/bas : puissance démo. Espace : pause. H : masquer l’interface.\nConduite à droite et évitement automatiques. Faune et passants procéduraux.\nIGN : 3 premiers km de Saint-Dié uniquement, toits et façades estimés. Au-delà : décor illustratif.\nBluetooth et audio non intégrés. OSM : sources archivées, non rendues.\nVersion portable non signée. Données IGN : Licence Ouverte, voir notices.\n',encoding='utf-8')
-        archive = ROOT/'build'/f'RoisDeLaPedale-0.5.0-{platform}.zip'
+        (output/'LISEZMOI.txt').write_text('Rois de la Pédale 0.5.1 — prototype démo natif\nLancer '+binary+' depuis ce dossier, sans serveur ni Internet.\nConserver les fichiers du dossier ensemble. F11 : plein écran.\nChoisir un circuit : Saint-Dié, Sortie vélo le matin, Oderen / Grand Ballon.\nFlèches haut/bas : puissance démo. Espace : pause. H : masquer l’interface.\nConduite à droite et évitement automatiques. Faune et passants procéduraux.\nIGN : 3 premiers km de Saint-Dié uniquement, toits et façades estimés. Au-delà : décor illustratif.\nBluetooth et audio non intégrés. OSM : sources archivées, non rendues.\nVersion portable non signée. Données IGN : Licence Ouverte, voir notices.\n',encoding='utf-8')
+        archive = ROOT/'build'/f'RoisDeLaPedale-0.5.1-{platform}.zip'
         with zipfile.ZipFile(archive,'w',compression=zipfile.ZIP_DEFLATED) as bundle:
             for path in sorted(output.iterdir()): bundle.write(path,arcname='RoisDeLaPedale/'+path.name)
         print(archive.name,hashlib.sha256(archive.read_bytes()).hexdigest())
