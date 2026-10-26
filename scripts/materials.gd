@@ -88,6 +88,7 @@ static func loft(parent: Node3D, rings: Array, material: Material, segments: int
 				var angle: float = pair[1]*TAU/segments
 				corners.append(ring.center+Vector3(cos(angle)*float(ring.width),0,sin(angle)*float(ring.depth)))
 			for index in [0,2,1,0,3,2]: surface.add_vertex(corners[index])
+	surface.index()
 	surface.generate_normals()
 	return mesh(parent,surface.commit(),material,Vector3.ZERO)
 
@@ -116,3 +117,9 @@ void light() {
 	if gravel:
 		shader.code = shader.code.replace("world_position.xz * 70.0","world_position.xz * 28.0").replace("vec3(0.26,0.27,0.275)","vec3(0.30,0.28,0.22)")
 	return material
+
+static func anatomy(parent: Node3D, profile: Array, material: Material) -> MeshInstance3D:
+	var rings: Array = []
+	for point in profile:
+		rings.append({"center":Vector3(0,float(point[0])-0.5,0),"width":float(point[1]),"depth":float(point[2])})
+	return loft(parent,rings,material,32)

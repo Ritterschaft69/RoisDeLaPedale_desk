@@ -5,6 +5,10 @@
 
 Prototype **desktop natif** de simulation cycliste, Godot **4.6.3**, sans serveur ni navigateur. Interface en français, mode démo, parcours GPX original et première tranche IGN hors ligne. Ce dépôt initial ne contenait aucun prototype à migrer.
 
+## Cycliste et fluidité — 0.3.0
+
+Posture et volumes retravaillés d’après les vues fournies, casque blanc à aérations, maillot orange, jambes profilées et chaussures détaillées. Le pédalage tourne vers l’avant. Les trois GPX alimentent une courbe B-spline cubique sur une grille de 2 m ; les positions affichées sont interpolées entre les pas de simulation à 50 Hz. Les sources et métriques GPX restent intactes. La pente simulée suit la courbe lissée, tandis que les activités gardent les coordonnées et altitudes sources. [Validation : 130 contrôles](docs/VALIDATION_v0.3.0.md).
+
 ## Lancer
 
 Installer Godot 4.6.3 standard (pas besoin de .NET), puis ouvrir `project.godot` et presser F6/F5, ou :
@@ -53,6 +57,7 @@ godot --headless --path . --script tests/test_desktop.gd
 godot --headless --path . --script tests/test_circuits.gd
 godot --headless --path . --script tests/test_navigation.gd
 godot --headless --path . --script tests/test_geometry.gd
+godot --headless --path . --script tests/test_route_smoothing.gd
 godot --headless --path . --fixed-fps 60 -- --smoke
 ```
 
@@ -72,7 +77,7 @@ python tools/build.py --installer             # exports + installeur Windows non
 
 Le téléchargement initial des modèles officiels représente environ 1,26 Go. Les exports portables sont générés dans `build/`, exclus du suivi Git. Le paquet Windows est un exécutable x64 avec son fichier PCK ; garder les fichiers ensemble. Ne pas confondre un export produit sous Linux avec une exécution validée sous Windows.
 
-L’installeur `build/RoisDeLaPedale-0.2.1-Setup.exe` installe l’application pour l’utilisateur courant, crée les raccourcis du menu Démarrer et une entrée de désinstallation. Il conserve les activités et préférences dans AppData lors de la désinstallation. Construction vérifiée sous Linux ; installation/désinstallation Windows à valider sur un vrai poste.
+L’installeur `build/RoisDeLaPedale-0.3.0-Setup.exe` installe l’application pour l’utilisateur courant, crée les raccourcis du menu Démarrer et une entrée de désinstallation. Il conserve les activités et préférences dans AppData lors de la désinstallation. Construction vérifiée sous Linux ; installation/désinstallation Windows à valider sur un vrai poste.
 
 ## Limites de ce lot
 

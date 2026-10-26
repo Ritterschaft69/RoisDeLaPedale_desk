@@ -24,6 +24,8 @@ var overlay := Control.new()
 var screen := "home"
 var speed := 0.0
 var distance := 0.0
+var previous_distance := 0.0
+var previous_lateral := 1.55
 var elapsed := 0.0
 var watts := 0.0
 var cadence := 0.0
@@ -370,6 +372,8 @@ func _unhandled_key_input(event: InputEvent) -> void:
 
 func _physics_process(dt: float) -> void:
 	if screen != "ride": return
+	previous_distance = distance
+	previous_lateral = lane.lateral
 	var observation := input.read(Time.get_ticks_msec())
 	watts = observation.watts
 	cadence = observation.cadence
@@ -384,19 +388,30 @@ func _physics_process(dt: float) -> void:
 	speed = result.speed
 	distance = minf(route.length_m,distance+result.distance)
 	elapsed += dt
-	recorder.tick(dt,distance-route.start_m,speed,watts,cadence,route.sample(distance),lane.lateral)
+	recorder.tick(dt,distance-route.start_m,speed,watts,cadence,route.sample_raw(distance),lane.lateral)
 	if distance >= route.length_m: finish_session()
 
 func position_scene(dt: float, immediate: bool = false) -> void:
-	rider.position = world.roadside(distance,lane.lateral)+Vector3.UP*0.065
-	var forward := route.direction(distance)
+	if immediate:
+		previous_distance = distance
+		previous_lateral = lane.lateral
+	var station := distance
+	var lateral := lane.lateral
+	# Interpolate the fixed 50 Hz simulation at the monitor's refresh rate.
+	# Physics/obstacle decisions always use the current authoritative state.
+	if not immediate and screen == "ride" and is_physics_processing() and absf(distance-previous_distance)<maxf(1,speed*.04):
+		var fraction := Engine.get_physics_interpolation_fraction()
+		station = lerpf(previous_distance,distance,fraction)
+		lateral = lerpf(previous_lateral,lane.lateral,fraction)
+	rider.position = world.roadside(station,lateral)+Vector3.UP*0.065
+	var forward := route.direction(station)
 	var right := Vector3(-forward.z,0,forward.x).normalized()
 	var steering := forward+right*(lane.velocity/maxf(speed,2))
 	var desired_rotation := atan2(-steering.x,-steering.z)
 	rider.rotation.y = desired_rotation if immediate else lerp_angle(rider.rotation.y,desired_rotation,1-exp(-dt*6))
-	var bend := forward.cross(route.direction(minf(route.length_m,distance+6))).y
+	var bend := forward.cross(route.direction(minf(route.length_m,station+6))).y
 	rider.rotation.z = lerpf(rider.rotation.z,clampf(bend*0.8-lane.velocity*0.10,-0.13,0.13),1-exp(-dt*5))
-	rider.rotation.x = atan(clampf(route.grade(distance),-0.25,0.25))
+	rider.rotation.x = atan(clampf(route.grade(station),-0.25,0.25))
 	var horizontal := Vector3(forward.x,0,forward.z).normalized()
 	var desired := rider.position-horizontal*3.6+Vector3.UP*2.2-right*0.45
 	camera.position = desired if immediate else camera.position.lerp(desired,1-exp(-dt*4))

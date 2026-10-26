@@ -13,10 +13,10 @@ func _ready() -> void:
 	var rubber := M.toon(Color("162027"))
 	var carbon := M.toon(Color("273942"),true)
 	var silver := M.toon(Color("b4c0be"))
-	var jersey := M.toon(Color("d95821"),true)
+	var jersey := M.toon(Color("f45b18"),true)
 	var dark_jersey := M.toon(Color("a53d18"))
-	var skin := M.toon(Color("dca079"),true)
-	var cream := M.toon(Color("eee9dc"),true)
+	var skin := M.toon(Color("d59370"),true)
+	var cream := M.toon(Color("f4f5f2"),true)
 	var shorts := M.toon(Color("253143"),true)
 	var teal := M.toon(Color("7aafaa"))
 	# Correct road-bike proportions: 700C wheels, narrow tyres, real fork and stays.
@@ -91,49 +91,62 @@ func _ready() -> void:
 	M.mesh(self,ring,silver,bracket+Vector3(0.055,0,0)).rotation.z = PI/2
 	# Contoured clothing, rather than a sphere used as a torso.
 	add_child(upper_body)
-	M.loft(upper_body,[
-		{"center":Vector3(0,1.10,0.22),"width":0.145,"depth":0.10},
-		{"center":Vector3(0,1.16,0.15),"width":0.18,"depth":0.115},
-		{"center":Vector3(0,1.29,0.00),"width":0.20,"depth":0.135},
-		{"center":Vector3(0,1.47,-0.20),"width":0.235,"depth":0.145},
-		{"center":Vector3(0,1.54,-0.31),"width":0.21,"depth":0.12},
-		{"center":Vector3(0,1.57,-0.34),"width":0.085,"depth":0.07}
-	],jersey,32)
+	var torso := M.anatomy(upper_body,[[0,.15,.105],[.15,.175,.13],[.38,.195,.145],[.65,.225,.155],[.83,.23,.14],[1,.08,.07]],jersey)
+	M.place_rod(torso,Vector3(0,1.10,.22),Vector3(0,1.42,-.34))
 	var pelvis := M.loft(self,[
 		{"center":Vector3(0,0.99,0.23),"width":0.13,"depth":0.11},
 		{"center":Vector3(0,1.09,0.25),"width":0.185,"depth":0.145},
 		{"center":Vector3(0,1.17,0.18),"width":0.17,"depth":0.125}
 	],shorts,32)
 	pelvis.position.y = -0.07
-	# Jersey hem, back pockets and fine seam lines.
-	M.loft(upper_body,[{"center":Vector3(0,1.17,0.14),"width":0.184,"depth":0.119},{"center":Vector3(0,1.195,0.11),"width":0.188,"depth":0.124}],dark_jersey)
-	for x in [-0.12,0.0,0.12]:
-		M.rod(upper_body,Vector3(x,1.22,0.21),Vector3(x,1.31,0.13),0.0024,dark_jersey)
-	M.box(upper_body,Vector3(0,1.23,0.205),Vector3(0.25,0.012,0.006),cream).rotation.x = -0.65
-	M.ball(upper_body,Vector3(0,1.43,-0.041),Vector3(0.044,0.046,0.009),cream)
+	# Three stitched back pockets and a small original reflective chevron.
+	for x in [-.11,0.0,.11]:
+		M.rod(upper_body,Vector3(x,1.23,.22),Vector3(x,1.34,.03),.002,dark_jersey)
+	M.rod(upper_body,Vector3(-.15,1.26,.18),Vector3(.15,1.26,.18),.002,dark_jersey)
+	M.rod(upper_body,Vector3(-.025,1.38,-.01),Vector3(0,1.40,-.04),.004,cream)
+	M.rod(upper_body,Vector3(0,1.40,-.04),Vector3(.025,1.38,-.01),.004,cream)
 	var head_root := Node3D.new()
 	upper_body.add_child(head_root)
-	head_root.position.y = -0.08
-	M.tapered(head_root,Vector3(0,1.53,-0.34),Vector3(0,1.69,-0.49),0.055,0.05,skin)
+	head_root.position.y = -0.23
+	M.tapered(head_root,Vector3(0,1.65,-0.34),Vector3(0,1.69,-0.49),0.055,0.05,skin)
 	M.ball(head_root,Vector3(0,1.72,-0.52),Vector3(0.21,0.255,0.215),skin)
 	for side in [-1,1]:
 		M.ball(head_root,Vector3(side*0.095,1.72,-0.51),Vector3(0.026,0.055,0.035),skin)
 	# Aerodynamic helmet shell and dark ventilation channels.
-	M.ball(head_root,Vector3(0,1.83,-0.53),Vector3(0.27,0.17,0.315),cream)
-	for x in [-0.083,-0.041,0.0,0.041,0.083]:
-		var last := Vector3(x,1.85,-0.675)
-		for j in range(1,10):
-			var z := lerpf(-0.675,-0.395,float(j)/9)
-			var y := 1.842+0.067*sqrt(maxf(0,1-pow((z+0.535)/0.15,2)))*sqrt(maxf(0,1-pow(x/0.135,2)))
-			var next := Vector3(x,y,z)
-			M.rod(head_root,last,next,0.009,black)
+	M.ball(head_root,Vector3(0,1.83,-0.53),Vector3(0.255,0.155,0.30),black)
+	for x in [-.10,-.055,0,.055,.10]:
+		var last := Vector3(x,1.845,-.675)
+		for j in range(1,21):
+			var t := float(j)/20
+			var y := 1.845+.079*sin(t*PI)*sqrt(maxf(0,1-pow(x/.15,2)))
+			var next := Vector3(x,y,lerpf(-.675,-.39,t))
+			M.rod(head_root,last,next,.018,cream)
+			M.ball(head_root,next,Vector3(.036,.036,.036),cream)
 			last = next
+	M.ball(head_root,Vector3(0,1.815,-.66),Vector3(.24,.045,.055),cream)
+	M.ball(head_root,Vector3(0,1.815,-.405),Vector3(.24,.055,.055),cream)
 	M.rod(head_root,Vector3(-0.095,1.78,-0.49),Vector3(-0.07,1.64,-0.54),0.0045,black)
 	M.rod(head_root,Vector3(0.095,1.78,-0.49),Vector3(0.07,1.64,-0.54),0.0045,black)
 	M.box(head_root,Vector3(0,1.755,-0.619),Vector3(0.18,0.043,0.024),black)
+	for side in [-1,1]:
+		M.ball(head_root,Vector3(side*.103,1.839,-.535),Vector3(.052,.095,.238),cream)
+		for z in [-.60,-.53,-.46]:
+			M.ball(head_root,Vector3(side*.128,1.851,z),Vector3(.009,.027,.042),black)
+	# Sculpted facial landmarks under wraparound lenses, with a visible jaw.
+	M.ball(head_root,Vector3(0,1.66,-0.566),Vector3(.145,.12,.155),skin)
+	M.ball(head_root,Vector3(0,1.715,-0.637),Vector3(.034,.062,.052),skin)
+	M.rod(head_root,Vector3(-.025,1.672,-.648),Vector3(.025,1.672,-.648),.002,dark_jersey)
+	for side in [-1,1]:
+		var lens := M.ball(head_root,Vector3(side*.047,1.752,-.631),Vector3(.088,.055,.025),M.toon(Color("344450")))
+		lens.rotation.z = side*.13
+		M.rod(head_root,Vector3(side*.08,1.78,-.49),Vector3(side*.065,1.64,-.55),.003,black)
+	# Front zip follows the chest rather than floating above the jersey.
+	M.rod(upper_body,Vector3(0,1.19,-.012),Vector3(0,1.32,-.37),.0025,black)
+	M.rod(upper_body,Vector3(0,1.32,-.37),Vector3(0,1.41,-.405),.0025,black)
+	M.ball(upper_body,Vector3(0,1.37,-.393),Vector3(.012,.023,.008),silver)
 	for side in [-1.0,1.0]:
-		var shoulder := Vector3(side*0.225,1.48,-0.23)
-		var elbow := Vector3(side*0.275,1.21,-0.42)
+		var shoulder := Vector3(side*0.225,1.34,-0.23)
+		var elbow := Vector3(side*0.275,1.13,-0.40)
 		var hand := Vector3(side*0.225,1.035,-0.57)
 		var sleeve_end := shoulder.lerp(elbow,0.48)
 		M.tapered(upper_body,shoulder,sleeve_end,0.082,0.070,jersey)
@@ -141,15 +154,21 @@ func _ready() -> void:
 		M.ball(upper_body,elbow,Vector3(0.10,0.10,0.10),skin)
 		M.tapered(upper_body,elbow,hand,0.052,0.035,skin)
 		M.ball(upper_body,hand,Vector3(0.068,0.058,0.10),black)
-		var thigh := M.tapered(self,Vector3.ZERO,Vector3.UP,0.088,0.073,skin)
-		var bib := M.tapered(self,Vector3.ZERO,Vector3.UP,0.099,0.083,shorts)
-		var calf := M.tapered(self,Vector3.ZERO,Vector3.UP,0.068,0.035,skin)
+		var thigh := M.anatomy(self,[[0,.087,.085],[.22,.105,.098],[.52,.103,.096],[.82,.088,.083],[1,.073,.071]],skin)
+		var bib := M.anatomy(self,[[0,.099,.098],[.2,.108,.104],[.55,.118,.112],[.85,.115,.110],[1,.105,.10]],shorts)
+		var calf := M.anatomy(self,[[0,.060,.059],[.15,.061,.060],[.35,.072,.077],[.58,.063,.074],[.84,.039,.043],[1,.035,.038]],skin)
 		var sock := M.tapered(self,Vector3.ZERO,Vector3.UP,0.041,0.048,cream)
 		var knee := M.ball(self,Vector3.ZERO,Vector3(0.145,0.15,0.145),skin)
 		var shoe := M.ball(self,Vector3.ZERO,Vector3(0.112,0.075,0.255),cream)
+		# Shoe details use local unit coordinates, scaled with the shoe.
+		for z in [-0.13,0.13]:
+			M.ball(shoe,Vector3(0,0.38,z),Vector3(0.36,0.20,0.13),black)
+		M.box(shoe,Vector3(0,0.34,-0.27),Vector3(0.7,0.10,0.08),black)
+		var stripe := M.tapered(self,Vector3.ZERO,Vector3.UP,0.047,0.047,jersey)
+		var cuff := M.tapered(self,Vector3.ZERO,Vector3.UP,0.049,0.049,cream)
 		var sole := M.box(shoe,Vector3(0,-0.28,0),Vector3(0.88,0.14,0.96),black)
 		sole.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-		limbs.append({"side":side,"thigh":thigh,"bib":bib,"calf":calf,"sock":sock,"knee":knee,"shoe":shoe})
+		limbs.append({"side":side,"thigh":thigh,"bib":bib,"calf":calf,"sock":sock,"stripe":stripe,"cuff":cuff,"knee":knee,"shoe":shoe})
 		crank_parts.append(M.rod(self,Vector3.ZERO,Vector3.UP,0.012,silver))
 	animate(0,0,0)
 
@@ -159,7 +178,7 @@ func animate(dt: float, cadence: float, speed: float) -> void:
 		var limb: Dictionary = limbs[i]
 		var phase := crank+i*PI
 		var hip := Vector3(float(limb.side)*0.115,1.02,0.24)
-		var foot := Vector3(float(limb.side)*0.135,0.295+cos(phase)*0.17,0.06+sin(phase)*0.17)
+		var foot := Vector3(float(limb.side)*0.135,0.295+cos(phase)*0.17,0.06-sin(phase)*0.17)
 		var axis := (foot-hip).normalized()
 		var bend := (Vector3.FORWARD-axis*Vector3.FORWARD.dot(axis)).normalized()
 		var knee := (hip+foot)*0.5+bend*sqrt(maxf(0,0.46*0.46-hip.distance_squared_to(foot)*0.25))
@@ -167,9 +186,11 @@ func animate(dt: float, cadence: float, speed: float) -> void:
 		M.place_rod(limb.bib,hip,hip.lerp(knee,0.72))
 		M.place_rod(limb.calf,knee,foot+Vector3.UP*0.025)
 		M.place_rod(limb.sock,foot,foot.lerp(knee,0.32))
+		M.place_rod(limb.stripe,foot.lerp(knee,0.265),foot.lerp(knee,0.285))
+		M.place_rod(limb.cuff,foot.lerp(knee,0.30),foot.lerp(knee,0.325))
 		limb.knee.position = knee
 		limb.shoe.position = foot+Vector3(0,0,-0.025)
-		limb.shoe.rotation.x = sin(phase)*0.12
+		limb.shoe.rotation.x = -sin(phase)*0.12
 		M.place_rod(crank_parts[i],Vector3(float(limb.side)*0.065,0.295,0.06),foot)
 	for wheel in wheels: wheel.rotation.x -= speed*dt/0.349
 	upper_body.position.y = -0.07+(sin(crank*2)*0.004 if cadence>0 else 0.0)
