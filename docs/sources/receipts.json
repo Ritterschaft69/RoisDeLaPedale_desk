@@ -1,0 +1,42 @@
+[
+  {
+    "source": "ign_bdtopo",
+    "url": "https://geoservices.ign.fr/bdtopo",
+    "error": "<urlopen error Tunnel connection failed: 403 Forbidden>"
+  },
+  {
+    "source": "ign_rgealti",
+    "url": "https://geoservices.ign.fr/rgealti",
+    "error": "<urlopen error Tunnel connection failed: 403 Forbidden>"
+  },
+  {
+    "source": "osm_copyright",
+    "url": "https://www.openstreetmap.org/copyright",
+    "sha256": "be5d3122171bcfaa30d01eee82646d5e1b89fbb0e95df3c8b7983c9f5b69eb0e",
+    "checked_utc": "2026-10-25T13:17:12.967588+00:00"
+  },
+  {
+    "source": "licence_ouverte",
+    "url": "https://raw.githubusercontent.com/etalab/licence-ouverte/master/LO.md",
+    "sha256": "a1deb9d7554ad10e041dbd7440b3dec0ac0d3679f9e1655ee9d850908b015995",
+    "checked_utc": "2026-10-25T13:17:12.753972+00:00"
+  },
+  {
+    "source": "ign_service_urls",
+    "url": "https://raw.githubusercontent.com/IGNF/geoportal-access-lib/master/src/Services/DefaultUrlService.js",
+    "sha256": "7bba419634cd86fe1185321c9f8368e4910bde9fde00af59cab1402d06d97e21",
+    "checked_utc": "2026-10-25T13:17:12.773596+00:00"
+  },
+  {
+    "source": "ign_bdtopo_csw",
+    "url": "https://data.geopf.fr/csw?REQUEST=GetRecordById&SERVICE=CSW&VERSION=2.0.2&OUTPUTSCHEMA=http://standards.iso.org/iso/19115/-3/mdb/2.0&elementSetName=full&ID=IGNF_BD-TOPO",
+    "sha256": "ca4fa44135801be5243316391f8a79e3b68bd00b158dd15a10c6b1f2987e6f99",
+    "file": "IGNF_BD-TOPO.xml"
+  },
+  {
+    "source": "ign_rgealti_csw",
+    "url": "https://data.geopf.fr/csw?REQUEST=GetRecordById&SERVICE=CSW&VERSION=2.0.2&OUTPUTSCHEMA=http://standards.iso.org/iso/19115/-3/mdb/2.0&elementSetName=full&ID=IGNF_RGE-ALTI",
+    "sha256": "09f958d39a8860c5f4814b38c91b02c6b0eac7c5356eb37b11d9dc0950820109",
+    "file": "IGNF_RGE-ALTI.xml"
+  }
+]

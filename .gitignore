@@ -1,0 +1,8 @@
+.godot/
+build/*
+!build/.gitkeep
+.venv/
+__pycache__/
+assets/geodata/cache/
+*.tmp
+*.log

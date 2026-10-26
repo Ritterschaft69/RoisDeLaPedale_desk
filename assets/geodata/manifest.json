@@ -1,0 +1,105 @@
+{
+  "schema": 1,
+  "acquired_at_utc": "2026-10-25T13:13:42.463782+00:00",
+  "route_source_sha256": "1d015f74f83f7980ca336426f22e55fa974e487a00b04cdf01ecba411ec667cc",
+  "coverage": {
+    "start_m": 0,
+    "end_m": 3000,
+    "margin_m": 180,
+    "bbox_crs84": [
+      6.961020470725159,
+      48.26160713088068,
+      7.001281529274841,
+      48.277507869119326
+    ]
+  },
+  "status": "downloaded_not_integrated",
+  "sources": {
+    "BDTOPO_V3:batiment": {
+      "status": "downloaded",
+      "file": "batiment.geojson",
+      "features": 2100,
+      "licence": "Licence Ouverte 2.0 — verify current dataset metadata before redistribution",
+      "attribution": "IGN — BD TOPO®",
+      "crs": "OGC:CRS84"
+    },
+    "BDTOPO_V3:zone_de_vegetation": {
+      "status": "downloaded",
+      "file": "zone_de_vegetation.geojson",
+      "features": 335,
+      "licence": "Licence Ouverte 2.0 — verify current dataset metadata before redistribution",
+      "attribution": "IGN — BD TOPO®",
+      "crs": "OGC:CRS84"
+    },
+    "ign_rge_alti_wld": {
+      "status": "downloaded",
+      "file": "elevation_audit.json",
+      "samples": 27,
+      "attribution": "IGN — RGE ALTI®",
+      "note": "Point elevation audit only. No claim of LiDAR HD acquisition; GPX vertical datum unknown."
+    },
+    "osm": {
+      "status": "downloaded",
+      "file": "osm.json",
+      "elements": 2861,
+      "licence": "ODbL 1.0",
+      "attribution": "© OpenStreetMap contributors",
+      "copyright": "https://www.openstreetmap.org/copyright",
+      "note": "Raw ways and relations retained. Relation rings and holes must be assembled before rendering."
+    }
+  },
+  "receipts": [
+    {
+      "url": "https://data.geopf.fr/wfs/ows?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetCapabilities",
+      "post_form": null,
+      "file": "816df769ff49c23028b74d138b340a2467af749d858e77cd7d2dd54f485d299e.xml",
+      "sha256": "8ca2229120df11836d56a929bdec80b1c3f5ed3ea1dd734ebd73a489c76cd8de",
+      "cached": false
+    },
+    {
+      "url": "https://data.geopf.fr/wfs/ows?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature&TYPENAMES=BDTOPO_V3%3Abatiment&OUTPUTFORMAT=application%2Fjson&SRSNAME=urn%3Aogc%3Adef%3Acrs%3AOGC%3A1.3%3ACRS84&BBOX=6.961020470725159%2C48.26160713088068%2C7.001281529274841%2C48.277507869119326%2Curn%3Aogc%3Adef%3Acrs%3AOGC%3A1.3%3ACRS84&COUNT=1000&STARTINDEX=0",
+      "post_form": null,
+      "file": "fb292d2e28c6d9462b8403f99ff61dec5e21036b1a97a463c31204c7e278405b.json",
+      "sha256": "419f8890eb671169da08791b4ef7884cde27b5c441b6ca95d08e21cc21bc7dae",
+      "cached": false
+    },
+    {
+      "url": "https://data.geopf.fr/wfs/ows?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature&TYPENAMES=BDTOPO_V3%3Abatiment&OUTPUTFORMAT=application%2Fjson&SRSNAME=urn%3Aogc%3Adef%3Acrs%3AOGC%3A1.3%3ACRS84&BBOX=6.961020470725159%2C48.26160713088068%2C7.001281529274841%2C48.277507869119326%2Curn%3Aogc%3Adef%3Acrs%3AOGC%3A1.3%3ACRS84&COUNT=1000&STARTINDEX=1000",
+      "post_form": null,
+      "file": "96ae2c7c77b20d0d02e8c781d76124482a6d5381d940ecbb520ca4147d939c98.json",
+      "sha256": "10d31ca901fbbbd69fd44faf2bd92b0ddcc79b27c432260adb61b27d106dfa3c",
+      "cached": false
+    },
+    {
+      "url": "https://data.geopf.fr/wfs/ows?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature&TYPENAMES=BDTOPO_V3%3Abatiment&OUTPUTFORMAT=application%2Fjson&SRSNAME=urn%3Aogc%3Adef%3Acrs%3AOGC%3A1.3%3ACRS84&BBOX=6.961020470725159%2C48.26160713088068%2C7.001281529274841%2C48.277507869119326%2Curn%3Aogc%3Adef%3Acrs%3AOGC%3A1.3%3ACRS84&COUNT=1000&STARTINDEX=2000",
+      "post_form": null,
+      "file": "859b579edffb5af97ebdcf21ae6ad2b99bafde21845229fa0ca104a1227692dd.json",
+      "sha256": "248cd9905c6d6403127c0b739c4c59f5485189cb8ed0cb34465b343a0fc13de7",
+      "cached": false
+    },
+    {
+      "url": "https://data.geopf.fr/wfs/ows?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature&TYPENAMES=BDTOPO_V3%3Azone_de_vegetation&OUTPUTFORMAT=application%2Fjson&SRSNAME=urn%3Aogc%3Adef%3Acrs%3AOGC%3A1.3%3ACRS84&BBOX=6.961020470725159%2C48.26160713088068%2C7.001281529274841%2C48.277507869119326%2Curn%3Aogc%3Adef%3Acrs%3AOGC%3A1.3%3ACRS84&COUNT=1000&STARTINDEX=0",
+      "post_form": null,
+      "file": "b471d5e857e39f12838f93082b0594c3ba0f5f9c526327b97a72e56efe876643.json",
+      "sha256": "150a437b917ac6300693aea9ee32362528f8a3cbf737574b18f9cba5d0eda455",
+      "cached": false
+    },
+    {
+      "url": "https://data.geopf.fr/altimetrie/1.0/calcul/alti/rest/elevation.json?resource=ign_rge_alti_wld&lon=6.96345%7C6.964624%7C6.965685%7C6.966781%7C6.968047%7C6.969246%7C6.970444%7C6.971564%7C6.97272%7C6.973989%7C6.975267%7C6.976541%7C6.977865%7C6.97923%7C6.981098%7C6.982262%7C6.984022%7C6.985336%7C6.986832%7C6.988531%7C6.989928%7C6.991951%7C6.99339%7C6.994905%7C6.9963%7C6.997594%7C6.998852&lat=48.27588%7C48.275262%7C48.274657%7C48.274122%7C48.273372%7C48.272735%7C48.272154%7C48.271492%7C48.270896%7C48.270311%7C48.269638%7C48.269208%7C48.269001%7C48.268799%7C48.268335%7C48.267858%7C48.267324%7C48.266949%7C48.266551%7C48.266084%7C48.265706%7C48.265153%7C48.264772%7C48.264339%7C48.263927%7C48.263574%7C48.263235&zonly=false",
+      "post_form": null,
+      "file": "f381c8ada39df2b6b08c92c0cb509ce87ec8978cde7135f09269d6af8368c8cc.json",
+      "sha256": "bc4cda9da4de186ebebcbbf43c74674798ca82dbfe2e3d0f8063b7ec902ab7d6",
+      "cached": false
+    },
+    {
+      "url": "https://overpass-api.de/api/interpreter",
+      "post_form": {
+        "data": "[out:json][timeout:60];(way[\"building\"](48.26160713088068,6.961020470725159,48.277507869119326,7.001281529274841);relation[\"building\"](48.26160713088068,6.961020470725159,48.277507869119326,7.001281529274841);way[\"landuse\"=\"forest\"](48.26160713088068,6.961020470725159,48.277507869119326,7.001281529274841);relation[\"landuse\"=\"forest\"](48.26160713088068,6.961020470725159,48.277507869119326,7.001281529274841);way[\"natural\"=\"wood\"](48.26160713088068,6.961020470725159,48.277507869119326,7.001281529274841);way[\"waterway\"](48.26160713088068,6.961020470725159,48.277507869119326,7.001281529274841);way[\"highway\"](48.26160713088068,6.961020470725159,48.277507869119326,7.001281529274841););out geom;"
+      },
+      "file": "33cae88cc5b3e0940a27197898143f6cfccf821464927828cb482fcd7785b0db.json",
+      "sha256": "64c407140bbd55b1d47d2ca580347b23a3b1fc3e8dbf47dbfae35979f3c4e5e9",
+      "cached": false
+    }
+  ],
+  "integration_status": "source acquisition only; not a verified terrain or building scene"
+}
