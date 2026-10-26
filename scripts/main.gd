@@ -7,6 +7,7 @@ const Rider = preload("res://scripts/rider.gd")
 const HUD = preload("res://scripts/hud.gd")
 const InputAdapter = preload("res://scripts/trainer_input.gd")
 const Recorder = preload("res://scripts/recorder.gd")
+const CameraFollow = preload("res://scripts/camera_follow.gd")
 const LanePlanner = preload("res://scripts/lane_planner.gd")
 
 var route := Route.new()
@@ -19,6 +20,7 @@ var lane := LanePlanner.new()
 var world := World.new()
 var rider := Rider.new()
 var camera := Camera3D.new()
+var camera_follow := CameraFollow.new()
 var hud := HUD.new()
 var overlay := Control.new()
 var screen := "home"
@@ -412,11 +414,8 @@ func position_scene(dt: float, immediate: bool = false) -> void:
 	var bend := forward.cross(route.direction(minf(route.length_m,station+6))).y
 	rider.rotation.z = lerpf(rider.rotation.z,clampf(bend*0.8-lane.velocity*0.10,-0.13,0.13),1-exp(-dt*5))
 	rider.rotation.x = atan(clampf(route.grade(station),-0.25,0.25))
-	var horizontal := Vector3(forward.x,0,forward.z).normalized()
-	var desired := rider.position-horizontal*3.6+Vector3.UP*2.2-right*0.45
-	camera.position = desired if immediate else camera.position.lerp(desired,1-exp(-dt*4))
-	var target := rider.position+horizontal*1.8+Vector3.UP*1.3
-	camera.look_at(target,Vector3.UP)
+	if immediate or screen == "ride":
+		camera.transform = camera_follow.step(route,station,lateral,speed,dt,immediate)
 
 func _process(dt: float) -> void:
 	position_scene(dt)

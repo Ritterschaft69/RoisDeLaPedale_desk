@@ -5,11 +5,11 @@
 
 Prototype **desktop natif** de simulation cycliste, Godot **4.6.3**, sans serveur ni navigateur. Interface en français, mode démo, parcours GPX original et première tranche IGN hors ligne. Ce dépôt initial ne contenait aucun prototype à migrer.
 
-## Raccords du cycliste — 0.5.1
+## Caméra stabilisée — 0.5.2
 
-Maillot continu du torse aux manches, avec épaules arrondies ; cuissard continu du bassin aux cuisses, animé par un squelette à trois os. Les volumes superposés aux articulations ont été remplacés par des surfaces fusionnées et lissées. [Validation : 148 contrôles](docs/VALIDATION_v0.5.1.md). Les gros plans et l’animation des raccords sont joints à la release.
+Suivi indépendant du cycliste, cap amorti sur une portion de route, horizon horizontal, tolérance aux petits écarts latéraux et hauteur filtrée. Recul fixe de 4,2 m, sans zoom automatique. La caméra se fige à l’arrêt et pendant la pause. [Validation : 159 contrôles](docs/VALIDATION_v0.5.2.md).
 
-Le pédalage vers l’avant et le lissage des parcours sont conservés. Les fichiers GPX sources restent intacts. Les ressources 3D sont incluses dans le jeu ; Blender est uniquement un outil facultatif de génération pour les développeurs.
+Les raccords continus des épaules et des hanches de la version 0.5.1 sont conservés, ainsi que le pédalage vers l’avant et le lissage des parcours. Les fichiers GPX sources restent intacts.
 
 ## Lancer
 
@@ -62,6 +62,7 @@ godot --headless --path . --script tests/test_geometry.gd
 godot --headless --path . --script tests/test_route_smoothing.gd
 godot --headless --path . --script tests/test_rider_model.gd
 godot --headless --path . --script tests/test_garment_joints.gd
+godot --headless --path . --script tests/test_camera_follow.gd
 godot --headless --path . --fixed-fps 60 -- --smoke
 ```
 
@@ -81,7 +82,7 @@ python tools/build.py --installer             # exports + installeur Windows non
 
 Le téléchargement initial des modèles officiels représente environ 1,26 Go. Les exports portables sont générés dans `build/`, exclus du suivi Git. Le paquet Windows est un exécutable x64 avec son fichier PCK ; garder les fichiers ensemble. Ne pas confondre un export produit sous Linux avec une exécution validée sous Windows.
 
-L’installeur `build/RoisDeLaPedale-0.5.1-Setup.exe` installe l’application pour l’utilisateur courant, crée les raccourcis du menu Démarrer et une entrée de désinstallation. Il conserve les activités et préférences dans AppData lors de la désinstallation. Construction vérifiée sous Linux ; installation/désinstallation Windows à valider sur un vrai poste.
+L’installeur `build/RoisDeLaPedale-0.5.2-Setup.exe` installe l’application pour l’utilisateur courant, crée les raccourcis du menu Démarrer et une entrée de désinstallation. Il conserve les activités et préférences dans AppData lors de la désinstallation. Construction vérifiée sous Linux ; installation/désinstallation Windows à valider sur un vrai poste.
 
 ## Limites de ce lot
 
