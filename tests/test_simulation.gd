@@ -61,8 +61,8 @@ func _init() -> void:
 		outcomes.append(velocity)
 	check(absf(outcomes[0]-outcomes[1]) < 0.0000001 and absf(outcomes[1]-outcomes[2]) < 0.0000001,"fixed simulation agrees at 30 / 60 / 144 render FPS")
 	var route := Route.new()
-	check(route.sample(0).position.is_equal_approx(Vector3(0,366.2,0)),"route starts at original GPX point and altitude")
-	check(route.sample(route.length_m).index == route.points.size()-2,"route endpoint clamps correctly")
+	check(route.sample_raw(0).position.is_equal_approx(Vector3(0,366.2,0)),"original GPX point and altitude remain accessible separately")
+	check(route.sample(route.length_m).index == route.source_points.size()-2,"route endpoint clamps correctly in original GPX mapping")
 	var a: float = route.sample(1000).position.y
 	var b: float = route.sample(1012).position.y
 	check(absf(route.grade(1006)-(b-a)/12) < 0.000001,"grade is sampled over 12 spatial metres")
@@ -75,6 +75,7 @@ func _init() -> void:
 	var smoothed := adapter.smooth(200)
 	check(absf(smoothed-104) < 0.001,"0.5 s power window at 50 Hz")
 	var recorder := Recorder.new()
+	recorder.geographic_route = not route.geography.is_empty()
 	recorder.begin(route.sample(0).position.y)
 	for i in range(100): recorder.tick(0.02,i*0.1,5,200,80,route.sample(i*0.1))
 	var activity := recorder.save(10,false)

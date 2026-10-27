@@ -31,7 +31,7 @@ func run() -> void:
 		check(absf(app.world.roadside(app.route.start_m-20,0).distance_to(app.route.sample(app.route.start_m).position)-20) < 0.001,"visual start apron supports the chase camera for "+id)
 		app.hud.ensure_route_cache()
 		check(app.hud.cached_route == app.route and app.hud.map_points.size() <= 702,"map and profile refresh with bounded display geometry for "+id)
-		check(app.world.geographic.covers(0) == (id == "saint_die"),"IGN cache is scoped and restored correctly for "+id)
+		check(app.world.geographic.covers(0) and app.world.geographic.covers(app.route.length_m),"full IGN cache is scoped and restored correctly for "+id)
 		app.start_session()
 		check(not app.select_circuit("sortie_matin"),"active session cannot silently change circuit")
 		for i in range(100): app._physics_process(0.02)
@@ -47,6 +47,12 @@ func run() -> void:
 				saved = JSON.parse_string(FileAccess.get_file_as_string("user://activities/"+path))
 		check(saved.get("route","") == id and saved.get("route_name","") == app.selected_circuit.name and saved.get("route_source_sha256","") == app.route.data.source_sha256,"activity records chosen route and source hash for "+id)
 		check(absf(float(saved.get("distance_m",-1))-(app.distance-app.route.start_m))<0.0001 and saved.get("route_start_m",-1)==app.route.start_m,"activity counts ridden metres only for "+id)
+		var samples: Array = saved.get("samples",[])
+		var coherent := false
+		if not samples.is_empty() and samples[0].has("source_gpx"):
+			var station: float = float(samples[0].distance_m)+app.route.start_m
+			coherent = absf(float(samples[0].alt_m)-app.route.sample(station).position.y)<.02 and absf(float(samples[0].source_gpx.alt_m)-app.route.sample_raw(station).position.y)<.02
+		check(coherent and "IGN69" in saved.get("altitude_source",""),"activity separates simulated IGN altitude from original GPX values for "+id)
 		app.show_home()
 	check(not app.select_circuit("unknown") and app.selected_circuit.id == "saint_die","invalid circuit leaves selection intact")
 	app.select_circuit("oderen_grand_ballon")
@@ -58,7 +64,7 @@ func run() -> void:
 	var restored = load("res://main.tscn").instantiate()
 	root.add_child(restored)
 	await process_frame
-	check(restored.selected_circuit.id == "oderen_grand_ballon" and restored.route.points.size() == 20459,"restart restores selected circuit")
+	check(restored.selected_circuit.id == "oderen_grand_ballon" and restored.route.source_points.size() == 20459,"restart restores selected circuit and its original source points")
 	restored.set_physics_process(false)
 	restored.select_circuit("saint_die")
 	restored.queue_free()

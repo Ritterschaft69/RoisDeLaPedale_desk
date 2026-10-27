@@ -23,6 +23,30 @@ func up_facing(instance: MeshInstance3D) -> bool:
 		if normal.y<=0: return false
 	return true
 
+func road_clearance(app: Node3D, station: float) -> float:
+	var ground: MeshInstance3D = app.world.generated.get_child(0)
+	var vertices: PackedVector3Array = ground.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
+	var minimum := INF
+	for step in range(16):
+		for lateral in [-2.7,0.0,2.7]:
+			var p: Vector3 = app.world.roadside(station+step*3,lateral)
+			var found := false
+			for i in range(0,vertices.size(),3):
+				var a := Vector2(vertices[i].x,vertices[i].z)
+				var b := Vector2(vertices[i+1].x,vertices[i+1].z)-a
+				var c := Vector2(vertices[i+2].x,vertices[i+2].z)-a
+				var q := Vector2(p.x,p.z)-a
+				var determinant := b.cross(c)
+				if absf(determinant)<.00001: continue
+				var u := q.cross(c)/determinant
+				var v := b.cross(q)/determinant
+				if u<-.0001 or v<-.0001 or u+v>1.0001: continue
+				var y := vertices[i].y*(1-u-v)+vertices[i+1].y*u+vertices[i+2].y*v
+				minimum = minf(minimum,p.y+.045-y)
+				found = true
+			if not found: return -INF
+	return minimum
+
 func _initialize() -> void:
 	call_deferred("run")
 
@@ -45,6 +69,11 @@ func run() -> void:
 	await process_frame
 	app.set_physics_process(false)
 	check(up_facing(app.world.generated.get_child(0)),"Delaunay terrain has consistently upward normals")
+	app.select_circuit("oderen_grand_ballon")
+	app.world.update_at(65782.9,true)
+	var clearance := road_clearance(app,65782.9)
+	print("CORNER_TERRAIN_CLEARANCE_M ",clearance)
+	check(clearance>.01,"terrain stays below both lanes through the real Grand Ballon bend")
 	app.rider.crank = 0
 	app.rider.animate(0,60,4)
 	var foot: Vector3 = app.rider.limbs[0].shoe.position

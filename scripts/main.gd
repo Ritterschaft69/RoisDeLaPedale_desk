@@ -54,7 +54,8 @@ func _ready() -> void:
 	add_child(rider)
 	add_child(camera)
 	camera.fov = 48
-	camera.far = 2200
+	camera.near = .25
+	camera.far = 18000
 	var layer := CanvasLayer.new()
 	add_child(layer)
 	layer.add_child(hud)
@@ -67,8 +68,19 @@ func _ready() -> void:
 	position_scene(0,true)
 	show_home()
 	if settings.get_value("graphics","fullscreen",false): DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
+	if "--smoke" in OS.get_cmdline_user_args():
+		for argument in OS.get_cmdline_user_args():
+			if argument.begins_with("--smoke-circuit="):
+				if not select_circuit(argument.get_slice("=",1)):
+					get_tree().quit(2)
+					return
 	for argument in OS.get_cmdline_user_args():
 		if argument == "--smoke":
+			if route.geography.is_empty() or world.geographic.terrain_source == null or world.geographic.terrain_source.horizon_values.is_empty():
+				push_error("SMOKE_MISSING_GEOGRAPHY "+str(selected_circuit.id))
+				get_tree().quit(3)
+				return
+			print("GEOGRAPHY_SMOKE route=",selected_circuit.id," samples=",route.curve.size()," source_points=",route.source_points.size())
 			start_session()
 			smoke_frames = 160
 		if argument == "--screenshot":
@@ -167,7 +179,7 @@ func show_home() -> void:
 	overlay.show()
 	screen = "home"
 	var column := card("Prenez la route.",str(selected_circuit.short_name)+"\nTrois circuits installés, disponibles hors ligne.")
-	label_in(column,"%.1f km   ·   %s points GPS   ·   D+ brut %.0f m" % [route.length_m/1000,route.points.size(),route.ascent_m])
+	label_in(column,"%.1f km   ·   D+ %.0f m\nGPX source : %s points conservés" % [route.length_m/1000,route.ascent_m,route.source_points.size()])
 	button_in(column,"Choisir un circuit  ·  3 parcours",show_circuits)
 	var power_label := label_in(column,"Puissance démo : %d W" % input.demo_watts)
 	var slider := HSlider.new()
@@ -185,7 +197,8 @@ func show_home() -> void:
 	button_in(column,"Paramètres",show_settings)
 	button_in(column,"Activités enregistrées",show_history)
 	var scenery := "IGN : 3 premiers km ; au-delà, décor illustratif." if not world.geographic.data.is_empty() else "Décor illustratif ; données IGN non installées pour ce circuit."
-	label_in(column,"Puissance simulée · D+ brut non filtré\n"+scenery,true)
+	if not route.geography.is_empty(): scenery = "Route OSM · relief IGN LiDAR HD sur tout le circuit.\nBâtiments IGN ; arbres et façades interprétés."
+	label_in(column,"Puissance simulée\n"+scenery,true)
 	button_in(column,"Quitter",func(): save_settings(); get_tree().quit())
 
 func show_circuits() -> void:
@@ -194,7 +207,7 @@ func show_circuits() -> void:
 	for circuit in circuits:
 		var circuit_id: String = circuit.id
 		var chosen: bool = circuit_id == str(selected_circuit.id)
-		var text := ("✓  " if chosen else "")+str(circuit.short_name)+"\n%.1f km  ·  D+ brut %.0f m" % [float(circuit.length_m)/1000,float(circuit.ascent_raw_m)]
+		var text := ("✓  " if chosen else "")+str(circuit.short_name)+"\n%.1f km  ·  D+ %.0f m" % [float(circuit.get("simulation_length_m",circuit.length_m))/1000,float(circuit.get("simulation_ascent_m",circuit.ascent_raw_m))]
 		var button := button_in(column,text,func(): select_circuit(circuit_id),chosen)
 		button.name = "Circuit_"+circuit_id
 		button.custom_minimum_size.y = 72
@@ -300,6 +313,7 @@ func start_session() -> void:
 	recorder.route_name = selected_circuit.name
 	recorder.route_source_sha256 = route.data.source_sha256
 	recorder.route_start_m = route.start_m
+	recorder.geographic_route = not route.geography.is_empty()
 	screen = "ride"
 	clear_overlay()
 	world.update_at(0,true)
@@ -390,7 +404,7 @@ func _physics_process(dt: float) -> void:
 	speed = result.speed
 	distance = minf(route.length_m,distance+result.distance)
 	elapsed += dt
-	recorder.tick(dt,distance-route.start_m,speed,watts,cadence,route.sample_raw(distance),lane.lateral)
+	recorder.tick(dt,distance-route.start_m,speed,watts,cadence,route.sample(distance) if recorder.geographic_route else route.sample_raw(distance),lane.lateral)
 	if distance >= route.length_m: finish_session()
 
 func position_scene(dt: float, immediate: bool = false) -> void:

@@ -1,5 +1,13 @@
 # Audit et décisions — lot 0.1
 
+## Mise à jour géographique 0.6.0
+
+Le mode courant charge les trois caches `assets/geodata/circuits/<id>/`. La géométrie et la distance simulées viennent du recalage sur le réseau OSM ; `route.data` et `route.source_points` conservent le GPX original. `source_station()` relie la station simulée à celle du GPX. `sample_raw()` fournit les valeurs GPX correspondantes, tandis que `sample()` fournit la position de simulation en altitude IGN69 et les coordonnées WGS84 dérivées.
+
+`IGNTerrain` lit les tuiles float32 MNT/MNH en Lambert-93, avec transformation locale auditée et arithmétique double pour les grandes coordonnées Lambert. Le cache décodé est limité à 32 tuiles. Relief proche, arrière-plans, zones boisées, bâtiments, surfaces d’eau et routes voisines utilisent ces données locales. Le chargement des trois circuits ne nécessite aucun accès Internet.
+
+Les métriques brutes, la tranche initiale et le raccordement vertical GPX/IGN décrits plus bas restent l’historique du premier lot ; ils ne pilotent plus les caches géographiques 0.6.0. Voir [méthode et limites actuelles](GEODATA.md).
+
 ## Inventaire réel
 
 À l’ouverture, le dépôt ne contenait que `README.md` et `LICENSE`, au commit `83e13e99aaacd04c6ad55b00ffaf879dc1f3eed8`, identique au `main` distant. Aucun moteur physique, scène 3D, code Bluetooth, donnée IGN ou configuration de build à conserver. La branche locale de travail est fournie par la plateforme ; aucun worktree supplémentaire créé.

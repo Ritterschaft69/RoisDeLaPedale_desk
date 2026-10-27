@@ -3,6 +3,10 @@ extends RefCounted
 
 var data: Dictionary
 var points: Array
+var source_points: Array
+var geography: Dictionary = {}
+var source_length_m := 0.0
+var coordinates := PackedFloat64Array()
 var length_m: float
 var ascent_m: float
 var curve := PackedVector3Array()
@@ -10,11 +14,32 @@ var spacing := 2.0
 
 var start_m := 0.0 # Explicit playable start; source samples stay intact.
 
-func _init(path: String = "res://assets/routes/saint_die.json") -> void:
+func _init(path: String = "res://assets/routes/saint_die.json", use_geography: bool = true) -> void:
 	data = JSON.parse_string(FileAccess.get_file_as_string(path))
 	points = data.points
+	source_points = data.points
 	length_m = data.length_m
+	source_length_m = length_m
 	ascent_m = data.ascent_raw_m
+	var directory := "res://assets/geodata/circuits/"+path.get_file().get_basename()+"/"
+	if use_geography and FileAccess.file_exists(directory+"route.json"):
+		var prepared: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(directory+"route.json"))
+		if prepared.get("route_source_sha256","") == data.get("source_sha256",""):
+			var file := FileAccess.open(directory+str(prepared.points_file),FileAccess.READ)
+			var packed := file.get_buffer(file.get_length()).to_float32_array()
+			if packed.size() == int(prepared.point_count)*4:
+				geography = prepared
+				var coordinate_file := FileAccess.open(directory+str(prepared.coordinates_file),FileAccess.READ)
+				coordinates = coordinate_file.get_buffer(coordinate_file.get_length()).to_float64_array()
+				length_m = prepared.length_m
+				ascent_m = prepared.ascent_m
+				spacing = prepared.spacing_m
+				points = []
+				for i in range(int(prepared.point_count)):
+					var p := Vector3(packed[i*4],packed[i*4+1],packed[i*4+2])
+					curve.append(p)
+					points.append({"s":i*spacing,"x":p.x,"alt":p.y,"z":p.z,"source_s":packed[i*4+3]})
+				return
 	# A derived, uniform spatial grid: never rewrite source GPX or its metrics.
 	var count := int(ceil(length_m / 2.0))
 	spacing = length_m / count
@@ -30,16 +55,24 @@ func _init(path: String = "res://assets/routes/saint_die.json") -> void:
 		var horizontal := Vector2(filtered.x,filtered.z).limit_length(.35)
 		curve[i] += Vector3(horizontal.x,clampf(filtered.y,-.25,.25),horizontal.y)
 
+func source_station(distance: float) -> float:
+	if geography.is_empty(): return clampf(distance,0,source_length_m)
+	if distance<=0: return 0
+	if distance>=length_m: return source_length_m
+	var u := clampf(distance,0,length_m)/spacing
+	var i := mini(int(floor(u)),points.size()-2)
+	return lerpf(points[i].source_s,points[i+1].source_s,clampf(u-i,0,1))
+
 func sample_raw(distance: float) -> Dictionary:
-	var s := clampf(distance, 0, length_m)
+	var s := source_station(distance)
 	var lo := 0
-	var hi := points.size() - 1
+	var hi := source_points.size() - 1
 	while lo + 1 < hi:
 		var mid := (lo + hi) / 2
-		if float(points[mid].s) <= s: lo = mid
+		if float(source_points[mid].s) <= s: lo = mid
 		else: hi = mid
-	var a: Dictionary = points[lo]
-	var b: Dictionary = points[hi]
+	var a: Dictionary = source_points[lo]
+	var b: Dictionary = source_points[hi]
 	var t := clampf((s - float(a.s)) / maxf(float(b.s) - float(a.s), 0.0001), 0, 1)
 	return {"position": Vector3(lerpf(a.x, b.x, t), lerpf(a.alt, b.alt, t), lerpf(a.z, b.z, t)),
 		"lat": lerpf(a.lat, b.lat, t), "lon": lerpf(a.lon, b.lon, t), "index": lo}
@@ -50,6 +83,18 @@ func control(index: int) -> Vector3:
 	if index >= curve.size():
 		return curve[-1] + (curve[-1] - curve[-2]) * (index - curve.size() + 1)
 	return curve[index]
+
+func structure_at(station: float) -> String:
+	for structure in geography.get("structures",[]):
+		if station>=float(structure.start_m) and station<=float(structure.end_m): return str(structure.kind)
+	return ""
+
+func osm_verified_at(station: float) -> bool:
+	if geography.is_empty(): return false
+	var source_s := source_station(station)
+	for interval in geography.osm_match.unverified_source_intervals_m:
+		if source_s>=float(interval[0]) and source_s<=float(interval[1]): return false
+	return true
 
 func smooth_position(distance: float) -> Vector3:
 	var u := clampf(distance, 0, length_m) / spacing
@@ -70,7 +115,16 @@ func smooth_position(distance: float) -> Vector3:
 
 func sample(distance: float) -> Dictionary:
 	var result := sample_raw(distance)
+	result.source_alt_m = result.position.y
+	result.source_lat = result.lat
+	result.source_lon = result.lon
+	result.source_station_m = source_station(distance)
 	result.position = smooth_position(distance)
+	if not coordinates.is_empty():
+		var u := clampf(distance,0,length_m)/spacing
+		var i := mini(int(floor(u)),points.size()-2)
+		result.lat = lerpf(coordinates[i*2],coordinates[(i+1)*2],u-i)
+		result.lon = lerpf(coordinates[i*2+1],coordinates[(i+1)*2+1],u-i)
 	return result
 
 func grade(distance: float, window_m: float = 12.0) -> float:

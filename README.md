@@ -3,54 +3,41 @@
 **Windows : [télécharger l’installeur v0.5.2](https://github.com/Ritterschaft69/RoisDeLaPedale_desk/releases/download/v0.5.2/RoisDeLaPedale-0.5.2-Setup.exe)** · [Page de la préversion](https://github.com/Ritterschaft69/RoisDeLaPedale_desk/releases/tag/v0.5.2)
 [Voir la caméra stabilisée et la vidéo du suivi](https://github.com/Ritterschaft69/RoisDeLaPedale_desk/releases/tag/v0.5.2)
 
-Prototype **desktop natif** de simulation cycliste, Godot **4.6.3**, sans serveur ni navigateur. Interface en français, mode démo, parcours GPX original et première tranche IGN hors ligne. Ce dépôt initial ne contenait aucun prototype à migrer.
+Prototype **desktop natif**, Godot **4.6.3**, trois circuits et données géographiques hors ligne. Aucun serveur ni navigateur requis.
 
-## Caméra stabilisée — 0.5.2
+## Circuits géographiques — 0.6.0
 
-Suivi indépendant du cycliste, cap amorti sur une portion de route, horizon horizontal, tolérance aux petits écarts latéraux et hauteur filtrée. Recul fixe de 4,2 m, sans zoom automatique. La caméra se fige à l’arrêt et pendant la pause. [Validation : 159 contrôles](docs/VALIDATION_v0.5.2.md).
+Les trois GPX sont recalés sur les routes **OpenStreetMap**, puis rééchantillonnés tous les **deux mètres au maximum** et lissés pour la simulation. Le recalage utilise le réseau connecté et le sens de déplacement ; les lacets sont reconstruits le long des segments OSM, sans raccourci diagonal.
 
-Les raccords continus des épaules et des hanches de la version 0.5.1 sont conservés, ainsi que le pédalage vers l’avant et le lissage des parcours. Les fichiers GPX sources restent intacts.
+Le relief provient des **MNT numériques IGN LiDAR HD**, sur une grille de **10 m** près des parcours, complétée par un fond de relief à **100 m** jusqu’aux massifs lointains. Les hauteurs **MNH** guident la présence et la taille de la végétation près des routes. Les emprises et hauteurs des bâtiments, les zones de végétation et les surfaces d’eau viennent de la BD TOPO IGN. Les îles sont conservées dans les maillages d’eau. Les routes voisines OSM sont visibles aux abords et aux carrefours.
+
+Les altitudes de simulation sont en **IGN69**, filtrées spatialement. Les accès des ponts/tunnels sont interpolés pour éviter les creux du terrain sous un ouvrage ; les ponts ne forcent pas le terrain à monter jusqu’au tablier. La caméra stabilisée, les vêtements continus du cycliste et le pédalage vers l’avant sont conservés.
+
+Les GPX sources restent inchangés. Le jeu affiche la distance et le D+ du tracé reconstruit ; les données brutes restent accessibles séparément :
+
+| Circuit source | Distance GPX | D+ GPX brut |
+| --- | --- | --- |
+| Saint-Dié-des-Vosges | 66,299 km | 1 585,4 m |
+| Sortie vélo le matin | 102,362 km | 2 233,2 m |
+| Oderen · Grand Ballon · Amic · Bramont · Brabant | 120,675 km | 2 229,2 m |
+
+Les activités enregistrent le tracé simulé et son altitude IGN ; chaque mesure conserve aussi les coordonnées, l’altitude et la station correspondantes du GPX original dans `source_gpx`. Le départ est à zéro sur les trois circuits : les sauts altimétriques initiaux des GPX ne pilotent plus la pente simulée.
+
+[Données, couverture et méthode](docs/GEODATA.md) · [Notes 0.6.0](docs/RELEASE_v0.6.0.md) · [Validation 0.6.0](docs/VALIDATION_v0.6.0.md)
 
 ## Lancer
 
-Installer Godot 4.6.3 standard (pas besoin de .NET), puis ouvrir `project.godot` et presser F6/F5, ou :
+Ouvrir `project.godot` dans Godot 4.6.3 standard, ou exécuter :
 
 ```sh
 godot --path .
 ```
 
-Cliquer sur **Choisir un circuit**, sélectionner un des trois parcours, puis **Démarrer en mode démo**. Le dernier circuit choisi est mémorisé. La carte, le profil, le HUD et les activités enregistrées correspondent au circuit sélectionné. Flèches haut/bas ou boutons : watts simulés ; Espace/Échap : pause ; F11 : plein écran ; H : masquer/afficher l’interface. Le mode démo ne représente jamais une mesure de home trainer. Paramètres et activités JSON sont stockés dans le répertoire applicatif Godot de l’utilisateur, pas dans le dépôt.
-
-| Circuits installés hors ligne | Distance GPX | D+ brut non filtré |
-| --- | --- | --- |
-| Boucle de Saint-Dié-des-Vosges | 66,3 km | 1 585 m |
-| Sortie vélo le matin | 102,4 km | 2 233 m |
-| Col d’Oderen · Grand Ballon · Amic · Bramont · Brabant | 120,7 km | 2 229 m |
-
-Les deux nouveaux GPX sont conservés sans modification de leurs 19 641 et 20 459 points. Leur décor est illustratif ; les données IGN installées restent limitées aux trois premiers kilomètres du circuit de Saint-Dié. Le catalogue est dans `assets/routes/catalog.json`. Les deux nouveaux fichiers présentent un saut initial de 18,8 m sur 0,13 m et de 10,8 m sur 0,68 m : le départ jouable est explicitement positionné à 12 m sur ces deux circuits, sans supprimer ni modifier les points sources. Le compteur et les activités ne créditent pas ces 12 m.
-
-Sur cette machine cloud sans écran : `python tools/run_cloud.py --fixed-fps 60 -- --screenshot --geo-screenshot` démarre un affichage logiciel isolé, exécute une courte session et écrit `build/session.png`. Aucun lien web de prévisualisation.
-
-## Nouveautés 0.2.0
-
-Cycliste et vélo remodelés, asphalte et accotements détaillés, terrain continu, arbres variés, façades enrichies, ciel et arrière-plans. Le cycliste roule à droite par défaut, anticipe les obstacles, se décale progressivement puis revient à droite ; si le passage est bloqué, il freine virtuellement. Des passants, chevreuils, renards et oiseaux animent le décor. Ces éléments de jeu sont procéduraux.
-
-La pause fige aussi la faune et les passants. Les activités conservent l’écart latéral dans `lateral_m`. Les GPX et la couverture IGN existante sont préservés. Voir les [notes 0.2.0](docs/RELEASE_v0.2.0.md) et le [rapport de validation](docs/VALIDATION_v0.2.0.md).
-
-Le correctif **0.2.1** empêche le glissement latéral à l’arrêt et fait attendre les personnages devant un vélo immobilisé. Voir [validation 0.2.1](docs/VALIDATION_v0.2.1.md).
-
-## Ce qui fonctionne
-
-- Session 3D native avec cycliste/vélo procéduraux, pédalage, caméra poursuite et shader toon à trois niveaux.
-- Physique indépendante du rendu à 50 Hz : inertie mécanique, démarrage à force plafonnée, gravité signée, roulement, traînée et vent ; puissance lissée sur 0,5 s.
-- GPX original conservé : **3 383 points**, **66,299 km** horizontaux, **1 585,4 m de D+ brut**. Altitudes et latitude/longitude inchangées.
-- HUD, carte du tracé réel, profil altimétrique, puissance manuelle, roue libre, pause/reprise, récapitulatif et historique local.
-- Première tranche **0–3 km** : emprises/hauteurs IGN BD TOPO, masques de végétation et relief RGE ALTI échantillonné ; toitures et façades estimées. **Au-delà, décor illustratif explicitement indiqué.**
-- Caches de sources IGN et OSM, provenance et scripts reproductibles. L’application ne télécharge rien au lancement.
+**Choisir un circuit**, puis **Démarrer en mode démo**. Flèches haut/bas : watts simulés ; Espace/Échap : pause ; F11 : plein écran ; H : masquer l’interface. Conduite à droite et évitement automatiques ; passants et faune procéduraux. Le dernier circuit est mémorisé. Activités et paramètres sont stockés dans le répertoire applicatif de l’utilisateur.
 
 ## Vérifier
 
-Python 3.12 standard suffit aux outils, sans dépendance pip.
+Les tests Python utilisent uniquement la bibliothèque standard. Les suites natives nécessitent Godot 4.6.3.
 
 ```sh
 python -m unittest discover -s tests -v
@@ -63,31 +50,29 @@ godot --headless --path . --script tests/test_route_smoothing.gd
 godot --headless --path . --script tests/test_rider_model.gd
 godot --headless --path . --script tests/test_garment_joints.gd
 godot --headless --path . --script tests/test_camera_follow.gd
-godot --headless --path . --fixed-fps 60 -- --smoke
+godot --headless --path . --script tests/test_circuit_geography.gd
 ```
 
-Les tests desktop écrivent des activités et préférences dans leur répertoire utilisateur : utiliser un `XDG_DATA_HOME` temporaire pour les isoler sous Linux. Dans le cloud, définir les trois répertoires XDG sous `/workspace` si le dossier utilisateur est en lecture seule.
+Isoler `XDG_DATA_HOME`, `XDG_CONFIG_HOME` et `XDG_CACHE_HOME` dans des répertoires accessibles en écriture pour les tests cloud. Le rendu natif sans écran est disponible via `python tools/run_cloud.py` ; ce rendu logiciel ne mesure pas les performances d’un GPU Windows.
 
-## Reconstruire les données et exports
+## Reconstruire
+
+Les caches installés suffisent pour jouer et construire les exports, sans réinterroger IGN/OSM. La préparation des données géographiques est une étape distincte, avec accès réseau et dépendances d’auteur optionnelles :
 
 ```sh
-python tools/prepare_route.py --all            # prépare les trois circuits du catalogue
-python tools/fetch_geodata.py                 # plan, aucun appel réseau
-python tools/fetch_geodata.py --fetch          # tranche source de 3 km, cache HTTP
-python tools/build_geoworld.py --terrain      # 549 points IGN puis cache de rendu
-python tools/build.py --templates             # modèles officiels vérifiés SHA-512, exports natifs
-python tools/install_nsis.py                  # compilateur d’installeur local, cloud Debian
-python tools/build.py --installer             # exports + installeur Windows non signé
+python tools/prepare_route.py --all
+python -m pip install -r tools/requirements-geography.txt
+python tools/circuit_geography.py --stage plan
+python tools/circuit_geography.py --stage all
+python tools/build.py --templates --target windows --installer
 ```
 
-Le téléchargement initial des modèles officiels représente environ 1,26 Go. Les exports portables sont générés dans `build/`, exclus du suivi Git. Le paquet Windows est un exécutable x64 avec son fichier PCK ; garder les fichiers ensemble. Ne pas confondre un export produit sous Linux avec une exécution validée sous Windows.
+Les requêtes brutes sont mises en cache dans `build/geography/cache/`, les reçus et données de rendu dans `assets/geodata/circuits/`. Les données sources OSM dérivées et les formats binaires sont publiés avec leur attribution et leur licence. Les exports et installeurs restent dans `build/`, hors historique Git ; les installeurs publics sont joints aux GitHub Releases.
 
-L’installeur `build/RoisDeLaPedale-0.5.2-Setup.exe` installe l’application pour l’utilisateur courant, crée les raccourcis du menu Démarrer et une entrée de désinstallation. Il conserve les activités et préférences dans AppData lors de la désinstallation. Construction vérifiée sous Linux ; installation/désinstallation Windows à valider sur un vrai poste.
+## Limites
 
-## Limites de ce lot
+Le MNT/MNH LiDAR HD est rééchantillonné à 10 m près du parcours et le relief lointain à 100 m ; les nuages LAZ complets ne sont pas embarqués. Les façades, toitures et formes individuelles des arbres sont procédurales ; les largeurs routières sans mesure sont estimées. Les tunnels ne sont pas reconstruits comme des ouvrages souterrains complets. Le recalage automatique reste une interprétation du GPX, et les intervalles non raccordés sont signalés dans les rapports et dans le jeu.
 
-Bluetooth FTMS / ANT+, commandes de résistance, audio, LiDAR HD, couverture détaillée de toute la boucle et finition artistique ne sont **pas terminés**. Pas de signature de code. Pas de validation sur PC Windows ni home trainer physique. Les arbres et l’avatar restent des ressources procédurales de prototype ; le visuel de référence est une cible, pas un résultat atteint. Performance à mesurer sur un PC Windows de référence ; le rendu logiciel cloud n’est pas une mesure de GPU réel.
+Bluetooth FTMS/ANT+, résistance du home trainer et audio ne sont pas intégrés. Installeur non signé ; exécution et désinstallation sur Windows restent à vérifier sur un vrai poste. Le cycliste demeure une interprétation 3D stylisée du modèle fourni.
 
-Le GPX et l’IGN diffèrent verticalement : les hauteurs IGN sources sont gardées, et un **raccordement visuel explicite** par station aligne le décor sur le GPX sans modifier ce dernier. Le référentiel vertical du GPX est inconnu. Les **30,3 km/h à 200 W** du cahier des charges sont incompatibles avec ses coefficients : l’équilibre mécanique donne **33,007 km/h** ; voir [architecture](docs/ARCHITECTURE.md).
-
-[Audit et architecture](docs/ARCHITECTURE.md) · [Données et sources](docs/GEODATA.md) · [Licences et attributions](docs/THIRD_PARTY.md) · [Validation](docs/VALIDATION.md) · [Cahier des charges fourni](docs/CAHIER_DES_CHARGES.md)
+[Architecture](docs/ARCHITECTURE.md) · [Licences](docs/THIRD_PARTY.md) · [Cahier des charges](docs/CAHIER_DES_CHARGES.md)

@@ -19,19 +19,21 @@ func run() -> void:
 	root.add_child(app)
 	await process_frame
 	app.set_physics_process(false)
-	check(app.screen == "home" and app.world.geographic.covers(0) and not app.world.geographic.covers(3100),"native scene opens with bounded geographic coverage")
+	check(app.screen == "home" and app.world.geographic.covers(0) and app.world.geographic.covers(app.route.length_m) and not app.world.geographic.covers(app.route.length_m+1),"native scene opens with full-circuit bounded geographic coverage")
 	var geo = app.world.geographic
 	var all_valid := true
 	for building in geo.data.buildings:
 		var polygon := PackedVector2Array()
-		for p in building.footprint: polygon.append(Vector2(p[0],p[1]))
+		var center := Vector2(building.center[0],building.center[1])
+		for p in building.footprint: polygon.append(Vector2(p[0],p[1])-center)
 		if Geometry2D.triangulate_polygon(polygon).is_empty(): all_valid = false
 	check(all_valid,"all cached source footprints can be triangulated")
 	var square := PackedVector2Array([Vector2(-2,-1),Vector2(2,-1),Vector2(2,1),Vector2(-2,1)])
 	var left: PackedVector2Array = geo.clip_ridge(square,Vector2.RIGHT,0,-1)
 	var right: PackedVector2Array = geo.clip_ridge(square,Vector2.RIGHT,0,1)
 	check(left.size() == 4 and right.size() == 4,"gable roof clips both sides of the ridge")
-	check(absf(geo.elevation(1000,0,0)-app.route.sample(1000).position.y) < 0.6,"terrain centre aligns with GPX without altering the source")
+	var station: Vector3 = app.route.sample(1000).position
+	check(absf(geo.elevation_at(Vector2(station.x,station.z),1000,0,NAN)-station.y) < 2,"simulation road follows numeric LiDAR ground without altering the GPX")
 	app.start_session()
 	for i in range(150): app._physics_process(0.02)
 	check(app.distance>1 and app.elapsed>2.9 and app.speed>0,"demo watts advance native session")

@@ -1,0 +1,3 @@
+# Optional authoring tools only; no Python dependency at game runtime.
+Pillow>=10,<14
+shapely==2.1.2

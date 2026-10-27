@@ -20,10 +20,15 @@ var life: Node3D
 
 func set_route(source: CyclingRoute) -> void:
 	route = source
-	geographic = preload("res://scripts/geoworld.gd").new()
+	var path := "res://assets/geodata/circuits/"+str(route.data.source).get_basename()+"/world.json"
+	geographic = preload("res://scripts/geoworld.gd").new(path if FileAccess.file_exists(path) else "res://assets/geodata/world.json")
 	if not geographic.data.is_empty() and geographic.data.route_source_sha256 != route.data.source_sha256:
 		geographic.data.clear()
 		geographic.vegetation.clear()
+		geographic.vegetation_cells.clear()
+		geographic.building_bounds.clear()
+		geographic.roads.clear()
+		geographic.terrain_source = null
 	road_cells.clear()
 	for i in range(route.points.size()-1):
 		var a: Dictionary = route.points[i]
@@ -62,7 +67,7 @@ func setup(source: CyclingRoute) -> void:
 	environment.tonemap_mode = Environment.TONE_MAPPER_LINEAR
 	environment.fog_enabled = true
 	environment.fog_light_color = Color("bdd4dc")
-	environment.fog_density = 0.00125
+	environment.fog_density = 0.00015
 	environment.fog_sky_affect = 0.12
 	env.environment = environment
 	add_child(env)
@@ -100,7 +105,9 @@ func update_at(distance: float, force: bool = false) -> void:
 	for surface in surfaces: surface.begin(Mesh.PRIMITIVE_TRIANGLES)
 	s = start
 	while s<end-0.01:
-		var next := minf(end,s+3)
+		# Refine tight bends, retain a cheaper mesh on straight road sections.
+		var angle := route.direction(s).angle_to(route.direction(minf(end,s+4)))
+		var next := minf(minf(end,s+clampf(.08/maxf(angle/4,.0133),.75,3)),(floorf(s/3)+1)*3)
 		quad(surfaces[0],s,next,-3.3,3.3,0.045)
 		quad(surfaces[1],s,next,-3.95,-3.3,0.018)
 		quad(surfaces[1],s,next,3.3,3.95,0.018)
@@ -123,7 +130,9 @@ func update_at(distance: float, force: bool = false) -> void:
 				var lateral: float = side*rng.randf_range(8+band*27,30+band*30)
 				var at := roadside(index*spacing,lateral,true)
 				if (not geographic.covers(index*spacing) or geographic.forest(at)) and safe_land(at):
-					tree(at,rng.randf_range(0.8,1.35),rng.randf()>0.35,absf(index*spacing-distance)<95,rng.randf()*TAU)
+					var canopy := geographic.canopy_at(Vector2(at.x,at.z))
+					var size := clampf(canopy/7,.65,3.5) if is_finite(canopy) else rng.randf_range(.8,1.35)
+					tree(at,size,rng.randf()>0.35,absf(index*spacing-distance)<95,rng.randf()*TAU)
 	for key in tree_batches:
 		var batch: Dictionary = tree_batches[key]
 		var instances := MultiMesh.new()
@@ -140,8 +149,11 @@ func update_at(distance: float, force: bool = false) -> void:
 		if not batch.detailed: item.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		generated.add_child(item)
 	verges(start,end)
+	bridge_details(start,end)
 	backdrop(distance)
-	geographic.buildings(generated,distance)
+	geographic.side_roads(generated,self,roadside(distance,0))
+	geographic.water_surfaces(generated,roadside(distance,0))
+	geographic.buildings(generated,distance,roadside(distance,0))
 	if life != null: life.step(0,distance,0)
 
 func roadside(s: float, lateral: float, terrain: bool = false) -> Vector3:
@@ -153,7 +165,7 @@ func roadside(s: float, lateral: float, terrain: bool = false) -> Vector3:
 	at += right*lateral
 	if terrain:
 		if geographic.covers(s):
-			var real_height: float = geographic.elevation(s,lateral,at.y)
+			var real_height: float = geographic.elevation_at(Vector2(at.x,at.z),s,lateral,at.y)
 			at.y = lerpf(at.y,real_height,clampf((absf(lateral)-4.6)/8,0,1))
 		else:
 			at.y += noise.get_noise_2d(at.x,at.z)*minf(maxf(absf(lateral)-4.6,0)*0.22,12)
@@ -182,7 +194,7 @@ func terrain(distance: float, start: float, end: float) -> void:
 	var points := PackedVector2Array()
 	var heights: Array[float] = []
 	var keys: Dictionary = {}
-	var cell := 16 if quality>0 else 26
+	var cell := (12 if geographic.terrain_source != null else 16) if quality>0 else 26
 	var radius := 285 if quality>0 else 220
 	for x in range(-radius,radius+1,cell):
 		for z in range(-radius,radius+1,cell):
@@ -190,16 +202,18 @@ func terrain(distance: float, start: float, end: float) -> void:
 			var n := nearest(p)
 			var y: float = n.alt
 			if geographic.covers(n.s):
-				y = lerpf(y,geographic.elevation(n.s,n.cross,y),clampf((float(n.distance)-4.4)/9,0,1))
+				var blend := 1.0 if route.structure_at(n.s)=="bridge" else clampf((float(n.distance)-4.4)/9,0,1)
+				y = lerpf(y,geographic.elevation_at(p,n.s,n.cross,y),blend)
 			else:
 				y += noise.get_noise_2d(p.x,p.y)*minf(maxf(float(n.distance)-4.5,0)*0.22,15)
 			terrain_point(points,heights,keys,p,y-0.025)
 	var station := start
 	while station<=end:
-		for cross in [-4.65,0.0,4.65]:
-			var p := roadside(station,cross)
-			terrain_point(points,heights,keys,Vector2(p.x,p.z),p.y-0.03)
-		station += 6
+		if route.structure_at(station)!="bridge":
+			for edge in [[-4.65,.035],[-3.95,.07],[0.0,.14],[3.95,.07],[4.65,.035]]:
+				var p := roadside(station,float(edge[0]))
+				terrain_point(points,heights,keys,Vector2(p.x,p.z),p.y-float(edge[1]))
+		station += 3
 	var indices := Geometry2D.triangulate_delaunay(points)
 	var surface := SurfaceTool.new()
 	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
@@ -261,6 +275,7 @@ func verges(start: float, end: float) -> void:
 	var plant := SurfaceTool.new()
 	plant.begin(Mesh.PRIMITIVE_TRIANGLES)
 	for index in range(maxi(0,int(start/4)),int(end/4)):
+		if route.structure_at(index*4)=="bridge": continue
 		var rng := RandomNumberGenerator.new()
 		rng.seed = index*2311+405
 		for side in [-1.0,1.0]:
@@ -300,6 +315,22 @@ func verges(start: float, end: float) -> void:
 				for height in [0.42,0.78]: M.rod(generated,at+Vector3.UP*height,next+Vector3.UP*height,0.025,wood)
 	stone_walls(start,end)
 
+func bridge_details(start: float, end: float) -> void:
+	var material := M.toon(Color("8a9090"))
+	for structure in route.geography.get("structures",[]):
+		if structure.kind!="bridge" or float(structure.end_m)<start or float(structure.start_m)>end: continue
+		var s := maxf(start,float(structure.start_m))
+		var last := minf(end,float(structure.end_m))
+		while s<last:
+			var next := minf(last,s+6)
+			for side in [-1.0,1.0]:
+				var a := roadside(s,side*3.5)
+				var b := roadside(next,side*3.5)
+				M.rod(generated,a+Vector3.UP*.05,a+Vector3.UP*.95,.045,material)
+				M.rod(generated,a+Vector3.UP*.92,b+Vector3.UP*.92,.045,material)
+				M.rod(generated,a-Vector3.UP*.08,b-Vector3.UP*.08,.14,material)
+			s = next
+
 func stone_walls(start: float, end: float) -> void:
 	var transforms: Array[Transform3D] = []
 	for index in range(maxi(0,int(start/80)),int(end/80)):
@@ -332,6 +363,8 @@ func backdrop(distance: float) -> void:
 	var surface := SurfaceTool.new()
 	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
 	var radii := [260.0,440.0,730.0,1100.0,1700.0]
+	if geographic.terrain_source != null and not geographic.terrain_source.horizon.is_empty():
+		radii.append_array([2500.0,4000.0,7000.0,11000.0,16000.0])
 	for ring in range(radii.size()-1):
 		for i in range(256):
 			for pair in [[ring,i],[ring+1,i],[ring+1,i+1],[ring,i],[ring+1,i+1],[ring,i+1]]:
@@ -339,7 +372,9 @@ func backdrop(distance: float) -> void:
 				var angle: float = pair[1]*TAU/256
 				var at := center+Vector3(cos(angle)*r,0,sin(angle)*r)
 				at.y = center.y-70 if pair[0]==0 else center.y-18+(noise.get_noise_2d(at.x*0.10,at.z*0.10)+0.45)*minf(r*0.24,240)
-				var tint := Color("728c74").lerp(Color("94b0b5"),float(pair[0])/4)
+				if geographic.terrain_source != null:
+					at.y = geographic.elevation_at(Vector2(at.x,at.z),distance,0,at.y)-.06
+				var tint := Color("728c74").lerp(Color("94b0b5"),clampf(float(pair[0])/(radii.size()-1),0,1))
 				surface.set_color(tint.srgb_to_linear())
 				surface.add_vertex(at)
 	surface.generate_normals()

@@ -61,13 +61,16 @@ func _draw() -> void:
 	var source_note := "DÉMO · GPX RÉEL · DÉCOR ILLUSTRATIF HORS DE LA TRANCHE IGN"
 	if app.world.geographic.covers(app.distance):
 		source_note = "DÉMO · IGN BD TOPO® / RGE ALTI® · TOITURES ET FAÇADES ESTIMÉES · RACCORDEMENT VERTICAL AU GPX"
+	if not app.route.geography.is_empty():
+		source_note = "DÉMO · © OPENSTREETMAP · IGN BD TOPO® / LIDAR HD · FAÇADES ET ARBRES INTERPRÉTÉS"
+		if not app.route.osm_verified_at(app.distance): source_note = "DÉMO · TRONÇON GPX NON RECALÉ OSM · RELIEF IGN LIDAR HD"
 	draw_rect(Rect2(24,h-38,w-48,28),Color(0.045,0.095,0.095,0.9))
 	text_at(Vector2(32,h-21),source_note,11,CREAM)
 	if app.screen in ["home","circuits"]:
 		panel(Rect2(w-325,65,293,330))
 		text_at(Vector2(w-303,98),"LE PARCOURS",12,MUTED,true)
 		draw_map(Rect2(w-303,118,248,220))
-		text_at(Vector2(w-303,371),"%.1f km   /   D+ brut %.0f m" % [app.route.length_m/1000,app.route.ascent_m],15,CREAM,true)
+		text_at(Vector2(w-303,371),"%.1f km   /   D+ %.0f m" % [app.route.length_m/1000,app.route.ascent_m],15,CREAM,true)
 		return
 	if app.screen == "summary": return
 	if app.lane.blocked:

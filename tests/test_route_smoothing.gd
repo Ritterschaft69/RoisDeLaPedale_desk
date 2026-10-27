@@ -8,7 +8,7 @@ func _initialize():
  var Route = load("res://scripts/route.gd")
  var catalog: Array = JSON.parse_string(FileAccess.get_file_as_string("res://assets/routes/catalog.json"))
  for circuit in catalog:
-  var route = Route.new(circuit.data)
+  var route = Route.new(circuit.data,false)
   var bounded := true
   var continuous := true
   var finite := true

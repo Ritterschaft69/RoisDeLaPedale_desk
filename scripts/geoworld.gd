@@ -5,13 +5,24 @@ const M = preload("res://scripts/materials.gd")
 var data: Dictionary = {}
 var vegetation: Array[Dictionary] = []
 var building_bounds: Array[Dictionary] = []
+var vegetation_cells: Dictionary = {}
+var terrain_source: RefCounted
+var roads: Array = []
 var ground_material := M.toon(Color("c6c0a5"))
 var glass_material := M.toon(Color("465d60"))
 
-func _init() -> void:
-	var path := "res://assets/geodata/world.json"
+func _init(path: String = "res://assets/geodata/world.json") -> void:
 	if not FileAccess.file_exists(path): return
 	data = JSON.parse_string(FileAccess.get_file_as_string(path))
+	if data.get("schema",1)==2:
+		terrain_source = preload("res://scripts/ign_terrain.gd").new(data.terrain_transform)
+		var roads_path := path.get_base_dir()+"/"+str(data.roads_file)
+		if FileAccess.file_exists(roads_path):
+			roads = JSON.parse_string(FileAccess.get_file_as_string(roads_path)).roads
+			for road in roads:
+				var bounds := Rect2(Vector2(road.points[0][0],road.points[0][2]),Vector2.ZERO)
+				for p in road.points: bounds = bounds.expand(Vector2(p[0],p[2]))
+				road.bounds = bounds.grow(430)
 	for building in data.buildings:
 		var ring := PackedVector2Array()
 		for p in building.footprint: ring.append(Vector2(p[0],p[1]))
@@ -27,6 +38,20 @@ func _init() -> void:
 		var bounds := Rect2(rings[0][0],Vector2.ZERO)
 		for p in rings[0]: bounds = bounds.expand(p)
 		vegetation.append({"rings":rings,"bounds":bounds,"nature":zone.nature})
+		for x in range(floori(bounds.position.x/256),floori(bounds.end.x/256)+1):
+			for z in range(floori(bounds.position.y/256),floori(bounds.end.y/256)+1):
+				var key := Vector2i(x,z)
+				if not vegetation_cells.has(key): vegetation_cells[key] = []
+				vegetation_cells[key].append(vegetation.size()-1)
+
+func elevation_at(point: Vector2, station: float, cross: float, fallback: float) -> float:
+	if terrain_source == null: return elevation(station,cross,fallback)
+	var height: float = terrain_source.height(point)
+	return height if is_finite(height) else fallback
+
+func canopy_at(point: Vector2) -> float:
+	if terrain_source == null: return NAN
+	return terrain_source.height(point,"mnh")
 
 func building_at(point: Vector2) -> bool:
 	if data.is_empty(): return false
@@ -35,10 +60,11 @@ func building_at(point: Vector2) -> bool:
 	return false
 
 func covers(station: float) -> bool:
-	return not data.is_empty() and station >= data.coverage.start_m and station <= data.coverage.end_m
+	return not data.is_empty() and station >= float(data.coverage.start_m)-.01 and station <= float(data.coverage.end_m)+.01
 
 func elevation(station: float, cross: float, fallback: float) -> float:
 	if not covers(station): return fallback
+	if terrain_source != null: return fallback # Numeric tiles require actual world coordinates.
 	var rows: Array = data.terrain.rows
 	var lo := 0
 	var hi := rows.size()-1
@@ -59,7 +85,10 @@ func row_height(row: Dictionary, cross: float) -> float:
 
 func forest(at: Vector3) -> bool:
 	var p := Vector2(at.x,at.z)
-	for zone in vegetation:
+	var canopy := canopy_at(p)
+	if is_finite(canopy): return canopy>=3.0
+	for index in vegetation_cells.get(Vector2i(floori(p.x/256),floori(p.y/256)),[]):
+		var zone: Dictionary = vegetation[index]
 		if not zone.bounds.has_point(p): continue
 		if not Geometry2D.is_point_in_polygon(p,zone.rings[0]): continue
 		var hole := false
@@ -68,11 +97,73 @@ func forest(at: Vector3) -> bool:
 		if not hole: return true
 	return false
 
-func buildings(parent: Node3D, station: float) -> void:
+func buildings(parent: Node3D, station: float, center: Vector3 = Vector3.INF) -> void:
 	if data.is_empty(): return
 	for building in data.buildings:
-		if float(building.station)<station-100 or float(building.station)>station+380: continue
-		build(parent,building,absf(float(building.station)-station)<180)
+		if center.is_finite() and data.get("schema",1)==2:
+			var distance := Vector2(center.x,center.z).distance_to(Vector2(building.center[0],building.center[1]))
+			if distance>420: continue
+			build(parent,building,distance<160)
+		else:
+			if float(building.station)<station-100 or float(building.station)>station+380: continue
+			build(parent,building,absf(float(building.station)-station)<180)
+
+func side_roads(parent: Node3D, world: Node3D, center: Vector3) -> void:
+	if roads.is_empty(): return
+	var surface := SurfaceTool.new()
+	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var count := 0
+	for road in roads:
+		if not road.bounds.has_point(Vector2(center.x,center.z)): continue
+		var type: String = road.tags.get("highway","")
+		var width := 1.8 if type in ["path","footway","cycleway","track"] else 5.0
+		if road.tags.has("width") and str(road.tags.width).is_valid_float(): width = clampf(float(road.tags.width),1.0,12.0)
+		for i in range(road.points.size()-1):
+			var pa: Array = road.points[i]
+			var pb: Array = road.points[i+1]
+			var a := Vector3(pa[0],pa[1],pa[2])
+			var b := Vector3(pb[0],pb[1],pb[2])
+			if a.distance_to(center)>430 and b.distance_to(center)>430: continue
+			# The ridden carriageway has its own smoothed mesh and markings.
+			var mid := (a+b)*.5
+			if not world.clear_of_road(mid,3.0): continue
+			var right := Vector3(-(b-a).z,0,(b-a).x).normalized()*width*.5
+			var vertices := [a-right,b-right,b+right,a+right]
+			for index in [0,1,2,0,2,3]:
+				var p: Vector3 = vertices[index]
+				p.y = elevation_at(Vector2(p.x,p.z),0,0,p.y)+.025
+				surface.add_vertex(p)
+			count += 1
+	if count>0:
+		surface.generate_normals()
+		M.mesh(parent,surface.commit(),M.asphalt(),Vector3.ZERO)
+
+func water_surfaces(parent: Node3D, center: Vector3) -> void:
+	var surface := SurfaceTool.new()
+	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var count := 0
+	for water in data.get("water",[]):
+		var polygon := PackedVector2Array()
+		var nearby := false
+		for p in water.points:
+			var at := Vector2(p[0],p[2])
+			polygon.append(at)
+			if at.distance_to(Vector2(center.x,center.z))<650: nearby=true
+		if not nearby: continue
+		var indices: Array = water.indices
+		for i in range(0,indices.size(),3):
+			var a := polygon[indices[i]]
+			var b := polygon[indices[i+1]]
+			var c := polygon[indices[i+2]]
+			var winding := [0,1,2] if (b-a).cross(c-a)>0 else [0,2,1]
+			for j in winding:
+				var p: Array = water.points[indices[i+j]]
+				surface.add_vertex(Vector3(p[0],p[1],p[2]))
+			count += 1
+	if count>0:
+		surface.generate_normals()
+		var mesh := M.mesh(parent,surface.commit(),M.toon(Color("4d8998")),Vector3.ZERO)
+		mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 
 func build(parent: Node3D, building: Dictionary, detailed: bool) -> void:
 	var polygon := PackedVector2Array()

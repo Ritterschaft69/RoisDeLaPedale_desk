@@ -3,35 +3,42 @@
     "id": "saint_die",
     "name": "Boucle de Saint-Dié-des-Vosges",
     "short_name": "Saint-Dié-des-Vosges",
-    "description": "Boucle originale · tranche IGN de 0 à 3 km",
+    "description": "Tracé OpenStreetMap recalé · relief IGN LiDAR HD · GPX source conservé",
     "source": "saint_die.gpx",
     "data": "res://assets/routes/saint_die.json",
     "length_m": 66299.17883116264,
     "ascent_raw_m": 1585.4000000000005,
-    "point_count": 3383
+    "point_count": 3383,
+    "simulation_length_m": 66603.30117278484,
+    "simulation_ascent_m": 1182.4656731603143,
+    "start_m": 0.0
   },
   {
     "id": "sortie_matin",
     "name": "Sortie vélo le matin",
     "short_name": "Sortie vélo le matin",
-    "description": "Tracé et altitudes du GPX fourni · décor illustratif · Départ à 12 m après un saut altimétrique initial",
+    "description": "Tracé OpenStreetMap recalé · relief IGN LiDAR HD · GPX source conservé",
     "source": "sortie_matin.gpx",
     "data": "res://assets/routes/sortie_matin.json",
     "length_m": 102361.5797669587,
     "ascent_raw_m": 2233.1999999999007,
     "point_count": 19641,
-    "start_m": 12.0
+    "start_m": 0.0,
+    "simulation_length_m": 102156.63829702519,
+    "simulation_ascent_m": 2354.832090773639
   },
   {
     "id": "oderen_grand_ballon",
     "name": "Col d’Oderen · Grand Ballon · Amic · Bramont · Brabant",
     "short_name": "Oderen · Grand Ballon",
-    "description": "Par les cols Amic, Bramont et Brabant · décor illustratif · Départ à 12 m après un saut altimétrique initial",
+    "description": "Tracé OpenStreetMap recalé · relief IGN LiDAR HD · GPX source conservé",
     "source": "oderen_grand_ballon.gpx",
     "data": "res://assets/routes/oderen_grand_ballon.json",
     "length_m": 120674.8389519546,
     "ascent_raw_m": 2229.200000000002,
     "point_count": 20459,
-    "start_m": 12.0
+    "start_m": 0.0,
+    "simulation_length_m": 120652.09994809596,
+    "simulation_ascent_m": 2380.87929462581
   }
 ]

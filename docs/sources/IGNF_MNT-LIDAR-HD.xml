@@ -1,0 +1,1268 @@
+<?xml version='1.0' encoding='utf-8'?>
+<ns0:MD_Metadata xmlns:ns0="http://www.isotc211.org/2005/gmd" xmlns:ns2="http://www.isotc211.org/2005/gco" xmlns:ns3="http://www.isotc211.org/2005/gmx" xmlns:ns4="http://www.w3.org/1999/xlink" xmlns:ns5="http://www.opengis.net/gml/3.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" uuid="IGNF_MNT-LIDAR-HD" xsi:schemaLocation="http://www.isotc211.org/2005/gmd http://schemas.opengis.net/csw/2.0.2/profiles/apiso/1.0.0/apiso.xsd">
+      <ns0:fileIdentifier>
+        <ns2:CharacterString>IGNF_MNT-LIDAR-HD</ns2:CharacterString>
+      </ns0:fileIdentifier>
+      <ns0:language>
+        <ns0:LanguageCode codeList="http://www.loc.gov/standards/iso639-2/" codeListValue="fre">Français</ns0:LanguageCode>
+      </ns0:language>
+      <ns0:characterSet>
+        <ns0:MD_CharacterSetCode codeList="http://standards.iso.org/iso/19139/resources/gmxCodelists.xml#MD_CharacterSetCode" codeListValue="utf8" />
+      </ns0:characterSet>
+      <ns0:hierarchyLevel>
+        <ns0:MD_ScopeCode codeList="http://standards.iso.org/iso/19139/resources/gmxCodelists.xml#MD_ScopeCode" codeListValue="series" />
+      </ns0:hierarchyLevel>
+      <ns0:hierarchyLevelName>
+        <ns2:CharacterString>Produit</ns2:CharacterString>
+      </ns0:hierarchyLevelName>
+      <ns0:contact>
+        <ns0:CI_ResponsibleParty>
+          <ns0:organisationName>
+            <ns2:CharacterString>INSTITUT NATIONAL DE L'INFORMATION GEOGRAPHIQUE ET FORESTIERE (IGN)</ns2:CharacterString>
+
+          </ns0:organisationName>
+          <ns0:contactInfo>
+            <ns0:CI_Contact>
+              <ns0:address>
+                <ns0:CI_Address>
+                  <ns0:deliveryPoint>
+                    <ns2:CharacterString>IGN - Support utilisateurs</ns2:CharacterString>
+                  </ns0:deliveryPoint>
+                  <ns0:deliveryPoint>
+                    <ns2:CharacterString>73 avenue de Paris</ns2:CharacterString>
+                  </ns0:deliveryPoint>
+                  <ns0:city>
+                    <ns2:CharacterString>SAINT-MANDÉ CÉDEX</ns2:CharacterString>
+                  </ns0:city>
+                  <ns0:postalCode>
+                    <ns2:CharacterString>94165</ns2:CharacterString>
+                  </ns0:postalCode>
+                  <ns0:country>
+                    <ns2:CharacterString>FRANCE</ns2:CharacterString>
+                  </ns0:country>
+                  <ns0:electronicMailAddress>
+                    <ns2:CharacterString>contact.geoservices@ign.fr</ns2:CharacterString>
+                  </ns0:electronicMailAddress>
+                </ns0:CI_Address>
+              </ns0:address>
+              <ns0:contactInstructions>
+                <ns3:FileName src="https://data.geopf.fr/annexes/ressources/logos/ign.jpg">Logo</ns3:FileName>
+              </ns0:contactInstructions>
+            </ns0:CI_Contact>
+          </ns0:contactInfo>
+          <ns0:role>
+            <ns0:CI_RoleCode codeList="http://standards.iso.org/iso/19139/resources/gmxCodelists.xml#CI_RoleCode" codeListValue="pointOfContact" />
+          </ns0:role>
+        </ns0:CI_ResponsibleParty>
+      </ns0:contact>
+      <ns0:dateStamp>
+        <ns2:DateTime>2026-10-15T09:35:16.288098Z</ns2:DateTime>
+      </ns0:dateStamp>
+      <ns0:metadataStandardName>
+        <ns2:CharacterString>ISO 19115</ns2:CharacterString>
+      </ns0:metadataStandardName>
+      <ns0:metadataStandardVersion>
+        <ns2:CharacterString>2003 Cor.1:2006</ns2:CharacterString>
+      </ns0:metadataStandardVersion>
+      <ns0:spatialRepresentationInfo>
+        <ns0:MD_VectorSpatialRepresentation id="IGNF_MNT-LIDAR-HD.spatialRepresentationInfo_1">
+          <ns0:topologyLevel>
+            <ns0:MD_TopologyLevelCode codeList="http://standards.iso.org/iso/19139/resources/gmxCodelists.xml#MD_TopologyLevelCode" codeListValue="geometryOnly" />
+          </ns0:topologyLevel>
+        </ns0:MD_VectorSpatialRepresentation>
+      </ns0:spatialRepresentationInfo>
+      <ns0:referenceSystemInfo>
+        <ns0:MD_ReferenceSystem>
+          <ns0:referenceSystemIdentifier>
+            <ns0:RS_Identifier>
+              <ns0:code>
+                <ns3:Anchor ns4:href="http://www.opengis.net/def/crs/EPSG/0/2154">EPSG:2154</ns3:Anchor>
+              </ns0:code>
+              <ns0:codeSpace>
+                <ns2:CharacterString>urn:ogc:def:crs:IGNF:1.1</ns2:CharacterString>
+              </ns0:codeSpace>
+            </ns0:RS_Identifier>
+          </ns0:referenceSystemIdentifier>
+        </ns0:MD_ReferenceSystem>
+      </ns0:referenceSystemInfo>
+      <ns0:referenceSystemInfo>
+        <ns0:MD_ReferenceSystem>
+          <ns0:referenceSystemIdentifier>
+            <ns0:RS_Identifier>
+              <ns0:code>
+                <ns3:Anchor ns4:href="http://www.opengis.net/def/crs/EPSG/0/2975">EPSG:2975</ns3:Anchor>
+              </ns0:code>
+              <ns0:codeSpace>
+                <ns2:CharacterString>urn:ogc:def:crs:IGNF:1.1</ns2:CharacterString>
+              </ns0:codeSpace>
+            </ns0:RS_Identifier>
+          </ns0:referenceSystemIdentifier>
+        </ns0:MD_ReferenceSystem>
+      </ns0:referenceSystemInfo>
+      <ns0:referenceSystemInfo>
+        <ns0:MD_ReferenceSystem>
+          <ns0:referenceSystemIdentifier>
+            <ns0:RS_Identifier>
+              <ns0:code>
+                <ns3:Anchor ns4:href="http://www.opengis.net/def/crs/EPSG/0/4471">EPSG:4471</ns3:Anchor>
+              </ns0:code>
+              <ns0:codeSpace>
+                <ns2:CharacterString>urn:ogc:def:crs:IGNF:1.1</ns2:CharacterString>
+              </ns0:codeSpace>
+            </ns0:RS_Identifier>
+          </ns0:referenceSystemIdentifier>
+        </ns0:MD_ReferenceSystem>
+      </ns0:referenceSystemInfo>
+      <ns0:referenceSystemInfo>
+        <ns0:MD_ReferenceSystem>
+          <ns0:referenceSystemIdentifier>
+            <ns0:RS_Identifier>
+              <ns0:code>
+                <ns3:Anchor ns4:href="http://www.opengis.net/def/crs/EPSG/0/5490">EPSG:5490</ns3:Anchor>
+              </ns0:code>
+              <ns0:codeSpace>
+                <ns2:CharacterString>urn:ogc:def:crs:IGNF:1.1</ns2:CharacterString>
+              </ns0:codeSpace>
+            </ns0:RS_Identifier>
+          </ns0:referenceSystemIdentifier>
+        </ns0:MD_ReferenceSystem>
+      </ns0:referenceSystemInfo>
+      <ns0:identificationInfo>
+        <ns0:MD_DataIdentification>
+
+
+          <ns0:citation>
+            <ns0:CI_Citation>
+
+
+
+              <ns0:title>
+                <ns2:CharacterString>MNT LiDAR HD</ns2:CharacterString>
+              </ns0:title>
+
+              <ns0:alternateTitle>
+                <ns2:CharacterString>MNT, LiDAR HD</ns2:CharacterString>
+              </ns0:alternateTitle>
+
+
+
+              <ns0:date>
+                <ns0:CI_Date>
+                  <ns0:date>
+                    <ns2:Date>2025-01-01</ns2:Date>
+                  </ns0:date>
+                  <ns0:dateType>
+                    <ns0:CI_DateTypeCode codeList="http://standards.iso.org/iso/19139/resources/gmxCodelists.xml#CI_DateTypeCode" codeListValue="publication" />
+                  </ns0:dateType>
+                </ns0:CI_Date>
+              </ns0:date>
+              <ns0:date>
+                <ns0:CI_Date>
+                  <ns0:date>
+                    <ns2:Date>2026-09-30</ns2:Date>
+                  </ns0:date>
+                  <ns0:dateType>
+                    <ns0:CI_DateTypeCode codeList="http://standards.iso.org/iso/19139/resources/gmxCodelists.xml#CI_DateTypeCode" codeListValue="revision" />
+                  </ns0:dateType>
+                </ns0:CI_Date>
+              </ns0:date>
+
+
+              <ns0:edition>
+                <ns2:CharacterString>1.0</ns2:CharacterString>
+              </ns0:edition>
+
+
+              <ns0:identifier>
+                <ns0:MD_Identifier id="IGNF_MNT-LIDAR-HD.identifier">
+                  <ns0:code>
+                    <ns2:CharacterString>IGNF_MNT-LIDAR-HD</ns2:CharacterString>
+                  </ns0:code>
+                </ns0:MD_Identifier>
+              </ns0:identifier>
+
+
+            </ns0:CI_Citation>
+          </ns0:citation>
+
+
+
+          <ns0:abstract>
+            <ns2:CharacterString>Le produit MNT LiDAR HD est le modèle numérique de terrain dérivé du nuage de points LiDAR HD issu de l’acquisition réalisée dans cadre du programme national LiDAR HD avec une densité d’au moins 10 impulsions au m² et 5 impulsions au m² au-dessus de 3200 m d’altitude. Il est dérivé des points « sol », des points « eau » et des « points virtuels » contenus dans le nuage de points LiDAR HD classé.
+
+Ce produit doit couvrir toute la France métropolitaine et les DROM (Départements et Régions d’Outre-Mer sauf la Guyane) d’ici 2026.
+
+Vous pouvez suivre l’avancement de la disponibilité des données nuage de point ici : https://macarte.ign.fr/carte/mThSup/diffusionMNxLiDARHD
+
+Il est diffusé sous formes de dalles de 1kmx1km et est disponible au pas de 50 centimètres et sous format GeoTiff. Une version au pas de 5m sera également disponible prochainement.
+
+Les modèles numériques sont composés d’une grille rectangulaire dont chaque nœud est doté d’une altitude. À un nœud de la grille correspond un numéro de colonne et un numéro de ligne (c,l), des coordonnées bidimensionnelles (X,Y) et une altitude Z exprimées en mètres. Les coordonnées X et Y associées aux nœuds des modèles numériques sont des valeurs métriques entières en projection. Ces grilles sont écrites et fournies sous format image (.tif).
+
+Les modèles numériques issus du programme LiDAR HD font l’objet de restrictions sur les ZICAD (Zones Interdites à la Captation Aérienne des Données) pour lesquelles l’information est confidentielle. Les données ne sont pas fournies sur ces zones conformément à la réglementation en vigueur (dans ce cas, une valeur nodata est utilisée).
+
+L’IGN diffuse une autre donnée modèle numérique de terrain intitulée RGE ALTI® : le MNT LiDAR HD préfigure la nouvelle génération de référentiel sol proposé par l’Institut.
+
+**[Rejoignez la communauté d’utilisateurs des produits issus du LiDAR HD.](https://www.expertises-territoires.fr/jcms/pl1_562084/fr/communaute-lidar-hd)**
+
+Pour accéder à l'interface de téléchargement de cette donnée, merci de vous orienter également vers la partie liens ci-dessous.</ns2:CharacterString>
+          </ns0:abstract>
+
+
+          <ns0:purpose ns2:nilReason="missing">
+            <ns2:CharacterString />
+          </ns0:purpose>
+
+
+          <ns0:status>
+            <ns0:MD_ProgressCode codeList="http://standards.iso.org/iso/19139/resources/gmxCodelists.xml#MD_ProgressCode" codeListValue="onGoing" />
+          </ns0:status>
+
+
+          <ns0:pointOfContact>
+            <ns0:CI_ResponsibleParty>
+              <ns0:organisationName>
+                <ns2:CharacterString>INSTITUT NATIONAL DE L'INFORMATION GEOGRAPHIQUE ET FORESTIERE (IGN)</ns2:CharacterString>
+              </ns0:organisationName>
+              <ns0:contactInfo>
+                <ns0:CI_Contact>
+                  <ns0:address>
+                    <ns0:CI_Address>
+                      <ns0:deliveryPoint>
+                        <ns2:CharacterString>IGN - Support utilisateurs</ns2:CharacterString>
+                      </ns0:deliveryPoint>
+                      <ns0:deliveryPoint>
+                        <ns2:CharacterString>73 avenue de Paris</ns2:CharacterString>
+                      </ns0:deliveryPoint>
+                      <ns0:city>
+                        <ns2:CharacterString>SAINT-MANDÉ CÉDEX</ns2:CharacterString>
+                      </ns0:city>
+                      <ns0:postalCode>
+                        <ns2:CharacterString>94165</ns2:CharacterString>
+                      </ns0:postalCode>
+                      <ns0:country>
+                        <ns2:CharacterString>FRANCE</ns2:CharacterString>
+                      </ns0:country>
+                      <ns0:electronicMailAddress>
+                        <ns2:CharacterString>contact.geoservices@ign.fr</ns2:CharacterString>
+                      </ns0:electronicMailAddress>
+                    </ns0:CI_Address>
+                  </ns0:address>
+                  <ns0:contactInstructions>
+                    <ns3:FileName src="https://data.geopf.fr/annexes/ressources/logos/ign.jpg">Logo</ns3:FileName>
+                  </ns0:contactInstructions>
+                </ns0:CI_Contact>
+              </ns0:contactInfo>
+              <ns0:role>
+                <ns0:CI_RoleCode codeList="http://standards.iso.org/iso/19139/resources/gmxCodelists.xml#CI_RoleCode" codeListValue="pointOfContact" />
+              </ns0:role>
+            </ns0:CI_ResponsibleParty>
+          </ns0:pointOfContact>
+
+
+          <ns0:resourceMaintenance>
+            <ns0:MD_MaintenanceInformation id="IGNF_MNT-LIDAR-HD.resourceMaintenance_1">
+
+              <ns0:maintenanceAndUpdateFrequency>
+                <ns0:MD_MaintenanceFrequencyCode codeList="http://standards.iso.org/iso/19139/resources/gmxCodelists.xml#MD_MaintenanceFrequencyCode" codeListValue="irregular" />
+              </ns0:maintenanceAndUpdateFrequency>
+              <ns0:maintenanceNote>
+                <ns2:CharacterString>L’ensemble des acquisitions et des productions est réparti sur 5 ans en fonction des besoins prioritaires exprimés par les commanditaires nationaux et locaux du projet et de leurs usages.</ns2:CharacterString>
+              </ns0:maintenanceNote>
+            </ns0:MD_MaintenanceInformation>
+          </ns0:resourceMaintenance>
+
+
+          <ns0:graphicOverview>
+            <ns0:MD_BrowseGraphic>
+              <ns0:fileName>
+                <ns2:CharacterString>https://data.geopf.fr/annexes/ressources/metadata/thumbnail/vignette-mnt-lidar-hd.jpg</ns2:CharacterString>
+              </ns0:fileName>
+              <ns0:fileDescription>
+                <ns2:CharacterString>Aperçu</ns2:CharacterString>
+
+              </ns0:fileDescription>
+              <ns0:fileType>
+                <ns2:CharacterString>image/jpeg</ns2:CharacterString>
+
+              </ns0:fileType>
+            </ns0:MD_BrowseGraphic>
+          </ns0:graphicOverview>
+
+
+
+          <ns0:descriptiveKeywords>
+            <ns0:MD_Keywords>
+              <ns0:keyword>
+                <ns2:CharacterString>Altitude</ns2:CharacterString>
+              </ns0:keyword>
+              <ns0:thesaurusName>
+                <ns0:CI_Citation>
+                  <ns0:title>
+                    <ns2:CharacterString>GEMET - INSPIRE themes, version 1.0</ns2:CharacterString>
+                  </ns0:title>
+                  <ns0:date>
+
+                    <ns0:CI_Date>
+                      <ns0:date>
+                        <ns2:Date>2008-06-01</ns2:Date>
+                      </ns0:date>
+                      <ns0:dateType>
+                        <ns0:CI_DateTypeCode codeList="http://standards.iso.org/iso/19139/resources/gmxCodelists.xml#CI_DateTypeCode" codeListValue="publication" />
+                      </ns0:dateType>
+                    </ns0:CI_Date>
+                  </ns0:date>
+                </ns0:CI_Citation>
+              </ns0:thesaurusName>
+            </ns0:MD_Keywords>
+          </ns0:descriptiveKeywords>
+          <ns0:descriptiveKeywords>
+            <ns0:MD_Keywords>
+              <ns0:keyword>
+                <ns3:Anchor ns4:href="http://inspire.ec.europa.eu/metadata-codelist/SpatialScope/national">National</ns3:Anchor>
+              </ns0:keyword>
+              <ns0:thesaurusName>
+                <ns0:CI_Citation>
+                  <ns0:title>
+                    <ns3:Anchor ns4:href="http://inspire.ec.europa.eu/metadata-codelist/SpatialScope">INSPIRE Spatial Scope</ns3:Anchor>
+                  </ns0:title>
+                  <ns0:date>
+                    <ns0:CI_Date>
+                      <ns0:date>
+
+                        <ns2:Date>2019-05-22</ns2:Date>
+                      </ns0:date>
+                      <ns0:dateType>
+                        <ns0:CI_DateTypeCode codeList="http://standards.iso.org/iso/19139/resources/gmxCodelists.xml#CI_DateTypeCode" codeListValue="publication" />
+                      </ns0:dateType>
+                    </ns0:CI_Date>
+                  </ns0:date>
+                </ns0:CI_Citation>
+              </ns0:thesaurusName>
+            </ns0:MD_Keywords>
+          </ns0:descriptiveKeywords>
+          <ns0:descriptiveKeywords>
+            <ns0:MD_Keywords>
+              <ns0:keyword>
+                <ns2:CharacterString>données ouvertes</ns2:CharacterString>
+              </ns0:keyword>
+              <ns0:keyword>
+                <ns2:CharacterString>nuages de points</ns2:CharacterString>
+              </ns0:keyword>
+              <ns0:keyword>
+                <ns2:CharacterString>précision altimétrique</ns2:CharacterString>
+              </ns0:keyword>
+              <ns0:keyword>
+                <ns2:CharacterString>produits dérivés</ns2:CharacterString>
+              </ns0:keyword>
+              <ns0:type>
+                <ns0:MD_KeywordTypeCode codeList="http://standards.iso.org/iso/19139/resources/gmxCodelists.xml#MD_KeywordTypeCode" codeListValue="theme" />
+              </ns0:type>
+            </ns0:MD_Keywords>
+          </ns0:descriptiveKeywords>
+
+
+
+
+
+
+
+
+
+
+
+
+          <ns0:resourceSpecificUsage>
+            <ns0:MD_Usage id="IGNF_MNT-LIDAR-HD.resourceSpecificUsage_1">
+
+              <ns0:specificUsage>
+                <ns2:CharacterString>Échelles d'affichage</ns2:CharacterString>
+              </ns0:specificUsage>
+              <ns0:userDeterminedLimitations>
+                <ns2:CharacterString>Échelles comprises entre le 1 : 1 000 et le 1 : 50 000.</ns2:CharacterString>
+              </ns0:userDeterminedLimitations>
+
+              <ns0:userContactInfo>
+                <ns0:CI_ResponsibleParty>
+                  <ns0:organisationName>
+                    <ns2:CharacterString>INSTITUT NATIONAL DE L'INFORMATION GEOGRAPHIQUE ET FORESTIERE (IGN)</ns2:CharacterString>
+
+                  </ns0:organisationName>
+                  <ns0:contactInfo>
+
+                    <ns0:CI_Contact>
+                      <ns0:address>
+                        <ns0:CI_Address>
+                          <ns0:deliveryPoint>
+                            <ns2:CharacterString>IGN - Support utilisateurs</ns2:CharacterString>
+                          </ns0:deliveryPoint>
+                          <ns0:deliveryPoint>
+                            <ns2:CharacterString>73 avenue de Paris</ns2:CharacterString>
+                          </ns0:deliveryPoint>
+                          <ns0:city>
+                            <ns2:CharacterString>SAINT-MANDÉ CÉDEX</ns2:CharacterString>
+                          </ns0:city>
+                          <ns0:postalCode>
+                            <ns2:CharacterString>94165</ns2:CharacterString>
+                          </ns0:postalCode>
+                          <ns0:country>
+                            <ns2:CharacterString>FRANCE</ns2:CharacterString>
+                          </ns0:country>
+                          <ns0:electronicMailAddress>
+                            <ns2:CharacterString>contact.geoservices@ign.fr</ns2:CharacterString>
+                          </ns0:electronicMailAddress>
+                        </ns0:CI_Address>
+                      </ns0:address>
+                      <ns0:contactInstructions>
+                        <ns3:FileName src="https://data.geopf.fr/annexes/ressources/logos/ign.jpg">Logo</ns3:FileName>
+                      </ns0:contactInstructions>
+                    </ns0:CI_Contact>
+                  </ns0:contactInfo>
+                  <ns0:role>
+
+
+                    <ns0:CI_RoleCode codeList="http://standards.iso.org/iso/19139/resources/gmxCodelists.xml#CI_RoleCode" codeListValue="custodian" />
+                  </ns0:role>
+                </ns0:CI_ResponsibleParty>
+              </ns0:userContactInfo>
+            </ns0:MD_Usage>
+          </ns0:resourceSpecificUsage>
+
+
+
+
+
+          <ns0:resourceConstraints>
+            <ns0:MD_LegalConstraints>
+              <ns0:accessConstraints>
+                <ns0:MD_RestrictionCode codeList="http://standards.iso.org/iso/19139/resources/gmxCodelists.xml#MD_RestrictionCode" codeListValue="otherRestrictions" />
+              </ns0:accessConstraints>
+              <ns0:otherConstraints>
+                <ns3:Anchor ns4:href="http://inspire.ec.europa.eu/metadata-codelist/LimitationsOnPublicAccess/noLimitations">Pas de restriction d'accès public selon INSPIRE</ns3:Anchor>
+              </ns0:otherConstraints>
+            </ns0:MD_LegalConstraints>
+          </ns0:resourceConstraints>
+          <ns0:resourceConstraints>
+            <ns0:MD_LegalConstraints>
+              <ns0:useConstraints>
+                <ns0:MD_RestrictionCode codeList="http://standards.iso.org/iso/19139/resources/gmxCodelists.xml#MD_RestrictionCode" codeListValue="license" />
+              </ns0:useConstraints>
+            </ns0:MD_LegalConstraints>
+          </ns0:resourceConstraints>
+          <ns0:resourceConstraints>
+            <ns0:MD_LegalConstraints>
+              <ns0:useConstraints>
+                <ns0:MD_RestrictionCode codeList="http://standards.iso.org/iso/19139/resources/gmxCodelists.xml#MD_RestrictionCode" codeListValue="otherRestrictions" />
+              </ns0:useConstraints>
+              <ns0:otherConstraints>
+                <ns3:Anchor ns4:href="https://www.etalab.gouv.fr/wp-content/uploads/2018/11/open-licence.pdf">Licence Ouverte / Open License (compatible ODC-BY, CC-BY 2.0)</ns3:Anchor>
+              </ns0:otherConstraints>
+            </ns0:MD_LegalConstraints>
+          </ns0:resourceConstraints>
+
+
+          <ns0:spatialRepresentationType>
+            <ns0:MD_SpatialRepresentationTypeCode codeList="http://standards.iso.org/iso/19139/resources/gmxCodelists.xml#MD_SpatialRepresentationTypeCode" codeListValue="grid" />
+          </ns0:spatialRepresentationType>
+
+
+
+          <ns0:spatialResolution>
+            <ns0:MD_Resolution>
+              <ns0:equivalentScale>
+                <ns0:MD_RepresentativeFraction id="IGNF_MNT-LIDAR-HD.spatialResolution_1">
+                  <ns0:denominator>
+                    <ns2:Integer>25000</ns2:Integer>
+                  </ns0:denominator>
+                </ns0:MD_RepresentativeFraction>
+              </ns0:equivalentScale>
+            </ns0:MD_Resolution>
+          </ns0:spatialResolution>
+
+
+          <ns0:language>
+            <ns0:LanguageCode codeList="http://www.loc.gov/standards/iso639-2/" codeListValue="fre">Français</ns0:LanguageCode>
+          </ns0:language>
+
+
+          <ns0:topicCategory>
+            <ns0:MD_TopicCategoryCode>elevation</ns0:MD_TopicCategoryCode>
+          </ns0:topicCategory>
+
+
+          <ns0:extent>
+
+            <ns0:EX_Extent>
+              <ns0:description>
+                <ns2:CharacterString>France métropolitaine</ns2:CharacterString>
+
+              </ns0:description>
+              <ns0:geographicElement>
+                <ns0:EX_GeographicBoundingBox>
+                  <ns0:westBoundLongitude>
+                    <ns2:Decimal>-5.15</ns2:Decimal>
+                  </ns0:westBoundLongitude>
+                  <ns0:eastBoundLongitude>
+                    <ns2:Decimal>9.57</ns2:Decimal>
+                  </ns0:eastBoundLongitude>
+                  <ns0:southBoundLatitude>
+                    <ns2:Decimal>41.32</ns2:Decimal>
+                  </ns0:southBoundLatitude>
+                  <ns0:northBoundLatitude>
+                    <ns2:Decimal>51.10</ns2:Decimal>
+                  </ns0:northBoundLatitude>
+                </ns0:EX_GeographicBoundingBox>
+              </ns0:geographicElement>
+              <ns0:geographicElement>
+                <ns0:EX_GeographicDescription>
+                  <ns0:geographicIdentifier>
+                    <ns0:MD_Identifier>
+                      <ns0:authority>
+                        <ns0:CI_Citation>
+                          <ns0:title>
+                            <ns2:CharacterString>ISO 3166 alpha 3</ns2:CharacterString>
+                          </ns0:title>
+                          <ns0:date>
+                            <ns0:CI_Date>
+                              <ns0:date>
+                                <ns2:Date>1974</ns2:Date>
+                              </ns0:date>
+                              <ns0:dateType>
+                                <ns0:CI_DateTypeCode codeList="http://standards.iso.org/iso/19139/resources/gmxCodelists.xml#CI_DateTypeCode" codeListValue="publication" />
+                              </ns0:dateType>
+                            </ns0:CI_Date>
+                          </ns0:date>
+                        </ns0:CI_Citation>
+                      </ns0:authority>
+                      <ns0:code>
+                        <ns2:CharacterString>FXX</ns2:CharacterString>
+                      </ns0:code>
+                    </ns0:MD_Identifier>
+                  </ns0:geographicIdentifier>
+                </ns0:EX_GeographicDescription>
+              </ns0:geographicElement>
+            </ns0:EX_Extent>
+          </ns0:extent>
+          <ns0:extent>
+            <ns0:EX_Extent>
+              <ns0:description>
+                <ns2:CharacterString>Guadeloupe</ns2:CharacterString>
+              </ns0:description>
+              <ns0:geographicElement>
+                <ns0:EX_GeographicBoundingBox>
+                  <ns0:westBoundLongitude>
+                    <ns2:Decimal>-61.82</ns2:Decimal>
+                  </ns0:westBoundLongitude>
+                  <ns0:eastBoundLongitude>
+                    <ns2:Decimal>-60.99</ns2:Decimal>
+                  </ns0:eastBoundLongitude>
+                  <ns0:southBoundLatitude>
+                    <ns2:Decimal>15.82</ns2:Decimal>
+                  </ns0:southBoundLatitude>
+                  <ns0:northBoundLatitude>
+                    <ns2:Decimal>16.52</ns2:Decimal>
+                  </ns0:northBoundLatitude>
+                </ns0:EX_GeographicBoundingBox>
+              </ns0:geographicElement>
+              <ns0:geographicElement>
+                <ns0:EX_GeographicDescription>
+                  <ns0:geographicIdentifier>
+                    <ns0:MD_Identifier>
+                      <ns0:authority>
+                        <ns0:CI_Citation>
+                          <ns0:title>
+                            <ns2:CharacterString>ISO 3166 alpha 3</ns2:CharacterString>
+                          </ns0:title>
+                          <ns0:date>
+                            <ns0:CI_Date>
+                              <ns0:date>
+                                <ns2:Date>1974</ns2:Date>
+                              </ns0:date>
+                              <ns0:dateType>
+                                <ns0:CI_DateTypeCode codeList="http://standards.iso.org/iso/19139/resources/gmxCodelists.xml#CI_DateTypeCode" codeListValue="publication" />
+                              </ns0:dateType>
+                            </ns0:CI_Date>
+                          </ns0:date>
+                        </ns0:CI_Citation>
+                      </ns0:authority>
+                      <ns0:code>
+                        <ns2:CharacterString>GLP</ns2:CharacterString>
+                      </ns0:code>
+                    </ns0:MD_Identifier>
+                  </ns0:geographicIdentifier>
+                </ns0:EX_GeographicDescription>
+              </ns0:geographicElement>
+            </ns0:EX_Extent>
+          </ns0:extent>
+
+          <ns0:extent>
+            <ns0:EX_Extent>
+              <ns0:description>
+                <ns2:CharacterString>Martinique</ns2:CharacterString>
+              </ns0:description>
+              <ns0:geographicElement>
+                <ns0:EX_GeographicBoundingBox>
+                  <ns0:westBoundLongitude>
+                    <ns2:Decimal>-61.24</ns2:Decimal>
+                  </ns0:westBoundLongitude>
+                  <ns0:eastBoundLongitude>
+                    <ns2:Decimal>-60.80</ns2:Decimal>
+                  </ns0:eastBoundLongitude>
+                  <ns0:southBoundLatitude>
+                    <ns2:Decimal>14.38</ns2:Decimal>
+                  </ns0:southBoundLatitude>
+                  <ns0:northBoundLatitude>
+                    <ns2:Decimal>14.89</ns2:Decimal>
+                  </ns0:northBoundLatitude>
+                </ns0:EX_GeographicBoundingBox>
+              </ns0:geographicElement>
+              <ns0:geographicElement>
+                <ns0:EX_GeographicDescription>
+                  <ns0:geographicIdentifier>
+                    <ns0:MD_Identifier>
+                      <ns0:authority>
+                        <ns0:CI_Citation>
+                          <ns0:title>
+                            <ns2:CharacterString>ISO 3166 alpha 3</ns2:CharacterString>
+                          </ns0:title>
+                          <ns0:date>
+                            <ns0:CI_Date>
+                              <ns0:date>
+                                <ns2:Date>1974</ns2:Date>
+                              </ns0:date>
+                              <ns0:dateType>
+                                <ns0:CI_DateTypeCode codeList="http://standards.iso.org/iso/19139/resources/gmxCodelists.xml#CI_DateTypeCode" codeListValue="publication" />
+                              </ns0:dateType>
+                            </ns0:CI_Date>
+                          </ns0:date>
+                        </ns0:CI_Citation>
+                      </ns0:authority>
+                      <ns0:code>
+                        <ns2:CharacterString>MTQ</ns2:CharacterString>
+                      </ns0:code>
+                    </ns0:MD_Identifier>
+                  </ns0:geographicIdentifier>
+                </ns0:EX_GeographicDescription>
+              </ns0:geographicElement>
+            </ns0:EX_Extent>
+          </ns0:extent>
+
+          <ns0:extent>
+            <ns0:EX_Extent>
+              <ns0:description>
+                <ns2:CharacterString>Mayotte</ns2:CharacterString>
+              </ns0:description>
+              <ns0:geographicElement>
+                <ns0:EX_GeographicBoundingBox>
+                  <ns0:westBoundLongitude>
+                    <ns2:Decimal>45.01</ns2:Decimal>
+                  </ns0:westBoundLongitude>
+                  <ns0:eastBoundLongitude>
+                    <ns2:Decimal>45.31</ns2:Decimal>
+                  </ns0:eastBoundLongitude>
+                  <ns0:southBoundLatitude>
+                    <ns2:Decimal>-13.02</ns2:Decimal>
+                  </ns0:southBoundLatitude>
+                  <ns0:northBoundLatitude>
+                    <ns2:Decimal>-12.63</ns2:Decimal>
+                  </ns0:northBoundLatitude>
+                </ns0:EX_GeographicBoundingBox>
+              </ns0:geographicElement>
+              <ns0:geographicElement>
+                <ns0:EX_GeographicDescription>
+                  <ns0:geographicIdentifier>
+                    <ns0:MD_Identifier>
+                      <ns0:authority>
+                        <ns0:CI_Citation>
+                          <ns0:title>
+                            <ns2:CharacterString>ISO 3166 alpha 3</ns2:CharacterString>
+                          </ns0:title>
+                          <ns0:date>
+                            <ns0:CI_Date>
+                              <ns0:date>
+                                <ns2:Date>1974</ns2:Date>
+                              </ns0:date>
+                              <ns0:dateType>
+                                <ns0:CI_DateTypeCode codeList="http://standards.iso.org/iso/19139/resources/gmxCodelists.xml#CI_DateTypeCode" codeListValue="publication" />
+                              </ns0:dateType>
+                            </ns0:CI_Date>
+                          </ns0:date>
+                        </ns0:CI_Citation>
+                      </ns0:authority>
+                      <ns0:code>
+                        <ns2:CharacterString>MYT</ns2:CharacterString>
+                      </ns0:code>
+                    </ns0:MD_Identifier>
+                  </ns0:geographicIdentifier>
+                </ns0:EX_GeographicDescription>
+              </ns0:geographicElement>
+            </ns0:EX_Extent>
+          </ns0:extent>
+
+          <ns0:extent>
+            <ns0:EX_Extent>
+              <ns0:description>
+                <ns2:CharacterString>La Réunion</ns2:CharacterString>
+              </ns0:description>
+              <ns0:geographicElement>
+                <ns0:EX_GeographicBoundingBox>
+                  <ns0:westBoundLongitude>
+                    <ns2:Decimal>55.21</ns2:Decimal>
+                  </ns0:westBoundLongitude>
+                  <ns0:eastBoundLongitude>
+                    <ns2:Decimal>55.85</ns2:Decimal>
+                  </ns0:eastBoundLongitude>
+                  <ns0:southBoundLatitude>
+                    <ns2:Decimal>-21.40</ns2:Decimal>
+                  </ns0:southBoundLatitude>
+                  <ns0:northBoundLatitude>
+                    <ns2:Decimal>-20.86</ns2:Decimal>
+                  </ns0:northBoundLatitude>
+                </ns0:EX_GeographicBoundingBox>
+              </ns0:geographicElement>
+              <ns0:geographicElement>
+                <ns0:EX_GeographicDescription>
+                  <ns0:geographicIdentifier>
+                    <ns0:MD_Identifier>
+                      <ns0:authority>
+                        <ns0:CI_Citation>
+                          <ns0:title>
+                            <ns2:CharacterString>ISO 3166 alpha 3</ns2:CharacterString>
+                          </ns0:title>
+                          <ns0:date>
+                            <ns0:CI_Date>
+                              <ns0:date>
+                                <ns2:Date>1974</ns2:Date>
+                              </ns0:date>
+                              <ns0:dateType>
+                                <ns0:CI_DateTypeCode codeList="http://standards.iso.org/iso/19139/resources/gmxCodelists.xml#CI_DateTypeCode" codeListValue="publication" />
+                              </ns0:dateType>
+                            </ns0:CI_Date>
+                          </ns0:date>
+                        </ns0:CI_Citation>
+                      </ns0:authority>
+                      <ns0:code>
+                        <ns2:CharacterString>REU</ns2:CharacterString>
+                      </ns0:code>
+                    </ns0:MD_Identifier>
+                  </ns0:geographicIdentifier>
+                </ns0:EX_GeographicDescription>
+              </ns0:geographicElement>
+            </ns0:EX_Extent>
+          </ns0:extent>
+
+          <ns0:extent>
+            <ns0:EX_Extent>
+              <ns0:description>
+                <ns2:CharacterString>Saint-Barthélemy</ns2:CharacterString>
+              </ns0:description>
+              <ns0:geographicElement>
+                <ns0:EX_GeographicBoundingBox>
+                  <ns0:westBoundLongitude>
+                    <ns2:Decimal>-62.93</ns2:Decimal>
+                  </ns0:westBoundLongitude>
+                  <ns0:eastBoundLongitude>
+                    <ns2:Decimal>-62.78</ns2:Decimal>
+                  </ns0:eastBoundLongitude>
+                  <ns0:southBoundLatitude>
+                    <ns2:Decimal>17.87</ns2:Decimal>
+                  </ns0:southBoundLatitude>
+                  <ns0:northBoundLatitude>
+                    <ns2:Decimal>17.98</ns2:Decimal>
+                  </ns0:northBoundLatitude>
+                </ns0:EX_GeographicBoundingBox>
+              </ns0:geographicElement>
+              <ns0:geographicElement>
+                <ns0:EX_GeographicDescription>
+                  <ns0:geographicIdentifier>
+                    <ns0:MD_Identifier>
+                      <ns0:authority>
+                        <ns0:CI_Citation>
+                          <ns0:title>
+                            <ns2:CharacterString>ISO 3166 alpha 3</ns2:CharacterString>
+                          </ns0:title>
+                          <ns0:date>
+                            <ns0:CI_Date>
+                              <ns0:date>
+                                <ns2:Date>1974</ns2:Date>
+                              </ns0:date>
+                              <ns0:dateType>
+                                <ns0:CI_DateTypeCode codeList="http://standards.iso.org/iso/19139/resources/gmxCodelists.xml#CI_DateTypeCode" codeListValue="publication" />
+                              </ns0:dateType>
+                            </ns0:CI_Date>
+                          </ns0:date>
+                        </ns0:CI_Citation>
+                      </ns0:authority>
+                      <ns0:code>
+                        <ns2:CharacterString>BLM</ns2:CharacterString>
+                      </ns0:code>
+                    </ns0:MD_Identifier>
+                  </ns0:geographicIdentifier>
+                </ns0:EX_GeographicDescription>
+              </ns0:geographicElement>
+            </ns0:EX_Extent>
+          </ns0:extent>
+
+          <ns0:extent>
+            <ns0:EX_Extent>
+              <ns0:description>
+                <ns2:CharacterString>Saint-Martin</ns2:CharacterString>
+              </ns0:description>
+              <ns0:geographicElement>
+                <ns0:EX_GeographicBoundingBox>
+                  <ns0:westBoundLongitude>
+                    <ns2:Decimal>-63.16</ns2:Decimal>
+                  </ns0:westBoundLongitude>
+                  <ns0:eastBoundLongitude>
+                    <ns2:Decimal>-62.90</ns2:Decimal>
+                  </ns0:eastBoundLongitude>
+                  <ns0:southBoundLatitude>
+                    <ns2:Decimal>18.04</ns2:Decimal>
+                  </ns0:southBoundLatitude>
+                  <ns0:northBoundLatitude>
+                    <ns2:Decimal>18.13</ns2:Decimal>
+                  </ns0:northBoundLatitude>
+                </ns0:EX_GeographicBoundingBox>
+              </ns0:geographicElement>
+              <ns0:geographicElement>
+                <ns0:EX_GeographicDescription>
+                  <ns0:geographicIdentifier>
+                    <ns0:MD_Identifier>
+                      <ns0:authority>
+                        <ns0:CI_Citation>
+                          <ns0:title>
+                            <ns2:CharacterString>ISO 3166 alpha 3</ns2:CharacterString>
+                          </ns0:title>
+                          <ns0:date>
+                            <ns0:CI_Date>
+                              <ns0:date>
+                                <ns2:Date>1974</ns2:Date>
+                              </ns0:date>
+                              <ns0:dateType>
+                                <ns0:CI_DateTypeCode codeList="http://standards.iso.org/iso/19139/resources/gmxCodelists.xml#CI_DateTypeCode" codeListValue="publication" />
+                              </ns0:dateType>
+                            </ns0:CI_Date>
+                          </ns0:date>
+                        </ns0:CI_Citation>
+                      </ns0:authority>
+                      <ns0:code>
+                        <ns2:CharacterString>MAF</ns2:CharacterString>
+                      </ns0:code>
+                    </ns0:MD_Identifier>
+                  </ns0:geographicIdentifier>
+                </ns0:EX_GeographicDescription>
+              </ns0:geographicElement>
+            </ns0:EX_Extent>
+          </ns0:extent>
+
+          <ns0:extent>
+            <ns0:EX_Extent>
+              <ns0:description>
+                <ns2:CharacterString>Dates de publication</ns2:CharacterString>
+
+              </ns0:description>
+              <ns0:temporalElement>
+                <ns0:EX_TemporalExtent>
+                  <ns0:extent>
+                    <ns5:TimePeriod ns5:id="d509744691e1580">
+                      <ns5:beginPosition>2021-01-01</ns5:beginPosition>
+                      <ns5:endPosition>2026-01-01</ns5:endPosition>
+                    </ns5:TimePeriod>
+                  </ns0:extent>
+                </ns0:EX_TemporalExtent>
+              </ns0:temporalElement>
+            </ns0:EX_Extent>
+          </ns0:extent>
+
+        </ns0:MD_DataIdentification>
+      </ns0:identificationInfo>
+      <ns0:contentInfo />
+      <ns0:distributionInfo>
+        <ns0:MD_Distribution>
+
+
+
+          <ns0:distributionFormat>
+            <ns0:MD_Format id="IGNF_MNT-LIDAR-HD.distributionFormat.GeoTIFF">
+              <ns0:name>
+                <ns2:CharacterString>GeoTIFF 32 bits</ns2:CharacterString>
+              </ns0:name>
+              <ns0:version>
+                <ns2:CharacterString>1.0</ns2:CharacterString>
+              </ns0:version>
+            </ns0:MD_Format>
+          </ns0:distributionFormat>
+          <ns0:distributionFormat>
+            <ns0:MD_Format id="IGNF_MNT-LIDAR-HD.distributionFormat.wmts">
+              <ns0:name>
+                <ns2:CharacterString>WMTS</ns2:CharacterString>
+              </ns0:name>
+              <ns0:version>
+                <ns2:CharacterString>1.0.0</ns2:CharacterString>
+              </ns0:version>
+            </ns0:MD_Format>
+          </ns0:distributionFormat>
+          <ns0:distributionFormat>
+            <ns0:MD_Format id="IGNF_MNT-LIDAR-HD.distributionFormat.wms">
+              <ns0:name>
+                <ns2:CharacterString>WMS</ns2:CharacterString>
+              </ns0:name>
+              <ns0:version>
+                <ns2:CharacterString>1.3.0</ns2:CharacterString>
+              </ns0:version>
+            </ns0:MD_Format>
+          </ns0:distributionFormat>
+          <ns0:distributionFormat>
+            <ns0:MD_Format id="IGNF_MNT-LIDAR-HD.distributionFormat.wfs">
+              <ns0:name>
+                <ns2:CharacterString>WFS</ns2:CharacterString>
+              </ns0:name>
+              <ns0:version>
+                <ns2:CharacterString>2.0.0</ns2:CharacterString>
+              </ns0:version>
+            </ns0:MD_Format>
+          </ns0:distributionFormat>
+
+
+          <ns0:distributor>
+            <ns0:MD_Distributor id="IGNF_MNT-LIDAR-HD.distributor.IGN-F">
+              <ns0:distributorContact>
+                <ns0:CI_ResponsibleParty>
+                  <ns0:organisationName>
+                    <ns2:CharacterString>INSTITUT NATIONAL DE L'INFORMATION GEOGRAPHIQUE ET FORESTIERE (IGN)</ns2:CharacterString>
+                  </ns0:organisationName>
+                  <ns0:contactInfo>
+                    <ns0:CI_Contact>
+                      <ns0:address>
+                        <ns0:CI_Address>
+                          <ns0:deliveryPoint>
+                            <ns2:CharacterString>IGN - Support utilisateurs</ns2:CharacterString>
+                          </ns0:deliveryPoint>
+                          <ns0:deliveryPoint>
+                            <ns2:CharacterString>73 avenue de Paris</ns2:CharacterString>
+                          </ns0:deliveryPoint>
+                          <ns0:city>
+                            <ns2:CharacterString>SAINT-MANDÉ CÉDEX</ns2:CharacterString>
+                          </ns0:city>
+                          <ns0:postalCode>
+                            <ns2:CharacterString>94165</ns2:CharacterString>
+                          </ns0:postalCode>
+                          <ns0:country>
+                            <ns2:CharacterString>FRANCE</ns2:CharacterString>
+                          </ns0:country>
+                          <ns0:electronicMailAddress>
+                            <ns2:CharacterString>contact.geoservices@ign.fr</ns2:CharacterString>
+                          </ns0:electronicMailAddress>
+                        </ns0:CI_Address>
+                      </ns0:address>
+                      <ns0:contactInstructions>
+                        <ns3:FileName src="https://data.geopf.fr/annexes/ressources/logos/ign.jpg">Logo</ns3:FileName>
+                      </ns0:contactInstructions>
+                    </ns0:CI_Contact>
+                  </ns0:contactInfo>
+                  <ns0:role>
+                    <ns0:CI_RoleCode codeList="http://standards.iso.org/iso/19139/resources/gmxCodelists.xml#CI_RoleCode" codeListValue="distributor" />
+                  </ns0:role>
+                </ns0:CI_ResponsibleParty>
+              </ns0:distributorContact>
+            </ns0:MD_Distributor>
+          </ns0:distributor>
+
+
+
+          <ns0:transferOptions>
+            <ns0:MD_DigitalTransferOptions>
+              <ns0:onLine>
+                <ns0:CI_OnlineResource>
+                  <ns0:linkage>
+                    <ns0:URL>https://cartes.gouv.fr/telechargement/IGNF_MNT-LIDAR-HD</ns0:URL>
+                  </ns0:linkage>
+                  <ns0:description>
+                    <ns2:CharacterString>Interface de téléchargement des produits dérivés LiDAR HD</ns2:CharacterString>
+                  </ns0:description>
+                </ns0:CI_OnlineResource>
+              </ns0:onLine>
+              <ns0:onLine>
+                <ns0:CI_OnlineResource>
+                  <ns0:linkage>
+                    <ns0:URL>https://www.expertises-territoires.fr/jcms/pl1_562084/fr/communaute-lidar-hd</ns0:URL>
+                  </ns0:linkage>
+                  <ns0:description>
+                    <ns2:CharacterString>Rejoindre la communauté LiDAR HD</ns2:CharacterString>
+                  </ns0:description>
+                </ns0:CI_OnlineResource>
+              </ns0:onLine>
+              <ns0:onLine>
+                <ns0:CI_OnlineResource>
+                  <ns0:linkage>
+                    <ns0:URL>https://data.geopf.fr/annexes/ressources/documentation/DC_LiDAR_HD_1-0.pdf</ns0:URL>
+                  </ns0:linkage>
+                  <ns0:description>
+                    <ns2:CharacterString>Produits dérivés LiDAR HD - Descriptif de contenu et d'accès aux données</ns2:CharacterString>
+                  </ns0:description>
+                </ns0:CI_OnlineResource>
+              </ns0:onLine>
+              <ns0:onLine>
+                <ns0:CI_OnlineResource>
+                  <ns0:linkage>
+                    <ns0:URL>https://data.geopf.fr/annexes/ressources/documentation/SE_LiDAR_HD.pdf</ns0:URL>
+                  </ns0:linkage>
+                  <ns0:description>
+                    <ns2:CharacterString>Produits dérivés LiDAR HD - Suivi des évolutions</ns2:CharacterString>
+                  </ns0:description>
+                </ns0:CI_OnlineResource>
+              </ns0:onLine>
+              <ns0:onLine>
+                <ns0:CI_OnlineResource>
+                  <ns0:linkage>
+                    <ns0:URL>https://data.geopf.fr/annexes/ressources/documentation/Descriptif_MTD_LIDARHD.pdf</ns0:URL>
+                  </ns0:linkage>
+                  <ns0:description>
+                    <ns2:CharacterString>Produits dérivés LiDAR HD - Fiche descriptive des métadonnées</ns2:CharacterString>
+                  </ns0:description>
+                </ns0:CI_OnlineResource>
+              </ns0:onLine>
+              <ns0:onLine>
+                <ns0:CI_OnlineResource>
+                  <ns0:linkage>
+                    <ns0:URL>https://data.geopf.fr/annexes/ressources/documentation/Offre_Produit_LiDAR_2025-08.pdf</ns0:URL>
+                  </ns0:linkage>
+                  <ns0:description>
+                    <ns2:CharacterString>Offre produit LiDAR</ns2:CharacterString>
+                  </ns0:description>
+                </ns0:CI_OnlineResource>
+              </ns0:onLine>
+              <ns0:onLine>
+                <ns0:CI_OnlineResource>
+                  <ns0:linkage>
+                    <ns0:URL>https://data.geopf.fr/annexes/ressources/documentation/Traitements_Produits_LiDAR_2025-08.pdf</ns0:URL>
+                  </ns0:linkage>
+                  <ns0:description>
+                    <ns2:CharacterString>Traitements produits LiDAR</ns2:CharacterString>
+                  </ns0:description>
+                </ns0:CI_OnlineResource>
+              </ns0:onLine>
+              <ns0:onLine>
+                <ns0:CI_OnlineResource>
+                  <ns0:linkage>
+                    <ns0:URL>https://visionneuse-lidarhd.ign.fr/</ns0:URL>
+                  </ns0:linkage>
+                  <ns0:description>
+                    <ns2:CharacterString>MNT Ombragé - Visionneuse</ns2:CharacterString>
+                  </ns0:description>
+                </ns0:CI_OnlineResource>
+              </ns0:onLine>
+              <ns0:onLine>
+                <ns0:CI_OnlineResource>
+                  <ns0:linkage>
+                    <ns0:URL>https://www.ign.fr/institut/lidar-hd-vers-une-nouvelle-cartographie-3d-du-territoire</ns0:URL>
+                  </ns0:linkage>
+                  <ns0:description>
+                    <ns2:CharacterString>Nuages de points LiDAR HD - vers une nouvelle cartographie 3D du territoire</ns2:CharacterString>
+                  </ns0:description>
+                </ns0:CI_OnlineResource>
+              </ns0:onLine>
+              <ns0:onLine>
+                <ns0:CI_OnlineResource>
+                  <ns0:linkage>
+                    <ns0:URL>https://github.com/IGNF/myria3d</ns0:URL>
+                  </ns0:linkage>
+                  <ns0:description>
+                    <ns2:CharacterString>Ressources pour prendre en main et entraîner de premiers modèles</ns2:CharacterString>
+                  </ns0:description>
+                </ns0:CI_OnlineResource>
+              </ns0:onLine>
+              <ns0:onLine>
+                <ns0:CI_OnlineResource>
+                  <ns0:linkage>
+                    <ns0:URL>https://docs.qgis.org/3.34/fr/docs/training_manual/forestry/basic_lidar.html</ns0:URL>
+                  </ns0:linkage>
+                  <ns0:description>
+                    <ns2:CharacterString>Documentation QGIS - MNE à partir de données LiDAR</ns2:CharacterString>
+                  </ns0:description>
+                </ns0:CI_OnlineResource>
+              </ns0:onLine>
+              <ns0:onLine>
+                <ns0:CI_OnlineResource>
+                  <ns0:linkage>
+                    <ns0:URL>https://www.youtube.com/watch?v=xEuvea13u70</ns0:URL>
+                  </ns0:linkage>
+                  <ns0:description>
+                    <ns2:CharacterString>Création d’un Modèle Numérique de Surface sur QGis 3.34</ns2:CharacterString>
+                  </ns0:description>
+                </ns0:CI_OnlineResource>
+              </ns0:onLine>
+              <ns0:onLine>
+                <ns0:CI_OnlineResource>
+                  <ns0:linkage>
+                    <ns0:URL>https://www.youtube.com/watch?v=5_lDZGonu4U</ns0:URL>
+                  </ns0:linkage>
+                  <ns0:description>
+                    <ns2:CharacterString>Création d’un Modèle Numérique de Terrain sur QGis 3.34</ns2:CharacterString>
+                  </ns0:description>
+                </ns0:CI_OnlineResource>
+              </ns0:onLine>
+              <ns0:onLine>
+                <ns0:CI_OnlineResource>
+                  <ns0:linkage>
+                    <ns0:URL>https://data.geopf.fr/wmts?SERVICE=WMTS&amp;VERSION=1.0.0&amp;REQUEST=GetCapabilities</ns0:URL>
+                  </ns0:linkage>
+                  <ns0:protocol>
+                    <ns3:MimeFileType type="">OGC:WMTS</ns3:MimeFileType>
+                  </ns0:protocol>
+                  <ns0:name>
+                    <ns2:CharacterString>IGNF_LIDAR-HD_MNT_ELEVATION.ELEVATIONGRIDCOVERAGE.SHADOW</ns2:CharacterString>
+                  </ns0:name>
+                  <ns0:description>
+                    <ns2:CharacterString>MNT issu de LiDAR HD</ns2:CharacterString>
+                  </ns0:description>
+                </ns0:CI_OnlineResource>
+              </ns0:onLine>
+              <ns0:onLine>
+                <ns0:CI_OnlineResource>
+                  <ns0:linkage>
+                    <ns0:URL>https://data.geopf.fr/wms-r/wms?service=wms&amp;version=1.3.0&amp;request=GetCapabilities</ns0:URL>
+                  </ns0:linkage>
+                  <ns0:protocol>
+                    <ns3:MimeFileType type="">OGC:WMS</ns3:MimeFileType>
+                  </ns0:protocol>
+                  <ns0:name>
+                    <ns2:CharacterString>IGNF_LIDAR-HD_MNT_ELEVATION.ELEVATIONGRIDCOVERAGE.SHADOW</ns2:CharacterString>
+                  </ns0:name>
+                  <ns0:description>
+                    <ns2:CharacterString>MNT issu de LiDAR HD</ns2:CharacterString>
+                  </ns0:description>
+                </ns0:CI_OnlineResource>
+              </ns0:onLine>
+              <ns0:onLine>
+                <ns0:CI_OnlineResource>
+                  <ns0:linkage>
+                    <ns0:URL>https://data.geopf.fr/wms-r/wms?service=wms&amp;version=1.3.0&amp;request=GetCapabilities</ns0:URL>
+                  </ns0:linkage>
+                  <ns0:protocol>
+                    <ns3:MimeFileType type="">OGC:WMS</ns3:MimeFileType>
+                  </ns0:protocol>
+                  <ns0:name>
+                    <ns2:CharacterString>IGNF_LIDAR-HD_DENSITE-SOL</ns2:CharacterString>
+                  </ns0:name>
+                  <ns0:description>
+                    <ns2:CharacterString>Densité sol du LiDAR HD</ns2:CharacterString>
+                  </ns0:description>
+                </ns0:CI_OnlineResource>
+              </ns0:onLine>
+              <ns0:onLine>
+                <ns0:CI_OnlineResource>
+                  <ns0:linkage>
+                    <ns0:URL>https://data.geopf.fr/wms-r/wms?service=wms&amp;version=1.3.0&amp;request=GetCapabilities</ns0:URL>
+                  </ns0:linkage>
+                  <ns0:protocol>
+                    <ns3:MimeFileType type="">OGC:WMS</ns3:MimeFileType>
+                  </ns0:protocol>
+                  <ns0:name>
+                    <ns2:CharacterString>IGNF_LIDAR-HD_DENSITE-SURSOL</ns2:CharacterString>
+                  </ns0:name>
+                  <ns0:description>
+                    <ns2:CharacterString>Densité sursol du LiDAR HD</ns2:CharacterString>
+                  </ns0:description>
+                </ns0:CI_OnlineResource>
+              </ns0:onLine>
+              <ns0:onLine>
+                <ns0:CI_OnlineResource>
+                  <ns0:linkage>
+                    <ns0:URL>https://data.geopf.fr/wfs/ows?SERVICE=WFS&amp;VERSION=2.0.0&amp;REQUEST=GetCapabilities</ns0:URL>
+                  </ns0:linkage>
+                  <ns0:protocol>
+                    <ns3:MimeFileType type="">OGC:WFS</ns3:MimeFileType>
+                  </ns0:protocol>
+                  <ns0:name>
+                    <ns2:CharacterString>IGNF_LIDAR-HD_METADONNEE:metadata</ns2:CharacterString>
+                  </ns0:name>
+                  <ns0:description>
+                    <ns2:CharacterString>Métadonnée du LiDAR HD</ns2:CharacterString>
+                  </ns0:description>
+                </ns0:CI_OnlineResource>
+              </ns0:onLine>
+            </ns0:MD_DigitalTransferOptions>
+          </ns0:transferOptions>
+        </ns0:MD_Distribution>
+      </ns0:distributionInfo>
+      <ns0:dataQualityInfo>
+        <ns0:DQ_DataQuality>
+
+
+          <ns0:scope>
+            <ns0:DQ_Scope>
+              <ns0:level>
+                <ns0:MD_ScopeCode codeList="http://standards.iso.org/iso/19139/resources/gmxCodelists.xml#MD_ScopeCode" codeListValue="series" />
+              </ns0:level>
+            </ns0:DQ_Scope>
+          </ns0:scope>
+
+
+          <ns0:report>
+            <ns0:DQ_DomainConsistency>
+              <ns0:nameOfMeasure>
+                <ns2:CharacterString>Value domain conformance</ns2:CharacterString>
+              </ns0:nameOfMeasure>
+              <ns0:result>
+                <ns0:DQ_ConformanceResult>
+                  <ns0:specification>
+                    <ns0:CI_Citation>
+                      <ns0:title>
+                        <ns2:CharacterString>Commission Regulation (EU) No 1089/2010 of 23 November 2010 implementing Directive 2007/2/EC of the European Parliament and of the Council as regards interoperability of spatial data sets and services</ns2:CharacterString>
+                      </ns0:title>
+                      <ns0:date>
+                        <ns0:CI_Date>
+                          <ns0:date>
+                            <ns2:Date>2010-12-08</ns2:Date>
+                          </ns0:date>
+                          <ns0:dateType>
+                            <ns0:CI_DateTypeCode codeList="http://standards.iso.org/iso/19139/resources/gmxCodelists.xml#CI_DateTypeCode" codeListValue="publication" />
+                          </ns0:dateType>
+                        </ns0:CI_Date>
+                      </ns0:date>
+                    </ns0:CI_Citation>
+                  </ns0:specification>
+                  <ns0:explanation>
+                    <ns2:CharacterString>Dataset is conformant to the Inspire data specification.</ns2:CharacterString>
+                  </ns0:explanation>
+                  <ns0:pass>
+                    <ns2:Boolean>true</ns2:Boolean>
+                  </ns0:pass>
+                </ns0:DQ_ConformanceResult>
+              </ns0:result>
+            </ns0:DQ_DomainConsistency>
+          </ns0:report>
+
+
+          <ns0:lineage>
+            <ns0:LI_Lineage>
+              <ns0:statement>
+                <ns2:CharacterString>Le produit MNT LiDAR HD est le modèle numérique de terrain dérivé du nuage de points LiDAR HD issu de l’acquisition réalisée dans cadre du programme national LiDAR HD avec une densité d’au moins 10 impulsions au m² et 5 impulsions au m² au-dessus de 3200 m d’altitude. Il est dérivé des points « sol », des points « eau » et des « points virtuels » contenus dans le nuage de points LiDAR HD classé.
+
+                  Dernière mise à jour : Téléchargement et Flux WFS, WMS Raster et WMTS - Blocs CBL (Comminges, Bigorre Lomagne), NJ (Cluny), SAS (Saintonge Aunis Sèvres)</ns2:CharacterString>
+
+              </ns0:statement>
+
+              <ns0:source>
+                <ns0:LI_Source>
+                  <ns0:description>
+                    <ns2:CharacterString>Le produit MNT LiDAR HD est le modèle numérique de terrain dérivé du nuage de points LiDAR HD issu de l’acquisition réalisée dans cadre du programme national LiDAR HD avec une densité d’au moins 10 impulsions au m² et 5 impulsions au m² au-dessus de 3200 m d’altitude. Il est dérivé des points « sol », des points « eau » et des « points virtuels » contenus dans le nuage de points LiDAR HD classé.</ns2:CharacterString>
+                  </ns0:description>
+                </ns0:LI_Source>
+              </ns0:source>
+            </ns0:LI_Lineage>
+          </ns0:lineage>
+        </ns0:DQ_DataQuality>
+      </ns0:dataQualityInfo>
+      <ns0:metadataConstraints>
+        <ns0:MD_SecurityConstraints>
+          <ns0:useLimitation>
+            <ns2:CharacterString>Aucune contrainte</ns2:CharacterString>
+          </ns0:useLimitation>
+
+          <ns0:classification>
+            <ns0:MD_ClassificationCode codeList="http://standards.iso.org/iso/19139/resources/gmxCodelists.xml#MD_ClassificationCode" codeListValue="unclassified" />
+          </ns0:classification>
+        </ns0:MD_SecurityConstraints>
+      </ns0:metadataConstraints>
+    </ns0:MD_Metadata>
