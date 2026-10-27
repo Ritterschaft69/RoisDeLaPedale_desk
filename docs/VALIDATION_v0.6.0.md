@@ -27,3 +27,9 @@ Un contrôle du virage réel vers 65,783 km d’Oderen vérifie les deux voies s
 Les captures `v0.6.0-saint-die.png`, `sortie-matin.png`, `grand-ballon.png` proviennent du moteur natif Mesa/llvmpipe, à des stations connues des circuits ; aucune image générée ne sert de preuve du rendu. `v0.6.0-geographie.png` est un aperçu des caches réels et des profils, produit par matplotlib. Ces captures ne mesurent pas les performances d’un GPU réel.
 
 GitHub Actions exécute les suites et construit l’installeur Windows x64 ; la release contient l’installeur et son SHA-256. Installation/désinstallation sur un poste Windows et validation du matériel physique restent à effectuer.
+
+## Publication vérifiée
+
+Construction GitHub réussie : [run 40475089105](https://github.com/Ritterschaft69/RoisDeLaPedale_desk/actions/runs/40475089105), source `7d1581121ddda33d4ad5987478c54a6d7a3f05f2`. Les 175 contrôles natifs et les 25 tests Python passent dans ce run.
+
+L’installeur publié a été téléchargé puis contrôlé : **90 096 495 octets**, SHA-256 `19ba6237a7d911dda0a4826075090e6dbc6a82d86ae1c3b6376419275abbb504`. Il correspond au fichier `SHA256SUMS.txt` joint à la release.

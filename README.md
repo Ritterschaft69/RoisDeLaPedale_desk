@@ -1,7 +1,7 @@
 # Rois de la Pédale
 
-**Windows : [télécharger l’installeur v0.5.2](https://github.com/Ritterschaft69/RoisDeLaPedale_desk/releases/download/v0.5.2/RoisDeLaPedale-0.5.2-Setup.exe)** · [Page de la préversion](https://github.com/Ritterschaft69/RoisDeLaPedale_desk/releases/tag/v0.5.2)
-[Voir la caméra stabilisée et la vidéo du suivi](https://github.com/Ritterschaft69/RoisDeLaPedale_desk/releases/tag/v0.5.2)
+**Windows : [télécharger l’installeur v0.6.0](https://github.com/Ritterschaft69/RoisDeLaPedale_desk/releases/download/v0.6.0/RoisDeLaPedale-0.6.0-Setup.exe)** · [Page de la préversion](https://github.com/Ritterschaft69/RoisDeLaPedale_desk/releases/tag/v0.6.0)
+[Voir les circuits reconstruits et les captures natives](https://github.com/Ritterschaft69/RoisDeLaPedale_desk/releases/tag/v0.6.0)
 
 Prototype **desktop natif**, Godot **4.6.3**, trois circuits et données géographiques hors ligne. Aucun serveur ni navigateur requis.
 
