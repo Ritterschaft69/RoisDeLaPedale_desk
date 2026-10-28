@@ -14,3 +14,5 @@ Cette version inclut aussi Home sweet home : quatre circuits hors ligne et les o
 
 Validation : 254 contrôles automatiques réussis, dont décodage stéréo non silencieux via le mixeur Godot, transitions, pause, réglages persistants et intégrité des dix sons. Réglages audio vérifiés visuellement.
 Export Linux lancé avec succès sur les quatre circuits ; les dix sons sont présents et chargeables dans le paquet exporté.
+
+Installateur publié et téléchargé pour contrôle : 115036772 octets ; SHA-256 `9d5589da627ea0cff30f26727687b84a1d561bd257250eea5e3875dcca5bcfae`, conforme à `SHA256SUMS.txt`. Compilation GitHub réussie : https://github.com/Ritterschaft69/RoisDeLaPedale_desk/actions/runs/40773432760.

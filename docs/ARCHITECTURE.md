@@ -2,9 +2,9 @@
 
 ## Mise à jour géographique 0.6.0
 
-Le mode courant charge les trois caches `assets/geodata/circuits/<id>/`. La géométrie et la distance simulées viennent du recalage sur le réseau OSM ; `route.data` et `route.source_points` conservent le GPX original. `source_station()` relie la station simulée à celle du GPX. `sample_raw()` fournit les valeurs GPX correspondantes, tandis que `sample()` fournit la position de simulation en altitude IGN69 et les coordonnées WGS84 dérivées.
+Le mode courant charge les quatre caches `assets/geodata/circuits/<id>/`. La géométrie et la distance simulées viennent du recalage sur le réseau OSM ; `route.data` et `route.source_points` conservent le GPX original. `source_station()` relie la station simulée à celle du GPX. `sample_raw()` fournit les valeurs GPX correspondantes, tandis que `sample()` fournit la position de simulation en altitude IGN69 et les coordonnées WGS84 dérivées.
 
-`IGNTerrain` lit les tuiles float32 MNT/MNH en Lambert-93, avec transformation locale auditée et arithmétique double pour les grandes coordonnées Lambert. Le cache décodé est limité à 32 tuiles. Relief proche, arrière-plans, zones boisées, bâtiments, surfaces d’eau et routes voisines utilisent ces données locales. Le chargement des trois circuits ne nécessite aucun accès Internet.
+`IGNTerrain` lit les tuiles float32 MNT/MNH en Lambert-93, avec transformation locale auditée et arithmétique double pour les grandes coordonnées Lambert. Le cache décodé est limité à 32 tuiles. Relief proche, arrière-plans, zones boisées, bâtiments, surfaces d’eau et routes voisines utilisent ces données locales. Le chargement des quatre circuits ne nécessite aucun accès Internet.
 
 Les métriques brutes, la tranche initiale et le raccordement vertical GPX/IGN décrits plus bas restent l’historique du premier lot ; ils ne pilotent plus les caches géographiques 0.6.0. Voir [méthode et limites actuelles](GEODATA.md).
 
@@ -31,6 +31,7 @@ Godot 4.6.3 standard : rendu, interface, boucle physique et fichiers applicatifs
 | `scripts/hud.gd` | Indicateurs et tracé GPX, sans tuiles distantes |
 | `scripts/recorder.gd` | Activités JSON et statistiques intégrées dans le temps |
 | `scripts/main.gd` | Écrans, cycle de session, paramètres et caméra |
+| `scripts/ambience.gd` | Paysage sonore local, fondus, cinq voix au maximum et échantillonnage spatial à 1 Hz |
 | `tools/` | Import GPX, acquisition explicite, cache géographique et packaging |
 
 Les données d’entrée produisent les watts ; la physique produit vitesse/distance ; le rendu les consomme. Le pas de simulation est fixé à 0,02 s par Godot. Les paramètres d’essai asphalte/gravier/mouillé sont explicitement manuels ; ils ne sont pas présentés comme des surfaces cartographiées.
@@ -56,7 +57,7 @@ Les échantillons RGE ALTI ne constituent ni un nuage de points LiDAR HD ni un M
 1. Valider le référentiel vertical et produire des tuiles terrain, routes secondaires et sols urbains sur toute la boucle ; optimiser le streaming et la géométrie des épingles.
 2. Extension native Bluetooth Windows FTMS : scan, notifications, contrôle borné séparé, tests sur matériel réel ; ANT+ seulement avec matériel adapté.
 3. Remplacer les modèles de prototype, enrichir les façades et paysages ; instancing/LOD et profilage sur matériel de référence.
-4. Audio local sous licences explicites et réglages de sortie.
+4. Audio local livré en 0.6.3 sous CC0, avec volume et désactivation ; validation sur les sorties audio Windows réelles à poursuivre.
 5. Valider sur Windows l’installeur NSIS déjà produit, l’installation/désinstallation et le hors ligne ; sessions longues et signature si certificat disponible.
 
 ## Évolution 0.2.0
@@ -72,3 +73,5 @@ Version 0.5.0 : les sections du buste et des bras suivent des courbes de Bézier
 Version 0.5.1 : assets/models/jersey.res remplace le torse et les manches séparés ; assets/models/bib.res remplace le bassin et les deux volumes de cuissard. Ce dernier utilise un Skeleton3D à trois os et un Skin avec poids progressifs aux hanches. Les bas de cuissard ont des poids exclusifs à leur jambe ; la pose de référence les écarte légèrement pour préserver l’entrejambe. La recette procédurale est conservée sous authoring_source pour les outils de fusion hors ligne. Voir assets/models/README.md et tests/test_garment_joints.gd.
 
 Version 0.5.2 : `camera_follow.gd` sépare le suivi de la caméra des rotations du cycliste et amortit le cap, les déports d’évitement et la hauteur. La position et la cible partagent un repère stabilisé ; le champ et le recul restent fixes. Le suivi nominal s’ancre sur la voie droite réelle et la caméra se fige à l’arrêt ou pendant la pause. Voir `tests/test_camera_follow.gd` et `tools/capture_camera.gd`.
+
+Version 0.6.3 : dix sons CC0 dédoublonnés et convertis en Ogg stéréo, avec raccord de boucle fondu et niveau ajusté. Le mixeur conserve deux voix de fondu par couche (ambiance, vent), plus une voix occasionnelle pour la faune. Les requêtes de paysage se font une fois par seconde ; trois observations confirment une transition, puis un fondu de quatre secondes raccorde les ambiances. L’arrêt en pause/menu libère les flux. Le catalogue conserve les empreintes des fichiers fournis ; les sons restent des illustrations du paysage.
