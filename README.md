@@ -3,7 +3,11 @@
 **Windows : [télécharger l’installeur v0.6.1](https://github.com/Ritterschaft69/RoisDeLaPedale_desk/releases/download/v0.6.1/RoisDeLaPedale-0.6.1-Setup.exe)** · [Page de la préversion](https://github.com/Ritterschaft69/RoisDeLaPedale_desk/releases/tag/v0.6.1)
 [Voir les circuits reconstruits et les captures natives](https://github.com/Ritterschaft69/RoisDeLaPedale_desk/releases/tag/v0.6.0)
 
-Prototype **desktop natif**, Godot **4.6.3**, trois circuits et données géographiques hors ligne. Aucun serveur ni navigateur requis.
+Prototype **desktop natif**, Godot **4.6.3**, quatre circuits et données géographiques hors ligne. Aucun serveur ni navigateur requis.
+
+## Nouveau circuit — 0.6.2
+
+**Home sweet home** rejoint le menu : 12,29 km simulés, D+ IGN filtré 172 m. Le GPX original compte 1 659 points ; les données OSM/IGN et le décor sont disponibles hors ligne. [Notes 0.6.2](docs/RELEASE_v0.6.2.md).
 
 ## Performances — 0.6.1
 
@@ -13,7 +17,7 @@ Bâtiments et arbres regroupés par secteur, recherches spatiales indexées et c
 
 ## Circuits géographiques — 0.6.0
 
-Les trois GPX sont recalés sur les routes **OpenStreetMap**, puis rééchantillonnés tous les **deux mètres au maximum** et lissés pour la simulation. Le recalage utilise le réseau connecté et le sens de déplacement ; les lacets sont reconstruits le long des segments OSM, sans raccourci diagonal.
+Les quatre GPX sont recalés sur les routes **OpenStreetMap**, puis rééchantillonnés tous les **deux mètres au maximum** et lissés pour la simulation. Le recalage utilise le réseau connecté et le sens de déplacement ; les lacets sont reconstruits le long des segments OSM, sans raccourci diagonal.
 
 Le relief provient des **MNT numériques IGN LiDAR HD**, sur une grille de **10 m** près des parcours, complétée par un fond de relief à **100 m** jusqu’aux massifs lointains. Les hauteurs **MNH** guident la présence et la taille de la végétation près des routes. Les emprises et hauteurs des bâtiments, les zones de végétation et les surfaces d’eau viennent de la BD TOPO IGN. Les îles sont conservées dans les maillages d’eau. Les routes voisines OSM sont visibles aux abords et aux carrefours.
 
@@ -26,8 +30,9 @@ Les GPX sources restent inchangés. Le jeu affiche la distance et le D+ du trac�
 | Saint-Dié-des-Vosges | 66,299 km | 1 585,4 m |
 | Sortie vélo le matin | 102,362 km | 2 233,2 m |
 | Oderen · Grand Ballon · Amic · Bramont · Brabant | 120,675 km | 2 229,2 m |
+| Home sweet home | 12,237 km | 247,5 m |
 
-Les activités enregistrent le tracé simulé et son altitude IGN ; chaque mesure conserve aussi les coordonnées, l’altitude et la station correspondantes du GPX original dans `source_gpx`. Le départ est à zéro sur les trois circuits : les sauts altimétriques initiaux des GPX ne pilotent plus la pente simulée.
+Les activités enregistrent le tracé simulé et son altitude IGN ; chaque mesure conserve aussi les coordonnées, l’altitude et la station correspondantes du GPX original dans `source_gpx`. Le départ est à zéro sur les quatre circuits : les sauts altimétriques initiaux des GPX ne pilotent plus la pente simulée.
 
 [Données, couverture et méthode](docs/GEODATA.md) · [Notes 0.6.0](docs/RELEASE_v0.6.0.md) · [Validation 0.6.0](docs/VALIDATION_v0.6.0.md)
 

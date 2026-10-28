@@ -119,7 +119,7 @@ class InstalledGeographyTests(unittest.TestCase):
     def setUpClass(cls):
         cls.entries=json.loads((ROOT/'assets/routes/catalog.json').read_text())
 
-    def test_three_complete_derived_routes_and_unchanged_gpx_hashes(self):
+    def test_all_complete_derived_routes_and_unchanged_gpx_hashes(self):
         for entry in self.entries:
             with self.subTest(circuit=entry['id']):
                 raw=json.loads((ROOT/entry['data'].removeprefix('res://')).read_text())
@@ -169,6 +169,14 @@ class InstalledGeographyTests(unittest.TestCase):
             for p in raw['points'][::30]:
                 self.assertIsNotNone(terrain.height(p['lat'],p['lon']))
                 self.assertIsNotNone(terrain.height(p['lat'],p['lon'],'mnh'))
+
+    def test_shared_horizon_covers_every_installed_circuit(self):
+        terrain=Terrain()
+        for entry in self.entries:
+            raw=json.loads((ROOT/entry['data'].removeprefix('res://')).read_text())
+            for point in raw['points'][::100]:
+                x,y=lambert93(point['lat'],point['lon'])
+                self.assertIsNotNone(terrain.horizon_height(x,y),entry['id'])
 
     def test_water_meshes_preserve_island_holes(self):
         from build_geoworld import inside

@@ -40,5 +40,19 @@
     "start_m": 0.0,
     "simulation_length_m": 120652.09994809596,
     "simulation_ascent_m": 2380.87929462581
+  },
+  {
+    "id": "home_sweet_home",
+    "name": "Home sweet home",
+    "short_name": "Home sweet home",
+    "description": "Tracé OpenStreetMap recalé · relief IGN LiDAR HD · GPX source conservé",
+    "source": "home_sweet_home.gpx",
+    "data": "res://assets/routes/home_sweet_home.json",
+    "length_m": 12237.291059115529,
+    "ascent_raw_m": 247.5,
+    "point_count": 1659,
+    "start_m": 0.0,
+    "simulation_length_m": 12290.793453343138,
+    "simulation_ascent_m": 171.57766320328955
   }
 ]

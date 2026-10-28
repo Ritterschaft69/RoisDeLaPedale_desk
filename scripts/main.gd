@@ -181,9 +181,9 @@ func show_home() -> void:
 	hud.show()
 	overlay.show()
 	screen = "home"
-	var column := card("Prenez la route.",str(selected_circuit.short_name)+"\nTrois circuits installés, disponibles hors ligne.")
+	var column := card("Prenez la route.",str(selected_circuit.short_name)+"\n%d circuits installés, disponibles hors ligne." % circuits.size())
 	label_in(column,"%.1f km   ·   D+ %.0f m\nGPX source : %s points conservés" % [route.length_m/1000,route.ascent_m,route.source_points.size()])
-	button_in(column,"Choisir un circuit  ·  3 parcours",show_circuits)
+	button_in(column,"Choisir un circuit  ·  %d parcours" % circuits.size(),show_circuits)
 	var power_label := label_in(column,"Puissance démo : %d W" % input.demo_watts)
 	var slider := HSlider.new()
 	slider.min_value = 0

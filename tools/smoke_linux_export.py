@@ -14,7 +14,8 @@ def main():
     parser.add_argument('--binary',type=Path,default=ROOT/'build/linux/RoisDeLaPedale.x86_64')
     args=parser.parse_args()
     binary=args.binary.resolve()
-    for circuit in ['saint_die','sortie_matin','oderen_grand_ballon']:
+    for entry in json.loads((ROOT/'assets/routes/catalog.json').read_text()):
+        circuit=entry['id']
         with tempfile.TemporaryDirectory(prefix='rdp-export-',dir=ROOT/'build') as temporary:
             folder=Path(temporary)
             env=dict(os.environ,XDG_DATA_HOME=str(folder/'data'),XDG_CONFIG_HOME=str(folder/'config'),XDG_CACHE_HOME=str(folder/'cache'))

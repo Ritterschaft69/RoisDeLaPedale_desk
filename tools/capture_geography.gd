@@ -6,7 +6,7 @@ func run() -> void:
 	root.add_child(app)
 	app.set_physics_process(false)
 	app.set_process(false)
-	var cases := [["saint_die",6200,"saint-die"],["sortie_matin",32000,"sortie-matin"],["oderen_grand_ballon",-1,"grand-ballon"]]
+	var cases := [["home_sweet_home",4000,"home-sweet-home"],["saint_die",6200,"saint-die"],["sortie_matin",32000,"sortie-matin"],["oderen_grand_ballon",-1,"grand-ballon"]]
 	var arguments := OS.get_cmdline_user_args()
 	for item in cases:
 		if not arguments.is_empty() and item[0] not in arguments: continue
@@ -30,7 +30,7 @@ func run() -> void:
 		app.hud.queue_redraw()
 		for i in range(3): await process_frame
 		await RenderingServer.frame_post_draw
-		root.get_texture().get_image().save_png("res://docs/previews/v0.6.1-"+str(item[2])+".png")
+		root.get_texture().get_image().save_png("res://docs/previews/v0.6.2-"+str(item[2])+".png")
 		print("GEOGRAPHY_CAPTURE ",item[0]," station=",app.distance," altitude=",app.route.sample(app.distance).position.y)
 	app.queue_free()
 	await process_frame

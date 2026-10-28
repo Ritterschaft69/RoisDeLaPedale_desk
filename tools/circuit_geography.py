@@ -864,7 +864,7 @@ def build(entry):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--stage',choices=['plan','vectors','water','rasters','horizon','build','all'],default='plan')
-    parser.add_argument('--circuit',choices=['saint_die','sortie_matin','oderen_grand_ballon'])
+    parser.add_argument('--circuit',choices=[entry['id'] for entry in json.loads((ROOT/'assets/routes/catalog.json').read_text())])
     parser.add_argument('--osm-api',action='store_true',help='Prefer small official OSM map extracts when Overpass is unavailable')
     args=parser.parse_args()
     entries=json.loads((ROOT/'assets/routes/catalog.json').read_text())
@@ -877,7 +877,9 @@ def main():
     if args.stage in ('vectors','all'): acquire_vectors(entries,client)
     if args.stage in ('water','all'): acquire_water(entries,client)
     if args.stage in ('rasters','all'): acquire_rasters(entries,client)
-    if args.stage in ('horizon','all'): acquire_horizon(entries,client)
+    # The horizon raster is shared: a circuit-specific import must retain all routes.
+    if args.stage in ('horizon','all'):
+        acquire_horizon(json.loads((ROOT/'assets/routes/catalog.json').read_text()),client)
     if args.stage in ('build','all'):
         for entry in entries: build(entry)
 

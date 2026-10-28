@@ -19,8 +19,8 @@ func run() -> void:
 	root.add_child(app)
 	await process_frame
 	app.set_physics_process(false)
-	check(app.circuits.size() == 3,"catalogue contains all three installed circuits")
-	for id in ["sortie_matin","oderen_grand_ballon","saint_die"]:
+	check(app.circuits.size() == 4,"catalogue contains all four installed circuits")
+	for id in ["home_sweet_home","sortie_matin","oderen_grand_ballon","saint_die"]:
 		app.show_circuits()
 		var button = app.overlay.find_child("Circuit_"+id,true,false)
 		check(button != null,"menu button exists for "+id)

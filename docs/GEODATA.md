@@ -1,4 +1,4 @@
-# Données géographiques des trois circuits — 27 octobre 2026
+# Données géographiques des quatre circuits — 28 octobre 2026
 
 La version 0.6.0 remplace la tranche de 3 km par des caches couvrant **les trois parcours complets**. Les anciens fichiers de la tranche Saint-Dié restent conservés pour l’audit historique ; le jeu charge prioritairement `assets/geodata/circuits/<id>/`.
 
@@ -14,7 +14,7 @@ Les deux fiches officielles [MNT](sources/IGNF_MNT-LIDAR-HD.xml) et [MNH](source
 
 ## Couverture et résolution
 
-Les tuiles Lambert-93 de 2 km couvrent un corridor d’au moins 400 m autour des GPX pour MNT+MNH et de 1 900 m pour le MNT des arrière-plans. La grille numérique MNT proche reste uniforme à 10 m pour éviter les raccords entre tuiles ; un modèle régional supplémentaire à 100 m couvre les silhouettes jusqu’à environ 16 km, avec une marge de téléchargement de 17 km autour des circuits. Sur ses 556 842 pixels, deux sont nodata ; aucune altitude de route ne dépend de ces pixels. La densité du maillage de rendu diminue au loin. Le terrain proche utilise une grille de rendu d’environ 12 m avec renforts près de la chaussée. La grille de 10 m est une réduction des produits LiDAR HD, pas leur précision native.
+Les tuiles Lambert-93 de 2 km couvrent un corridor d’au moins 400 m autour des GPX pour MNT+MNH et de 1 900 m pour le MNT des arrière-plans. La grille numérique MNT proche reste uniforme à 10 m pour éviter les raccords entre tuiles ; un modèle régional supplémentaire à 100 m couvre les silhouettes jusqu’à environ 16 km, avec une marge de téléchargement de 17 km autour des circuits. Sur ses 948 090 pixels, 287 sont nodata ; aucune altitude de route ne dépend de ces pixels. La densité du maillage de rendu diminue au loin. Le terrain proche utilise une grille de rendu d’environ 12 m avec renforts près de la chaussée. La grille de 10 m est une réduction des produits LiDAR HD, pas leur précision native.
 
 Les contrôles refusent un cache incomplet : données absentes, HTML d’erreur, image colorisée à la place de GeoTIFF float, pagination répétée, valeur nodata et altitude LiDAR absente sur un parcours. Les reçus conservent URLs, paramètres, tailles et SHA-256 des réponses.
 
@@ -37,7 +37,7 @@ Les surfaces d’eau utilisent une triangulation contrainte réalisée avec Shap
 
 ## Reproduction et formats
 
-`python tools/circuit_geography.py --stage plan` ne contacte aucun service. `--stage all` acquiert puis construit les trois circuits. Les étapes `vectors`, `water`, `rasters`, `build` peuvent être exécutées séparément ; les requêtes déjà reçues sont réutilisées. En cas d’erreur Overpass persistante, l’API officielle OSM fournit des zones d’environ 900 m, avec reconstruction complète des nœuds de chaque voie. `--osm-api` permet de sélectionner cette reprise directement. Les échecs ne sont pas considérés comme une couverture vide réussie.
+`python tools/circuit_geography.py --stage plan` ne contacte aucun service. `--stage all` acquiert puis construit tous les circuits du catalogue. Les étapes `vectors`, `water`, `rasters`, `build` peuvent être exécutées séparément ; les requêtes déjà reçues sont réutilisées. En cas d’erreur Overpass persistante, l’API officielle OSM fournit des zones d’environ 900 m, avec reconstruction complète des nœuds de chaque voie. `--osm-api` permet de sélectionner cette reprise directement. Les échecs ne sont pas considérés comme une couverture vide réussie.
 
 Installer les dépendances de préparation avec `python -m pip install -r tools/requirements-geography.txt` ; elles ne sont nécessaires ni au jeu, ni aux tests, ni à la construction des exports à partir des caches existants. Godot 4.6.3 valide les polygones exportés. `tools/plot_geography.py` produit un aperçu de contrôle avec matplotlib, dépendance optionnelle.
 
@@ -52,5 +52,8 @@ Les formats, licences et attributions sont dans [la notice des caches](../assets
 | Saint-Dié | 66,603 km | 1 182 m | 33 303 | 100 % |
 | Sortie vélo le matin | 102,157 km | 2 355 m | 51 080 | 100 % |
 | Oderen · Grand Ballon | 120,652 km | 2 381 m | 60 328 | 99,93 % |
+| Home sweet home | 12,291 km | 172 m | 6 147 | 99,80 % |
 
 Les 84 m non raccordés d’Oderen correspondent aux stations GPX 108–192 m. Ils gardent le GPX et sont signalés dans le jeu. Le pourcentage de raccord est un résultat topologique automatique, pas une certification de terrain.
+
+Home sweet home a été ajouté le 28 octobre 2026 : 538 bâtiments IGN retenus, aucun rejet de triangulation et aucune altitude LiDAR manquante sur la route. Le tronçon GPX 1 740–1 764 m reste sans raccord OSM certifié par l’algorithme et utilise le GPX. Le relief lointain partagé a été étendu pour conserver la couverture des quatre circuits.

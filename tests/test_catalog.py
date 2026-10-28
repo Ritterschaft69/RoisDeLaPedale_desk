@@ -13,8 +13,8 @@ from prepare_route import convert
 class CatalogueTests(unittest.TestCase):
     def test_all_installed_sources_preserve_every_point_and_altitude(self):
         entries = json.loads((ROOT/'assets/routes/catalog.json').read_text())
-        self.assertEqual([e['id'] for e in entries],['saint_die','sortie_matin','oderen_grand_ballon'])
-        for entry, expected in zip(entries,[3383,19641,20459]):
+        self.assertEqual([e['id'] for e in entries],['saint_die','sortie_matin','oderen_grand_ballon','home_sweet_home'])
+        for entry, expected in zip(entries,[3383,19641,20459,1659]):
             with self.subTest(circuit=entry['id']):
                 source = ROOT/'assets/routes'/entry['source']
                 saved = json.loads((ROOT/entry['data'].removeprefix('res://')).read_text())
@@ -33,6 +33,9 @@ class CatalogueTests(unittest.TestCase):
 
     def test_new_circuit_metrics_are_computed_from_sources(self):
         entries = json.loads((ROOT/'assets/routes/catalog.json').read_text())
+        self.assertEqual(hashlib.sha256((ROOT/'assets/routes/home_sweet_home.gpx').read_bytes()).hexdigest(), 'dc3c14c678c6227819d801463d436fe587653dacf25936227bf75dab8cc8fb7d')
+        self.assertAlmostEqual(entries[3]['length_m']/1000,12.237,delta=0.001)
+        self.assertAlmostEqual(entries[3]['ascent_raw_m'],247.5,delta=0.1)
         self.assertAlmostEqual(entries[1]['length_m']/1000,102.362,delta=0.001)
         self.assertAlmostEqual(entries[2]['length_m']/1000,120.675,delta=0.001)
         self.assertAlmostEqual(entries[1]['ascent_raw_m'],2233.2,delta=0.1)

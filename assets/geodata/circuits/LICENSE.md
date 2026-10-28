@@ -10,7 +10,7 @@ Les licences des données sont distinctes de celle du code du projet.
   licence : https://opendatacommons.org/licenses/odbl/1-0/.
 - **IGN BD TOPO® / LiDAR HD — Licence Ouverte 2.0** : emprises et hauteurs de
   bâtiments, zones de végétation, surfaces hydrographiques, modèles numériques
-  MNT/MNH et métadonnées de dalles. Acquisition le 27 octobre 2026. Les dates
+  MNT/MNH et métadonnées de dalles. Acquisitions les 27 et 28 octobre 2026. Les dates
   des missions LiDAR sont conservées dans chaque `lidar_metadata.geojson` ;
   elles sont antérieures à la date de téléchargement. Licence conservée dans
   `docs/sources/licence_ouverte.md` à la racine du dépôt.
