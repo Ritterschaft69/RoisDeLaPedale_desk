@@ -1,9 +1,15 @@
 # Rois de la Pédale
 
-**Windows : [télécharger l’installeur v0.6.0](https://github.com/Ritterschaft69/RoisDeLaPedale_desk/releases/download/v0.6.0/RoisDeLaPedale-0.6.0-Setup.exe)** · [Page de la préversion](https://github.com/Ritterschaft69/RoisDeLaPedale_desk/releases/tag/v0.6.0)
+**Windows : [télécharger l’installeur v0.6.1](https://github.com/Ritterschaft69/RoisDeLaPedale_desk/releases/download/v0.6.1/RoisDeLaPedale-0.6.1-Setup.exe)** · [Page de la préversion](https://github.com/Ritterschaft69/RoisDeLaPedale_desk/releases/tag/v0.6.1)
 [Voir les circuits reconstruits et les captures natives](https://github.com/Ritterschaft69/RoisDeLaPedale_desk/releases/tag/v0.6.0)
 
 Prototype **desktop natif**, Godot **4.6.3**, trois circuits et données géographiques hors ligne. Aucun serveur ni navigateur requis.
+
+## Performances — 0.6.1
+
+Bâtiments et arbres regroupés par secteur, recherches spatiales indexées et construction progressive du décor. Les données IGN restent conservées. Sur Intel UHD Graphics 600, choisir **Légère** dans les paramètres : ce mode désactive les ombres et réduit la densité du décor. Le choix automatique ne remplace pas une préférence déjà enregistrée.
+
+[Mesures comparatives et validation](docs/RELEASE_v0.6.1.md). Les gains mesurés dans le cloud ne prédisent pas les FPS sur votre PC.
 
 ## Circuits géographiques — 0.6.0
 
@@ -51,6 +57,7 @@ godot --headless --path . --script tests/test_rider_model.gd
 godot --headless --path . --script tests/test_garment_joints.gd
 godot --headless --path . --script tests/test_camera_follow.gd
 godot --headless --path . --script tests/test_circuit_geography.gd
+godot --headless --path . --script tests/test_performance.gd
 ```
 
 Isoler `XDG_DATA_HOME`, `XDG_CONFIG_HOME` et `XDG_CACHE_HOME` dans des répertoires accessibles en écriture pour les tests cloud. Le rendu natif sans écran est disponible via `python tools/run_cloud.py` ; ce rendu logiciel ne mesure pas les performances d’un GPU Windows.

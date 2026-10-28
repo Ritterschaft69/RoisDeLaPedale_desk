@@ -4,6 +4,8 @@ func _initialize(): call_deferred("run")
 func run():
  var app=load("res://main.tscn").instantiate()
  root.add_child(app);app.set_process(false);app.set_physics_process(false)
+ if "--light" in OS.get_cmdline_user_args():
+  app.world.quality=0;app.apply_graphics()
  for item in [["oderen_grand_ballon",32000],["sortie_matin",32000]]:
   app.show_home();app.select_circuit(item[0]);app.start_session();app.distance=item[1];app.speed=8
   app.world.update_at(app.distance,true);app.position_scene(0,true)
