@@ -8,6 +8,28 @@ var building_bounds: Array[Dictionary] = []
 var vegetation_cells: Dictionary = {}
 var terrain_source: RefCounted
 var roads: Array = []
+var building_cells: Dictionary = {}
+var geometry_cache: Dictionary = {}
+var geometry_order: Array[String] = []
+var last_building_candidates := 0
+var vegetation_ready := false
+var road_cells: Dictionary = {}
+var road_segments := PackedInt64Array()
+const CELL := 128.0
+
+func index_bounds(index: Dictionary, bounds: Rect2, item: int) -> void:
+	for x in range(floori(bounds.position.x/CELL),floori(bounds.end.x/CELL)+1):
+		for z in range(floori(bounds.position.y/CELL),floori(bounds.end.y/CELL)+1):
+			var key := Vector2i(x,z)
+			if not index.has(key): index[key] = []
+			index[key].append(item)
+
+func nearby_buildings(center: Vector2, radius: float) -> Array:
+	var found: Dictionary = {}
+	for x in range(floori((center.x-radius)/CELL),floori((center.x+radius)/CELL)+1):
+		for z in range(floori((center.y-radius)/CELL),floori((center.y+radius)/CELL)+1):
+			for item in building_cells.get(Vector2i(x,z),[]): found[item] = true
+	return found.keys()
 var ground_material := M.toon(Color("c6c0a5"))
 var glass_material := M.toon(Color("465d60"))
 
@@ -19,16 +41,26 @@ func _init(path: String = "res://assets/geodata/world.json") -> void:
 		var roads_path := path.get_base_dir()+"/"+str(data.roads_file)
 		if FileAccess.file_exists(roads_path):
 			roads = JSON.parse_string(FileAccess.get_file_as_string(roads_path)).roads
-			for road in roads:
-				var bounds := Rect2(Vector2(road.points[0][0],road.points[0][2]),Vector2.ZERO)
-				for p in road.points: bounds = bounds.expand(Vector2(p[0],p[2]))
-				road.bounds = bounds.grow(430)
+			for road_index in range(roads.size()):
+				var road: Dictionary = roads[road_index]
+				for i in range(road.points.size()-1):
+					var a: Array = road.points[i]
+					var b: Array = road.points[i+1]
+					var box := Rect2(Vector2(a[0],a[2]),Vector2.ZERO).expand(Vector2(b[0],b[2]))
+					road_segments.append((road_index<<32)|i)
+					index_bounds(road_cells,box,road_segments.size()-1)
 	for building in data.buildings:
 		var ring := PackedVector2Array()
 		for p in building.footprint: ring.append(Vector2(p[0],p[1]))
 		var bounds := Rect2(ring[0],Vector2.ZERO)
 		for p in ring: bounds = bounds.expand(p)
 		building_bounds.append({"ring":ring,"bounds":bounds.grow(0.5)})
+		index_bounds(building_cells,bounds.grow(.5),building_bounds.size()-1)
+	if terrain_source==null: prepare_vegetation()
+
+func prepare_vegetation() -> void:
+	if vegetation_ready: return
+	vegetation_ready = true
 	for zone in data.vegetation:
 		var rings: Array[PackedVector2Array] = []
 		for source_ring in zone.rings:
@@ -55,7 +87,8 @@ func canopy_at(point: Vector2) -> float:
 
 func building_at(point: Vector2) -> bool:
 	if data.is_empty(): return false
-	for building in building_bounds:
+	for index in building_cells.get(Vector2i(floori(point.x/CELL),floori(point.y/CELL)),[]):
+		var building: Dictionary = building_bounds[index]
 		if building.bounds.has_point(point) and Geometry2D.is_point_in_polygon(point,building.ring): return true
 	return false
 
@@ -87,6 +120,7 @@ func forest(at: Vector3) -> bool:
 	var p := Vector2(at.x,at.z)
 	var canopy := canopy_at(p)
 	if is_finite(canopy): return canopy>=3.0
+	prepare_vegetation()
 	for index in vegetation_cells.get(Vector2i(floori(p.x/256),floori(p.y/256)),[]):
 		var zone: Dictionary = vegetation[index]
 		if not zone.bounds.has_point(p): continue
@@ -97,28 +131,81 @@ func forest(at: Vector3) -> bool:
 		if not hole: return true
 	return false
 
-func buildings(parent: Node3D, station: float, center: Vector3 = Vector3.INF) -> void:
+func buildings(parent: Node3D, station: float, center: Vector3 = Vector3.INF, tick: Signal = Signal(), guard: Callable = Callable()) -> void:
+	var budget := Time.get_ticks_usec()
 	if data.is_empty(): return
-	for building in data.buildings:
+	var candidates: Array = nearby_buildings(Vector2(center.x,center.z),420) if center.is_finite() else range(data.buildings.size())
+	last_building_candidates = candidates.size()
+	var batches: Dictionary = {}
+	for index in candidates:
+		if not tick.is_null() and Time.get_ticks_usec()-budget>6000:
+			await tick
+			if not guard.is_valid() or not guard.call(): return
+			budget = Time.get_ticks_usec()
+		var building: Dictionary = data.buildings[index]
+		var detailed := false
 		if center.is_finite() and data.get("schema",1)==2:
 			var distance := Vector2(center.x,center.z).distance_to(Vector2(building.center[0],building.center[1]))
 			if distance>420: continue
-			build(parent,building,distance<160)
+			detailed = distance<160
 		else:
 			if float(building.station)<station-100 or float(building.station)>station+380: continue
-			build(parent,building,absf(float(building.station)-station)<180)
+			detailed = absf(float(building.station)-station)<180
+		var key := str(building.id)+str(detailed)
+		if not geometry_cache.has(key):
+			var holder := Node3D.new()
+			build(holder,building,detailed)
+			var pieces: Array = []
+			if holder.get_child_count()>0:
+				var house := holder.get_child(0)
+				for child in house.get_children():
+					if child is MeshInstance3D:
+						pieces.append({"mesh":child.mesh,"material":child.material_override,"transform":house.transform*child.transform})
+			holder.free()
+			geometry_cache[key] = pieces
+			geometry_order.append(key)
+			if geometry_order.size()>2048: geometry_cache.erase(geometry_order.pop_front())
+		for piece in geometry_cache[key]:
+			var material: Material = piece.material
+			# Spatial batches retain frustum culling behind the camera.
+			var batch_key := str(material.get_instance_id())+":"+str(floori(float(building.center[0])/128))+":"+str(floori(float(building.center[1])/128))
+			if not batches.has(batch_key):
+				var surface := SurfaceTool.new()
+				surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+				batches[batch_key] = {"surface":surface,"material":material}
+			for surface_index in range(piece.mesh.get_surface_count()):
+				batches[batch_key].surface.append_from(piece.mesh,surface_index,piece.transform)
+	for batch in batches.values():
+		if not tick.is_null() and Time.get_ticks_usec()-budget>6000:
+			await tick
+			if not guard.is_valid() or not guard.call(): return
+			budget = Time.get_ticks_usec()
+		var material: Material = batch.material
+		var mesh := M.mesh(parent,batch.surface.commit(),material,Vector3.ZERO)
+		mesh.name = "BuildingsBatch"
+		mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if material.next_pass!=null else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 
-func side_roads(parent: Node3D, world: Node3D, center: Vector3) -> void:
+func side_roads(parent: Node3D, world: Node3D, center: Vector3, tick: Signal = Signal(), guard: Callable = Callable()) -> void:
+	var budget := Time.get_ticks_usec()
 	if roads.is_empty(): return
 	var surface := SurfaceTool.new()
 	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
 	var count := 0
-	for road in roads:
-		if not road.bounds.has_point(Vector2(center.x,center.z)): continue
+	var candidates: Dictionary = {}
+	for x in range(floori((center.x-440)/CELL),floori((center.x+440)/CELL)+1):
+		for z in range(floori((center.z-440)/CELL),floori((center.z+440)/CELL)+1):
+			for item in road_cells.get(Vector2i(x,z),[]): candidates[item] = true
+	for item in candidates:
+		if not tick.is_null() and Time.get_ticks_usec()-budget>6000:
+			await tick
+			if not guard.is_valid() or not guard.call(): return
+			budget = Time.get_ticks_usec()
+		var packed: int = road_segments[item]
+		var road: Dictionary = roads[packed>>32]
 		var type: String = road.tags.get("highway","")
 		var width := 1.8 if type in ["path","footway","cycleway","track"] else 5.0
 		if road.tags.has("width") and str(road.tags.width).is_valid_float(): width = clampf(float(road.tags.width),1.0,12.0)
-		for i in range(road.points.size()-1):
+		for i in [packed&0xffffffff]:
 			var pa: Array = road.points[i]
 			var pb: Array = road.points[i+1]
 			var a := Vector3(pa[0],pa[1],pa[2])
@@ -129,9 +216,12 @@ func side_roads(parent: Node3D, world: Node3D, center: Vector3) -> void:
 			if not world.clear_of_road(mid,3.0): continue
 			var right := Vector3(-(b-a).z,0,(b-a).x).normalized()*width*.5
 			var vertices := [a-right,b-right,b+right,a+right]
+			for j in range(4):
+				var p: Vector3 = vertices[j]
+				p.y = elevation_at(Vector2(p.x,p.z),0,0,p.y)+.025
+				vertices[j] = p
 			for index in [0,1,2,0,2,3]:
 				var p: Vector3 = vertices[index]
-				p.y = elevation_at(Vector2(p.x,p.z),0,0,p.y)+.025
 				surface.add_vertex(p)
 			count += 1
 	if count>0:

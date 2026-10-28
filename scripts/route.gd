@@ -130,7 +130,7 @@ func sample(distance: float) -> Dictionary:
 func grade(distance: float, window_m: float = 12.0) -> float:
 	var a := maxf(0, distance - window_m * 0.5)
 	var b := minf(length_m, distance + window_m * 0.5)
-	return (sample(b).position.y - sample(a).position.y) / maxf(b-a, 0.001)
+	return (smooth_position(b).y - smooth_position(a).y) / maxf(b-a, 0.001)
 
 func tangent(distance: float) -> Vector3:
 	var u := clampf(distance,0,length_m) / spacing

@@ -51,11 +51,7 @@ static func tree_mesh(kind: int, detailed: bool = true) -> ArrayMesh:
 			leaves.radial_segments = 14 if detailed else 9
 			var color := Color("345e48").lerp(Color("658958"),t*0.65)
 			append_shape(surface,leaves,Vector3(0,y,0),Vector3(1,1,0.90),color)
-			if detailed:
-				for branch in range(3):
-					var angle := branch*TAU/3+level*1.12+kind
-					var at := Vector3(cos(angle)*radius*0.43,y-0.27,sin(angle)*radius*0.43)
-					append_shape(surface,leaves,at,Vector3(0.62,0.54,0.62),color.darkened(rng.randf_range(0,0.13)),Vector3(0,angle,0))
+
 	else:
 		var branch := CylinderMesh.new()
 		branch.height = 1
@@ -73,7 +69,7 @@ static func tree_mesh(kind: int, detailed: bool = true) -> ArrayMesh:
 				var rotation := Quaternion(Vector3.UP,direction.normalized()).get_euler()
 				append_shape(surface,branch,(a+at)*0.5,Vector3(1,direction.length(),1),Color("6c5843"),rotation)
 			var color := Color("638445").lerp(Color("a1ac61"),rng.randf_range(0,0.40))
-			append_shape(surface,sphere(16 if detailed else 10,8 if detailed else 5),at,Vector3(2.8,2.8,2.6)*rng.randf_range(0.85,1.20),color)
+			append_shape(surface,sphere(12 if detailed else 10,6 if detailed else 5),at,Vector3(2.8,2.8,2.6)*rng.randf_range(0.85,1.20),color)
 	var mesh := surface.commit()
 	trees[key] = mesh
 	return mesh

@@ -10,7 +10,7 @@ const Recorder = preload("res://scripts/recorder.gd")
 const CameraFollow = preload("res://scripts/camera_follow.gd")
 const LanePlanner = preload("res://scripts/lane_planner.gd")
 
-var route := Route.new()
+var route: CyclingRoute
 var circuits: Array = JSON.parse_string(FileAccess.get_file_as_string("res://assets/routes/catalog.json"))
 var selected_circuit: Dictionary = circuits[0]
 var physics := Physics.new()
@@ -47,9 +47,12 @@ func _ready() -> void:
 	distance = route.start_m
 	input.demo_watts = settings.get_value("rider","demo_watts",180.0)
 	rider_mass = settings.get_value("rider","mass_kg",75.0)
-	world.quality = settings.get_value("graphics","quality",1)
+	var adapter := RenderingServer.get_video_adapter_name().to_lower().replace("(r)", "").replace(" ", "")
+	var default_quality := 0 if "uhdgraphics600" in adapter else 1
+	world.quality = settings.get_value("graphics","quality",default_quality)
 	add_child(world)
 	world.setup(route)
+	apply_graphics()
 	world.update_at(0,true)
 	add_child(rider)
 	add_child(camera)
@@ -255,10 +258,10 @@ func show_settings() -> void:
 	column.add_child(mass)
 	label_in(column,"Qualité du décor")
 	var quality := OptionButton.new()
-	quality.add_item("Légère · visibilité 260 m")
+	quality.add_item("Légère · sans ombres · visibilité 260 m")
 	quality.add_item("Standard · visibilité 450 m")
 	quality.select(world.quality)
-	quality.item_selected.connect(func(index: int): world.quality = index; world.update_at(distance,true))
+	quality.item_selected.connect(func(index: int): world.quality = index; apply_graphics(); world.update_at(distance,true))
 	column.add_child(quality)
 	label_in(column,"Surface simulée (paramètre de test, pas une donnée IGN)",true)
 	var surface := OptionButton.new()
@@ -452,3 +455,7 @@ func _notification(what: int) -> void:
 		save_settings()
 	if what == NOTIFICATION_APPLICATION_FOCUS_OUT and screen == "ride" and smoke_frames < 0:
 		toggle_pause()
+
+func apply_graphics() -> void:
+	for child in world.get_children():
+		if child is DirectionalLight3D: child.shadow_enabled = world.quality>0

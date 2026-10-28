@@ -30,7 +30,7 @@ func run() -> void:
 		app.hud.queue_redraw()
 		for i in range(3): await process_frame
 		await RenderingServer.frame_post_draw
-		root.get_texture().get_image().save_png("res://docs/previews/v0.6.0-"+str(item[2])+".png")
+		root.get_texture().get_image().save_png("res://docs/previews/v0.6.1-"+str(item[2])+".png")
 		print("GEOGRAPHY_CAPTURE ",item[0]," station=",app.distance," altitude=",app.route.sample(app.distance).position.y)
 	app.queue_free()
 	await process_frame

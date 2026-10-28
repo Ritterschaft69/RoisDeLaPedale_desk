@@ -5,6 +5,12 @@ const M = preload("res://scripts/materials.gd")
 const Scenery = preload("res://scripts/scenery.gd")
 var route: CyclingRoute
 var generated := Node3D.new()
+var build_target := generated
+var pending_chunk: Node3D
+var generation := 0
+var streaming := false
+var cloud_cache: Mesh
+signal stream_frame
 var last_center := -10000.0
 var noise := FastNoiseLite.new()
 var road_material: Material
@@ -12,13 +18,15 @@ var grass_material: Material
 var shoulder_material: Material
 var stripe_material: Material
 var quality := 1
-var geographic := preload("res://scripts/geoworld.gd").new()
+var geographic := preload("res://scripts/geoworld.gd").new("")
 var road_cells: Dictionary = {}
 var tree_batches: Dictionary = {}
 var terrain_samples: Array[Dictionary] = []
+var terrain_cells: Dictionary = {}
 var life: Node3D
 
 func set_route(source: CyclingRoute) -> void:
+	cancel_stream()
 	route = source
 	var path := "res://assets/geodata/circuits/"+str(route.data.source).get_basename()+"/world.json"
 	geographic = preload("res://scripts/geoworld.gd").new(path if FileAccess.file_exists(path) else "res://assets/geodata/world.json")
@@ -85,12 +93,40 @@ func setup(source: CyclingRoute) -> void:
 	add_child(life)
 	life.set_route(self)
 
+func cancel_stream() -> void:
+	generation += 1
+	streaming = false
+	stream_frame.emit()
+	if is_instance_valid(pending_chunk): pending_chunk.queue_free()
+	pending_chunk = null
+	build_target = generated
+
+func _exit_tree() -> void:
+	cancel_stream()
+
+func stream_valid(ticket: int) -> bool:
+	return ticket==generation and is_inside_tree()
+
+func _process(_dt: float) -> void:
+	if streaming: stream_frame.emit()
+
+func next_stage(ticket: int) -> bool:
+	if not stream_valid(ticket): return false
+	await stream_frame
+	return stream_valid(ticket)
+
 func update_at(distance: float, force: bool = false) -> void:
-	if not force and absf(distance-last_center)<55: return
+	if not force and (streaming or absf(distance-last_center)<55): return
+	cancel_stream()
 	last_center = distance
-	for child in generated.get_children():
-		generated.remove_child(child)
-		child.queue_free()
+	streaming = not force
+	pending_chunk = Node3D.new()
+	build_target = pending_chunk
+	rebuild(distance,force,generation,pending_chunk)
+
+func rebuild(distance: float, force: bool, ticket: int, target: Node3D) -> void:
+	var tick: Signal = Signal() if force else stream_frame
+	var guard := func(): return stream_valid(ticket)
 	tree_batches.clear()
 	var start := maxf(route.start_m-48,floorf((distance-100)/6)*6)
 	var end := minf(route.length_m,distance+(440 if quality>0 else 280))
@@ -100,11 +136,27 @@ func update_at(distance: float, force: bool = false) -> void:
 		terrain_samples.append({"s":s,"p":roadside(s,0)})
 		s += 8
 	terrain_samples.append({"s":end,"p":roadside(end,0)})
-	terrain(distance,start,end)
+	terrain_cells.clear()
+	for i in range(terrain_samples.size()-1):
+		var a: Vector3 = terrain_samples[i].p
+		var b: Vector3 = terrain_samples[i+1].p
+		for x in range(floori((minf(a.x,b.x)-15)/32),floori((maxf(a.x,b.x)+15)/32)+1):
+			for z in range(floori((minf(a.z,b.z)-15)/32),floori((maxf(a.z,b.z)+15)/32)+1):
+				var key := Vector2i(x,z)
+				if not terrain_cells.has(key): terrain_cells[key] = []
+				terrain_cells[key].append(i)
+	if force: terrain(distance,start,end)
+	else:
+		await terrain(distance,start,end,tick,guard)
+		if not await next_stage(ticket): return
 	var surfaces := [SurfaceTool.new(),SurfaceTool.new(),SurfaceTool.new()]
 	for surface in surfaces: surface.begin(Mesh.PRIMITIVE_TRIANGLES)
 	s = start
+	var road_budget := Time.get_ticks_usec()
 	while s<end-0.01:
+		if not force and Time.get_ticks_usec()-road_budget>6000:
+			if not await next_stage(ticket): return
+			road_budget = Time.get_ticks_usec()
 		# Refine tight bends, retain a cheaper mesh on straight road sections.
 		var angle := route.direction(s).angle_to(route.direction(minf(end,s+4)))
 		var next := minf(minf(end,s+clampf(.08/maxf(angle/4,.0133),.75,3)),(floorf(s/3)+1)*3)
@@ -118,8 +170,9 @@ func update_at(distance: float, force: bool = false) -> void:
 		s = next
 	for i in range(3):
 		surfaces[i].generate_normals()
-		var strip := M.mesh(generated,surfaces[i].commit(),[road_material,shoulder_material,stripe_material][i],Vector3.ZERO)
+		var strip := M.mesh(build_target,surfaces[i].commit(),[road_material,shoulder_material,stripe_material][i],Vector3.ZERO)
 		strip.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	if not force and not await next_stage(ticket): return
 	# Shared tree meshes and GPU instancing, with simpler silhouettes at distance.
 	var spacing := 9 if quality>0 else 17
 	for index in range(maxi(0,int(start/spacing)),int(end/spacing)):
@@ -147,18 +200,39 @@ func update_at(distance: float, force: bool = false) -> void:
 		item.multimesh = instances
 		item.material_override = grass_material
 		if not batch.detailed: item.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-		generated.add_child(item)
-	verges(start,end)
+		build_target.add_child(item)
+	if force: verges(start,end)
+	else:
+		await verges(start,end,tick,guard)
+		if not await next_stage(ticket): return
 	bridge_details(start,end)
-	backdrop(distance)
-	geographic.side_roads(generated,self,roadside(distance,0))
-	geographic.water_surfaces(generated,roadside(distance,0))
-	geographic.buildings(generated,distance,roadside(distance,0))
+	if not force and not await next_stage(ticket): return
+	if force: backdrop(distance)
+	else:
+		await backdrop(distance,tick,guard)
+		if not await next_stage(ticket): return
+	if force: geographic.side_roads(build_target,self,roadside(distance,0))
+	else:
+		await geographic.side_roads(build_target,self,roadside(distance,0),tick,guard)
+		if not await next_stage(ticket): return
+	geographic.water_surfaces(build_target,roadside(distance,0))
+	if force: geographic.buildings(build_target,distance,roadside(distance,0))
+	else:
+		await geographic.buildings(build_target,distance,roadside(distance,0),tick,guard)
+		if not stream_valid(ticket): return
+	var previous := generated
+	generated = target
+	add_child(generated)
+	if previous.get_parent()==self: remove_child(previous)
+	previous.queue_free()
+	pending_chunk = null
+	streaming = false
+	build_target = generated
 	if life != null: life.step(0,distance,0)
 
 func roadside(s: float, lateral: float, terrain: bool = false) -> Vector3:
 	var effective := maxf(route.start_m,s)
-	var at: Vector3 = route.sample(effective).position
+	var at: Vector3 = route.smooth_position(effective)
 	var direction := route.direction(effective)
 	if s<route.start_m: at += direction*(s-route.start_m)
 	var right := Vector3(-direction.z,0,direction.x).normalized()
@@ -171,10 +245,11 @@ func roadside(s: float, lateral: float, terrain: bool = false) -> Vector3:
 			at.y += noise.get_noise_2d(at.x,at.z)*minf(maxf(absf(lateral)-4.6,0)*0.22,12)
 	return at
 
-func nearest(point: Vector2) -> Dictionary:
+func nearest(point: Vector2, local_only: bool = false) -> Dictionary:
 	var best := INF
 	var result: Dictionary = {}
-	for i in range(terrain_samples.size()-1):
+	var candidates: Array = terrain_cells.get(Vector2i(floori(point.x/32),floori(point.y/32)),[]) if local_only else range(terrain_samples.size()-1)
+	for i in candidates:
 		var a: Vector3 = terrain_samples[i].p
 		var b: Vector3 = terrain_samples[i+1].p
 		var v := Vector2(a.x,a.z)
@@ -189,7 +264,8 @@ func nearest(point: Vector2) -> Dictionary:
 			result = {"s":lerpf(terrain_samples[i].s,terrain_samples[i+1].s,t),"cross":(point-projected).dot(right),"distance":sqrt(squared),"alt":lerpf(a.y,b.y,t)}
 	return result
 
-func terrain(distance: float, start: float, end: float) -> void:
+func terrain(distance: float, start: float, end: float, tick: Signal = Signal(), guard: Callable = Callable()) -> void:
+	var budget := Time.get_ticks_usec()
 	var centre: Vector3 = roadside(minf(route.length_m,distance+150),0)
 	var points := PackedVector2Array()
 	var heights: Array[float] = []
@@ -197,14 +273,19 @@ func terrain(distance: float, start: float, end: float) -> void:
 	var cell := (12 if geographic.terrain_source != null else 16) if quality>0 else 26
 	var radius := 285 if quality>0 else 220
 	for x in range(-radius,radius+1,cell):
+		if not tick.is_null() and Time.get_ticks_usec()-budget>6000:
+			await tick
+			if not guard.is_valid() or not guard.call(): return
+			budget = Time.get_ticks_usec()
 		for z in range(-radius,radius+1,cell):
 			var p := Vector2(floorf(centre.x/cell)*cell+x,floorf(centre.z/cell)*cell+z)
-			var n := nearest(p)
-			var y: float = n.alt
-			if geographic.covers(n.s):
+			var n := nearest(p,geographic.terrain_source!=null)
+			var y: float = geographic.elevation_at(p,float(n.get("s",distance)),float(n.get("cross",0)),centre.y)
+			if not n.is_empty() and geographic.covers(n.s):
 				var blend := 1.0 if route.structure_at(n.s)=="bridge" else clampf((float(n.distance)-4.4)/9,0,1)
-				y = lerpf(y,geographic.elevation_at(p,n.s,n.cross,y),blend)
-			else:
+				y = lerpf(float(n.alt),y,blend)
+			elif geographic.terrain_source==null and not n.is_empty():
+				y = n.alt
 				y += noise.get_noise_2d(p.x,p.y)*minf(maxf(float(n.distance)-4.5,0)*0.22,15)
 			terrain_point(points,heights,keys,p,y-0.025)
 	var station := start
@@ -218,6 +299,10 @@ func terrain(distance: float, start: float, end: float) -> void:
 	var surface := SurfaceTool.new()
 	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
 	for i in range(0,indices.size(),3):
+		if not tick.is_null() and Time.get_ticks_usec()-budget>6000:
+			await tick
+			if not guard.is_valid() or not guard.call(): return
+			budget = Time.get_ticks_usec()
 		# Delaunay winding is unspecified; orient every triangle skywards before
 		# averaging normals, otherwise neighbours cancel and the lawn flickers.
 		var a := points[indices[i]]
@@ -231,7 +316,7 @@ func terrain(distance: float, start: float, end: float) -> void:
 			surface.set_color(Color("718e4e").lerp(Color("a1af6b"),variation).srgb_to_linear())
 			surface.add_vertex(Vector3(p.x,heights[index],p.y))
 	surface.generate_normals()
-	var ground := M.mesh(generated,surface.commit(),grass_material,Vector3.ZERO)
+	var ground := M.mesh(build_target,surface.commit(),grass_material,Vector3.ZERO)
 	ground.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 
 func terrain_point(points: PackedVector2Array, heights: Array[float], keys: Dictionary, p: Vector2, y: float) -> void:
@@ -265,16 +350,21 @@ func quad(surface: SurfaceTool, a: float, b: float, left: float, right: float, l
 
 func tree(at: Vector3, size: float, evergreen: bool, detailed: bool = true, yaw: float = 0.0) -> void:
 	var kind := (0 if evergreen else 2)+posmod(roundi(at.x+at.z),2)
-	var key := str(kind)+str(detailed)
+	var key := "%s:%s:%s:%s" % [kind,detailed,floori(at.x/96.0),floori(at.z/96.0)]
 	if not tree_batches.has(key): tree_batches[key] = {"kind":kind,"detailed":detailed,"transforms":[],"colors":[]}
 	tree_batches[key].transforms.append(Transform3D(Basis(Vector3.UP,yaw).scaled(Vector3.ONE*size),at))
 	tree_batches[key].colors.append(Color.WHITE.lerp(Color("c3ccac"),fposmod(at.x*0.71,0.2)))
 
-func verges(start: float, end: float) -> void:
+func verges(start: float, end: float, tick: Signal = Signal(), guard: Callable = Callable()) -> void:
+	var budget := Time.get_ticks_usec()
 	var rock_material := M.toon(Color("8d8979"),true)
 	var plant := SurfaceTool.new()
 	plant.begin(Mesh.PRIMITIVE_TRIANGLES)
 	for index in range(maxi(0,int(start/4)),int(end/4)):
+		if not tick.is_null() and Time.get_ticks_usec()-budget>6000:
+			await tick
+			if not guard.is_valid() or not guard.call(): return
+			budget = Time.get_ticks_usec()
 		if route.structure_at(index*4)=="bridge": continue
 		var rng := RandomNumberGenerator.new()
 		rng.seed = index*2311+405
@@ -290,16 +380,16 @@ func verges(start: float, end: float) -> void:
 			if index%12 == 0:
 				var rock_at := roadside(index*4,side*rng.randf_range(6.6,11),true)
 				if safe_land(rock_at):
-					var rock := M.mesh(generated,Scenery.rock_mesh(index%3),rock_material,rock_at)
+					var rock := M.mesh(build_target,Scenery.rock_mesh(index%3),rock_material,rock_at)
 					rock.scale = Vector3(1.3,0.65,1.0)*rng.randf_range(0.55,1.6)
 					rock.rotation.y = rng.randf()*TAU
 			# White delineator posts, infrequent and entirely outside the pavement.
 			if index%15 == 0:
 				var post_at := roadside(index*4,side*4.1)
-				M.box(generated,post_at+Vector3.UP*0.45,Vector3(0.12,0.9,0.13),M.toon(Color("d9d5bf")))
-				M.box(generated,post_at+Vector3.UP*0.70,Vector3(0.13,0.12,0.14),M.toon(Color("bd633a")))
+				M.box(build_target,post_at+Vector3.UP*0.45,Vector3(0.12,0.9,0.13),M.toon(Color("d9d5bf")))
+				M.box(build_target,post_at+Vector3.UP*0.70,Vector3(0.13,0.12,0.14),M.toon(Color("bd633a")))
 	plant.generate_normals()
-	M.mesh(generated,plant.commit(),grass_material,Vector3.ZERO)
+	M.mesh(build_target,plant.commit(),grass_material,Vector3.ZERO)
 	# Rural fence sections are decorative, not surveyed geographic objects.
 	for index in range(maxi(0,int(start/80)),int(end/80)):
 		if index%3!=1: continue
@@ -309,10 +399,10 @@ func verges(start: float, end: float) -> void:
 		for j in range(5):
 			var at := roadside(station+j*3,side*6.7,true)
 			if not safe_land(at): continue
-			M.box(generated,at+Vector3.UP*0.5,Vector3(0.10,1,0.10),wood)
+			M.box(build_target,at+Vector3.UP*0.5,Vector3(0.10,1,0.10),wood)
 			if j<4:
 				var next := roadside(station+(j+1)*3,side*6.7,true)
-				for height in [0.42,0.78]: M.rod(generated,at+Vector3.UP*height,next+Vector3.UP*height,0.025,wood)
+				for height in [0.42,0.78]: M.rod(build_target,at+Vector3.UP*height,next+Vector3.UP*height,0.025,wood)
 	stone_walls(start,end)
 
 func bridge_details(start: float, end: float) -> void:
@@ -326,9 +416,9 @@ func bridge_details(start: float, end: float) -> void:
 			for side in [-1.0,1.0]:
 				var a := roadside(s,side*3.5)
 				var b := roadside(next,side*3.5)
-				M.rod(generated,a+Vector3.UP*.05,a+Vector3.UP*.95,.045,material)
-				M.rod(generated,a+Vector3.UP*.92,b+Vector3.UP*.92,.045,material)
-				M.rod(generated,a-Vector3.UP*.08,b-Vector3.UP*.08,.14,material)
+				M.rod(build_target,a+Vector3.UP*.05,a+Vector3.UP*.95,.045,material)
+				M.rod(build_target,a+Vector3.UP*.92,b+Vector3.UP*.92,.045,material)
+				M.rod(build_target,a-Vector3.UP*.08,b-Vector3.UP*.08,.14,material)
 			s = next
 
 func stone_walls(start: float, end: float) -> void:
@@ -356,37 +446,53 @@ func stone_walls(start: float, end: float) -> void:
 	var wall := MultiMeshInstance3D.new()
 	wall.multimesh = stones
 	wall.material_override = M.toon(Color("929184"))
-	generated.add_child(wall)
+	build_target.add_child(wall)
 
-func backdrop(distance: float) -> void:
+func backdrop(distance: float, tick: Signal = Signal(), guard: Callable = Callable()) -> void:
+	var budget := Time.get_ticks_usec()
 	var center: Vector3 = roadside(distance,0)
 	var surface := SurfaceTool.new()
 	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
 	var radii := [260.0,440.0,730.0,1100.0,1700.0]
 	if geographic.terrain_source != null and not geographic.terrain_source.horizon.is_empty():
 		radii.append_array([2500.0,4000.0,7000.0,11000.0,16000.0])
+	# Sample each ring vertex once, instead of six times per quad.
+	var segments := 128 if quality>0 else 64
+	for ring in range(radii.size()):
+		if not tick.is_null() and Time.get_ticks_usec()-budget>6000:
+			await tick
+			if not guard.is_valid() or not guard.call(): return
+			budget = Time.get_ticks_usec()
+		for i in range(segments+1):
+			var r: float = radii[ring]
+			var angle := i*TAU/segments
+			var at := center+Vector3(cos(angle)*r,0,sin(angle)*r)
+			at.y = center.y-70 if ring==0 else center.y-18+(noise.get_noise_2d(at.x*.10,at.z*.10)+.45)*minf(r*.24,240)
+			if geographic.terrain_source != null:
+				at.y = geographic.elevation_at(Vector2(at.x,at.z),distance,0,at.y)-.06
+			var tint := Color("728c74").lerp(Color("94b0b5"),float(ring)/(radii.size()-1))
+			surface.set_color(tint.srgb_to_linear())
+			surface.add_vertex(at)
 	for ring in range(radii.size()-1):
-		for i in range(256):
-			for pair in [[ring,i],[ring+1,i],[ring+1,i+1],[ring,i],[ring+1,i+1],[ring,i+1]]:
-				var r: float = radii[pair[0]]
-				var angle: float = pair[1]*TAU/256
-				var at := center+Vector3(cos(angle)*r,0,sin(angle)*r)
-				at.y = center.y-70 if pair[0]==0 else center.y-18+(noise.get_noise_2d(at.x*0.10,at.z*0.10)+0.45)*minf(r*0.24,240)
-				if geographic.terrain_source != null:
-					at.y = geographic.elevation_at(Vector2(at.x,at.z),distance,0,at.y)-.06
-				var tint := Color("728c74").lerp(Color("94b0b5"),clampf(float(pair[0])/(radii.size()-1),0,1))
-				surface.set_color(tint.srgb_to_linear())
-				surface.add_vertex(at)
+		for i in range(segments):
+			var a := ring*(segments+1)+i
+			var b := a+segments+1
+			for index in [a,b,b+1,a,b+1,a+1]: surface.add_index(index)
 	surface.generate_normals()
-	var hills := M.mesh(generated,surface.commit(),grass_material,Vector3.ZERO)
+	var hills := M.mesh(build_target,surface.commit(),grass_material,Vector3.ZERO)
 	hills.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	if cloud_cache!=null:
+		var cached := M.mesh(build_target,cloud_cache,grass_material,center)
+		cached.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		return
 	var clouds := SurfaceTool.new()
 	clouds.begin(Mesh.PRIMITIVE_TRIANGLES)
 	for cloud_index in range(6):
 		var angle := cloud_index*TAU/6+0.35
-		var origin := center+Vector3(cos(angle)*850,145+cloud_index%3*20,sin(angle)*850)
+		var origin := Vector3(cos(angle)*850,145+cloud_index%3*20,sin(angle)*850)
 		for lobe in range(6):
 			var at := origin+Vector3((lobe-2.5)*30,sin(lobe*2.1)*12,cos(lobe)*12)
 			Scenery.append_shape(clouds,Scenery.sphere(16,8),at,Vector3(95,50+posmod(lobe*17,42),65),Color("f1eee1"))
-	var cloud_mesh := M.mesh(generated,clouds.commit(),grass_material,Vector3.ZERO)
+	cloud_cache = clouds.commit()
+	var cloud_mesh := M.mesh(build_target,cloud_cache,grass_material,center)
 	cloud_mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
