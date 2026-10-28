@@ -1,5 +1,6 @@
 extends Node3D
 
+const Ambience = preload("res://scripts/ambience.gd")
 const Physics = preload("res://scripts/physics.gd")
 const Route = preload("res://scripts/route.gd")
 const World = preload("res://scripts/world.gd")
@@ -13,6 +14,7 @@ const LanePlanner = preload("res://scripts/lane_planner.gd")
 var route: CyclingRoute
 var circuits: Array = JSON.parse_string(FileAccess.get_file_as_string("res://assets/routes/catalog.json"))
 var selected_circuit: Dictionary = circuits[0]
+var ambience := Ambience.new()
 var physics := Physics.new()
 var input := InputAdapter.new()
 var recorder := Recorder.new()
@@ -39,6 +41,8 @@ var smoke_frames := -1
 
 func _ready() -> void:
 	settings.load("user://settings.cfg")
+	add_child(ambience)
+	ambience.configure(settings.get_value("audio","enabled",true),settings.get_value("audio","volume",0.5))
 	var saved_circuit: String = settings.get_value("route","selected_id","saint_die")
 	for circuit in circuits:
 		if circuit.id == saved_circuit: selected_circuit = circuit
@@ -84,6 +88,13 @@ func _ready() -> void:
 				get_tree().quit(3)
 				return
 			print("GEOGRAPHY_SMOKE route=",selected_circuit.id," samples=",route.curve.size()," source_points=",route.source_points.size())
+			var audio_catalog: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://assets/audio/catalog.json"))
+			for clip in audio_catalog.clips:
+				if ambience.stream_for(clip.id)==null:
+					push_error("SMOKE_MISSING_AUDIO "+str(clip.id))
+					get_tree().quit(4)
+					return
+			print("AUDIO_SMOKE clips=",audio_catalog.clips.size())
 			start_session()
 			smoke_frames = 160
 		if argument == "--screenshot":
@@ -178,6 +189,7 @@ func button_in(parent: Node, text: String, callback: Callable, primary: bool = f
 	return button
 
 func show_home() -> void:
+	ambience.stop_all()
 	hud.show()
 	overlay.show()
 	screen = "home"
@@ -225,6 +237,7 @@ func select_circuit(circuit_id: String) -> bool:
 		if circuit.id == circuit_id: entry = circuit
 	if entry.is_empty(): return false
 	if circuit_id != str(selected_circuit.id):
+		ambience.reset()
 		selected_circuit = entry
 		route = Route.new(entry.data)
 		route.start_m = entry.get("start_m",0.0)
@@ -270,7 +283,22 @@ func show_settings() -> void:
 	surface.item_selected.connect(func(index: int): terrain_kind = index)
 	column.add_child(surface)
 	button_in(column,"Basculer plein écran  ·  F11",toggle_fullscreen)
-	label_in(column,"Audio : non intégré à ce premier lot.\nLes réglages ne nécessitent aucun compte.",true)
+	var audio_toggle := CheckButton.new()
+	audio_toggle.text = "Activer les ambiances sonores"
+	audio_toggle.button_pressed = ambience.enabled
+	audio_toggle.toggled.connect(func(on: bool): ambience.configure(on,ambience.volume))
+	column.add_child(audio_toggle)
+	var volume_label := label_in(column,"Volume des ambiances : %d %%" % roundi(ambience.volume*100))
+	var audio_volume := HSlider.new()
+	audio_volume.name = "AmbienceVolume"
+	audio_volume.min_value = 0
+	audio_volume.max_value = 100
+	audio_volume.step = 1
+	audio_volume.value = ambience.volume*100
+	audio_volume.value_changed.connect(func(value: float):
+		ambience.configure(ambience.enabled,value/100)
+		volume_label.text = "Volume des ambiances : %d %%" % roundi(value))
+	column.add_child(audio_volume)
 	button_in(column,"Enregistrer et revenir",func(): save_settings(); show_home(),true)
 
 func show_history() -> void:
@@ -301,6 +329,7 @@ func show_history() -> void:
 	button_in(column,"Retour",show_home)
 
 func start_session() -> void:
+	ambience.reset()
 	save_settings()
 	distance = route.start_m
 	elapsed = 0
@@ -336,6 +365,7 @@ func show_ride_controls() -> void:
 
 func toggle_pause() -> void:
 	if screen == "ride":
+		ambience.stop_all()
 		hud.show()
 		overlay.show()
 		screen = "paused"
@@ -350,6 +380,7 @@ func resume_session() -> void:
 	show_ride_controls()
 
 func finish_session() -> void:
+	ambience.stop_all()
 	var result := recorder.save(distance-route.start_m,distance >= route.length_m)
 	screen = "summary"
 	var column := card("Belle échappée.",str(selected_circuit.short_name)+"\nSession démo · aucune puissance mesurée.")
@@ -364,6 +395,8 @@ func finish_session() -> void:
 	button_in(column,"Retour à l’accueil",show_home,true)
 
 func save_settings() -> void:
+	settings.set_value("audio","enabled",ambience.enabled)
+	settings.set_value("audio","volume",ambience.volume)
 	settings.set_value("route","selected_id",selected_circuit.id)
 	settings.set_value("rider","mass_kg",rider_mass)
 	settings.set_value("rider","demo_watts",input.demo_watts)
@@ -435,6 +468,7 @@ func position_scene(dt: float, immediate: bool = false) -> void:
 		camera.transform = camera_follow.step(route,station,lateral,speed,dt,immediate)
 
 func _process(dt: float) -> void:
+	ambience.step(dt,world,distance,speed,screen=="ride")
 	position_scene(dt)
 	if screen == "ride": rider.animate(dt,cadence,speed)
 	world.update_at(distance)

@@ -21,7 +21,7 @@ def main():
             env=dict(os.environ,XDG_DATA_HOME=str(folder/'data'),XDG_CONFIG_HOME=str(folder/'config'),XDG_CACHE_HOME=str(folder/'cache'))
             result=subprocess.run([str(binary),'--headless','--fixed-fps','60','--','--smoke','--smoke-circuit='+circuit],
                 cwd=binary.parent,env=env,capture_output=True,text=True,timeout=60)
-            if result.returncode:raise RuntimeError(result.stdout[-3000:]+result.stderr[-3000:])
+            if result.returncode or "SCRIPT ERROR" in result.stdout+result.stderr or "AUDIO_SMOKE clips=10" not in result.stdout:raise RuntimeError(result.stdout[-3000:]+result.stderr[-3000:])
             activities=list((folder/'data').rglob('activities/*.json'))
             if not activities:raise RuntimeError('No activity saved by exported executable: '+circuit)
             activity=json.loads(activities[-1].read_text())

@@ -5,6 +5,10 @@
 
 Prototype **desktop natif**, Godot **4.6.3**, quatre circuits et données géographiques hors ligne. Aucun serveur ni navigateur requis.
 
+## Ambiances sonores — 0.6.3
+
+Dix enregistrements CC0 fournis par l’utilisateur accompagnent les paysages : campagne, village, forêt, lisière, eau et vent. Les transitions sont progressives. Les sons s’arrêtent dans les menus et pendant la pause ; le volume et l’activation sont mémorisés dans **Paramètres**. Les ambiances illustrent le décor, sans prétendre reproduire la faune ou la météo observées sur place. [Notes 0.6.3](docs/RELEASE_v0.6.3.md) · [Licences des sons](assets/audio/LICENSE.md).
+
 ## Nouveau circuit — 0.6.2
 
 **Home sweet home** rejoint le menu : 12,29 km simulés, D+ IGN filtré 172 m. Le GPX original compte 1 659 points ; les données OSM/IGN et le décor sont disponibles hors ligne. [Notes 0.6.2](docs/RELEASE_v0.6.2.md).
@@ -52,6 +56,7 @@ Les tests Python utilisent uniquement la bibliothèque standard. Les suites nati
 
 ```sh
 python -m unittest discover -s tests -v
+godot --headless --path . --script tests/test_ambience.gd
 godot --headless --path . --script tests/test_simulation.gd
 godot --headless --path . --script tests/test_desktop.gd
 godot --headless --path . --script tests/test_circuits.gd
@@ -85,6 +90,6 @@ Les requêtes brutes sont mises en cache dans `build/geography/cache/`, les reç
 
 Le MNT/MNH LiDAR HD est rééchantillonné à 10 m près du parcours et le relief lointain à 100 m ; les nuages LAZ complets ne sont pas embarqués. Les façades, toitures et formes individuelles des arbres sont procédurales ; les largeurs routières sans mesure sont estimées. Les tunnels ne sont pas reconstruits comme des ouvrages souterrains complets. Le recalage automatique reste une interprétation du GPX, et les intervalles non raccordés sont signalés dans les rapports et dans le jeu.
 
-Bluetooth FTMS/ANT+, résistance du home trainer et audio ne sont pas intégrés. Installeur non signé ; exécution et désinstallation sur Windows restent à vérifier sur un vrai poste. Le cycliste demeure une interprétation 3D stylisée du modèle fourni.
+Bluetooth FTMS/ANT+, résistance du home trainer ne sont pas intégrés. Installeur non signé ; exécution et désinstallation sur Windows restent à vérifier sur un vrai poste. Le cycliste demeure une interprétation 3D stylisée du modèle fourni.
 
 [Architecture](docs/ARCHITECTURE.md) · [Licences](docs/THIRD_PARTY.md) · [Cahier des charges](docs/CAHIER_DES_CHARGES.md)

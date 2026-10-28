@@ -1,0 +1,107 @@
+{
+  "licence": "CC0-1.0",
+  "source": "La Sonothèque, files supplied by user",
+  "processing": "Vorbis quality 3, stereo 44.1 kHz; loudnorm -23 LUFS, -2 dBTP; rotated 1.5s crossfade seam",
+  "clips": [
+    {
+      "id": "0097",
+      "name": "Campagne",
+      "file": "0097.ogg",
+      "original_filename": "AMBBird_Campagne (ID 0097)_LaSonotheque.fr.mp3",
+      "original_sha256": "6b28d6a896620e37ea62c6bfc9248dd31f7363692f63970ad8cd0dbf64a278d0",
+      "original_duration_s": 111.528,
+      "sha256": "610dc9539ac506281739b28ffa5d5acb86efef341c39f2dc0e95d1b7c6ef69f2",
+      "size_bytes": 1462434
+    },
+    {
+      "id": "0100",
+      "name": "Forêt",
+      "file": "0100.ogg",
+      "original_filename": "AMBForst_Foret (ID 0100)_LaSonotheque.fr.mp3",
+      "original_sha256": "c6c04cce07cbdb11ec8732ca28035213a5bcbcb5d3638112b71d0ed90edeabec",
+      "original_duration_s": 54.408,
+      "sha256": "0a150970567f169a6060964b47bddfb043ae18308f62efb7db598e15ec90c152",
+      "size_bytes": 714461
+    },
+    {
+      "id": "0659",
+      "name": "Vent dans un arbre",
+      "file": "0659.ogg",
+      "original_filename": "WINDVege_Vent dans un arbre (ID 0659)_LaSonotheque.fr.mp3",
+      "original_sha256": "e14873c3430334075ba3a5274fb92672dc85896089ac94f1ef12154412ed2630",
+      "original_duration_s": 115.4912,
+      "sha256": "2a33e78d9c67737c8491e975fc4e2dbbdf744183f86fcfe840b739dfa54e1153",
+      "size_bytes": 1065860
+    },
+    {
+      "id": "0870",
+      "name": "Ville de campagne 2",
+      "file": "0870.ogg",
+      "original_filename": "AMBSubn_Ville de campagne 2 (ID 0870)_LaSonotheque.fr.mp3",
+      "original_sha256": "b15afe88009b426a0ff51cb0b104d7ff822f4b837d948ecc6e87eedae9077b2c",
+      "original_duration_s": 111.8912,
+      "sha256": "eb549000cb5177da0259e30fd9423883a3ea8a47668a48637adcb59ac5403299",
+      "size_bytes": 1390281
+    },
+    {
+      "id": "0904",
+      "name": "Vent à la cime des arbres",
+      "file": "0904.ogg",
+      "original_filename": "WINDVege_Foret vent a la cime des arbres (ID 0904)_LaSonotheque.fr.mp3",
+      "original_sha256": "25f907ab068df5836b28af2c923468b97d2b75afbc56cce27834d3526ac7b3c0",
+      "original_duration_s": 218.4992,
+      "sha256": "653a39fbafbb5a52d2f21bc8da569bc2b8faa9cce4e09e6e64bfe11d38bf8e7e",
+      "size_bytes": 2740827
+    },
+    {
+      "id": "0905",
+      "name": "Lisière de forêt",
+      "file": "0905.ogg",
+      "original_filename": "AMBForst_Foret lisiere (ID 0905)_LaSonotheque.fr (1).mp3",
+      "original_sha256": "f3396294cd7e728a53f5344f1aab01db33b385979f0eb7053b1bf21d70d97810",
+      "original_duration_s": 360.1232,
+      "sha256": "5ea152ea54ff0892f24668f77121e7478df0d2784f81c9915d930a4ac7ac8ccf",
+      "size_bytes": 4608747
+    },
+    {
+      "id": "0908",
+      "name": "Vent dans les herbes hautes",
+      "file": "0908.ogg",
+      "original_filename": "WINDVege_Vent dans les herbes hautes (ID 0908)_LaSonotheque.fr (1).mp3",
+      "original_sha256": "153ec87a4b9889efa6c7fa3c9f7115d24a234f25d3178de0056d8cf7f30cd6c1",
+      "original_duration_s": 85.1552,
+      "sha256": "1a2ad1831dbe377ca340eb2425e48b8ca5165817506a1630ad3c82c80223edde",
+      "size_bytes": 1063991
+    },
+    {
+      "id": "2713",
+      "name": "Forêt et ruisseau 1",
+      "file": "2713.ogg",
+      "original_filename": "AMBForst_Foret et ruisseau 1 (ID 2713)_LaSonotheque.fr.mp3",
+      "original_sha256": "9ce5ba874d2f61fcbc05e5f80b695c7873d22329516a8d96f15242e82f8b17ea",
+      "original_duration_s": 300.077333,
+      "sha256": "135e55613449cf1c274067c7fc1b97dfcf96d290379e53299e43043d8991f06d",
+      "size_bytes": 4874524
+    },
+    {
+      "id": "2715",
+      "name": "Forêt 3",
+      "file": "2715.ogg",
+      "original_filename": "AMBForst_Foret 3 (ID 2715)_LaSonotheque.fr.mp3",
+      "original_sha256": "e47516d264ccf4112c871afbe94f460e0dac2cad0444705a91d14608d9af5ee7",
+      "original_duration_s": 160.661333,
+      "sha256": "0b82a9d37dc2788fe206f86d26d40b18d717767a8cde9e7aade1bff860f4867e",
+      "size_bytes": 2215711
+    },
+    {
+      "id": "3616",
+      "name": "Forêt et brame de cerfs sika",
+      "file": "3616.ogg",
+      "original_filename": "AMBForst_Ambiance de foret brame de cerfs sika (ID 3616)_LaSonotheque.fr.mp3",
+      "original_sha256": "a686943a31bd553cdec4df7ea9fb675d17295fc42695a2a3344e9da01ca3abb1",
+      "original_duration_s": 121.1072,
+      "sha256": "583ee60e25a62a74a74166d47784fb6d27334f82127e461238c68a2c7b0413c3",
+      "size_bytes": 1393451
+    }
+  ]
+}

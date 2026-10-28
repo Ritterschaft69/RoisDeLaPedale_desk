@@ -7,11 +7,13 @@
 - **© OpenStreetMap contributors** : sources routières et bases dérivées sous [ODbL 1.0](https://opendatacommons.org/licenses/odbl/1-0/), [copyright et attribution](https://www.openstreetmap.org/copyright). Depuis 0.6.0, tracés recalés et routes voisines sont rendus. Sources, bases dérivées et formats ouverts : `assets/geodata/circuits/`, disponibles dans le dépôt public. Les notices sont distinctes de la licence du code.
 - **GPX fournis par l’utilisateur** : sources originales conservées séparément pour le projet demandé, sans les présenter comme des données IGN/OSM.
 - **Cahier des charges fourni** : document de référence utilisateur, conservé dans `docs/`.
-- **Avatar, vélo, arbres, toitures, façades et icône** : géométries/presets procéduraux créés pour ce projet. Aucun asset récupéré d’un jeu tiers, aucun son fourni, aucune image Street View utilisée.
+- **Avatar, vélo, arbres, toitures, façades et icône** : géométries/presets procéduraux créés pour ce projet. Aucun asset récupéré d’un jeu tiers, aucune image Street View utilisée.
 
 Le style toon est une cible graphique. L’image fournie n’est ni intégrée ni redistribuée comme texture ou fond.
 
-- **IGN LiDAR HD — MNT/MNH**, acquisition 2026-10-27 : Licence Ouverte, fiches officielles `docs/sources/IGNF_MNT-LIDAR-HD.xml` et `IGNF_MNH-LIDAR-HD.xml`. MNT et MNH numériques rééchantillonnés à 10 m près des parcours, MNT à 100 m au loin ; pas de nuages LAZ dans le paquet. BD TOPO étendue aux trois circuits, avec surfaces hydrographiques. Dates des missions LiDAR conservées par dalle.
+- **IGN LiDAR HD — MNT/MNH**, acquisitions 2026-10-27 et 2026-10-28 : Licence Ouverte, fiches officielles `docs/sources/IGNF_MNT-LIDAR-HD.xml` et `IGNF_MNH-LIDAR-HD.xml`. MNT et MNH numériques rééchantillonnés à 10 m près des parcours, MNT à 100 m au loin ; pas de nuages LAZ dans le paquet. BD TOPO étendue aux quatre circuits, avec surfaces hydrographiques. Dates des missions LiDAR conservées par dalle.
 - **Shapely / GEOS et Pillow** : outils optionnels de préparation uniquement, non embarqués dans le jeu. Le jeu lit les géométries et grilles préparées ; il ne dépend pas de ces bibliothèques au lancement.
 
 Sources et bases dérivées de cette version : https://github.com/Ritterschaft69/RoisDeLaPedale_desk/tree/v0.6.0/assets/geodata/circuits . Le dépôt fournit les formats ouverts et les scripts de transformation.
+
+- **Ambiances La Sonothèque** : dix enregistrements fournis par l’utilisateur sous **CC0 1.0 Universel**, doublons retirés, niveau ajusté et conversion Ogg avec raccords fondus. [Notice et identifiants](../assets/audio/LICENSE.md), noms sources et empreintes dans `assets/audio/catalog.json`. Les ambiances sont illustratives, sans relevé acoustique local.
