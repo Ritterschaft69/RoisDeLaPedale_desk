@@ -41,7 +41,7 @@ class ImportedAssetTests(unittest.TestCase):
         mesh=gltf['meshes'][body['mesh']]
         triangles=sum(gltf['accessors'][p['attributes']['POSITION']]['count']//3 for p in mesh['primitives'])
         self.assertEqual(triangles,metadata['character_triangles'])
-        self.assertLess(triangles,45000)
+        self.assertLess(triangles,35000)
         names={gltf['materials'][p['material']]['name'] for p in mesh['primitives']}
         self.assertTrue({'Tricolour_navy','Tricolour_white','Tricolour_red','Tricolour_blue','Tricolour_hair'}<=names)
         self.assertTrue(all('mesh' not in n for n in gltf['nodes'] if n.get('name','').startswith('Cyclist_Mesh') or n.get('name')=='Hy3dUpperBody'))

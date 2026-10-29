@@ -101,7 +101,7 @@ def nearest_leg(p):
 
 def shorts_weights(p):
     side=nearest_leg(p);a=BIND['UpperLeg_'+side];b=BIND['LowerLeg_'+side]
-    t=project(p,a,b);blend=smoothstep((t-.03)/.30)
+    t=project(p,a,b);blend=smoothstep((t-.14)/.25)
     return {JOINTS['Hips']:1-blend,JOINTS['UpperLeg_'+side]:blend}
 
 
@@ -118,105 +118,171 @@ def leg_weights(side):
         return {JOINTS['UpperLeg_'+side]:1-blend,JOINTS['LowerLeg_'+side]:blend}
     return weights
 
-# Fitted, continuous jersey with narrower shoulders and a distinct waist/hip line.
-hip=BIND['Hips'];neck=BIND['Neck'];head=BIND['Head']
-centres=[hip+V((0,.008,0)),hip+V((0,.07,.055)),hip+V((0,.135,.14)),hip+V((0,.22,.24)),V((0,1.322,.154)),neck+V((0,.018,0))]
-radii=[(.158,.105),(.132,.098),(.143,.105),(.166,.108),(.171,.093),(.056,.045)]
+# Reference proportions in bicycle metres. The animation skeleton is retained,
+# but the visible upper body is authored in its own, lower racing posture.
+# Head/arms are static in the supplied pedal clip, so these bind-space surfaces
+# follow the same Hips/Head bones without editing the original animation.
+def curved_loft(name, centres, radii, segments=20, steps=3):
+    centres=list(map(V,centres));points=[];sizes=[]
+    radii=[V((r,r)) if isinstance(r,(int,float)) else V(r) for r in radii]
+    for i in range(len(centres)-1):
+        for j in range(steps):
+            t=j/steps
+            def cat(values):
+                a=values[max(0,i-1)];b=values[i];c=values[i+1];d=values[min(len(values)-1,i+2)]
+                return .5*((2*b)+(-a+c)*t+(2*a-5*b+4*c-d)*t*t+(-a+3*b-3*c+d)*t*t*t)
+            points.append(cat(centres));sizes.append(tuple(cat(radii)))
+    points.append(centres[-1]);sizes.append(tuple(radii[-1]))
+    return loft(name,points,sizes,segments)
+
+hip=BIND['Hips']
+# A low racing back angle, short neck and adult head replace the tiny head,
+# long neck and upright cylindrical trunk of the first version.
+neck=V((0,1.291,.343));head=V((0,1.328,.389))
+centres=[V((0,.994,-.208)),V((0,1.069,-.126)),V((0,1.139,-.020)),
+         V((0,1.204,.103)),V((0,1.255,.210)),V((0,1.274,.269)),neck]
+radii=[(.149,.096),(.137,.106),(.130,.110),(.147,.118),(.164,.108),(.129,.077),(.048,.043)]
 TORSO_CENTRES=list(centres);TORSO_RADII=list(radii)
-jersey_parts=[loft('Fitted jersey torso',centres,radii,28)]
+jersey_parts=[curved_loft('Anatomical jersey torso',centres,radii,32)]
 ARMS={}
 for side,sign in [('L',1),('R',-1)]:
-    shoulder=BIND['UpperArm_'+side]+V((-sign*.027,0,0));elbow=BIND['LowerArm_'+side]+V((-sign*.023,0,0));hand=BIND['Hand_'+side]
+    shoulder=V((sign*.161,1.256,.222))
+    elbow=V((sign*.203,1.058,.348))
+    hand=BIND['Hand_'+side]+V((0,.003,.005))
     ARMS[side]=(shoulder,elbow,hand)
-    jersey_parts.append(loft('Jersey sleeve '+side,[shoulder,shoulder.lerp(elbow,.23),shoulder.lerp(elbow,.51)],[(.057,.056),(.062,.061),(.058,.057)],20))
-    jersey_parts.append(ellipsoid('Rounded deltoid '+side,shoulder+V((0,-.005,0)),(.064,.059,.064),20,12))
-jersey=union('Continuous tricolour jersey',jersey_parts,6500)
+    jersey_parts.append(curved_loft('Fitted sleeve '+side,
+      [shoulder+V((-sign*.037,.003,-.014)),shoulder,shoulder.lerp(elbow,.24),shoulder.lerp(elbow,.48)],
+      [(.049,.049),(.051,.051),(.049,.048),(.043,.042)],24))
+    jersey_parts.append(ellipsoid('Integrated shoulder '+side,shoulder+V((-sign*.009,-.003,-.009)),(.052,.051,.054),24,16))
+jersey=union('Continuous tricolour jersey',jersey_parts,7200)
 axis=(neck-hip).normalized();axis_length=(neck-hip).length
 
-def jersey_colour(p):
+def sleeve_region(p):
+    # Restrict cuff classification to the outside of the torso, avoiding the
+    # old diagonal stripe artifacts where a sleeve plane crosses the chest.
+    if abs(p.x)<.147:return None
     for shoulder,elbow,hand in ARMS.values():
         t=project(p,shoulder,elbow)
-        if t>.25 and (p-shoulder.lerp(elbow,t)).length<.10:
-            if .34<t<.40:return 'blue'
-            if .40<=t<.445:return 'white'
-            if .445<=t<.52:return 'red'
+        if t>.28 and (p-shoulder.lerp(elbow,t)).length<.072:return shoulder,elbow
+    return None
+
+def jersey_colour(p):
+    sleeve=sleeve_region(p)
+    if sleeve:
+        t=project(p,*sleeve)
+        if .32<t<.365:return 'blue'
+        if .365<=t<.415:return 'white'
+        if .415<=t<.50:return 'red'
     t=(p-hip).dot(axis)/axis_length
-    if .48<t<.545:return 'red'
-    if .545<=t<.61:return 'white'
-    if .61<=t<.675:return 'blue'
-    return 'navy_light' if t>.73 else 'navy'
+    if .56<t<.605:return 'red'
+    if .605<=t<.665:return 'white'
+    if .665<=t<.71:return 'blue'
+    return 'navy'
 add(jersey,jersey_colour)
 
-# Arms are new continuous surfaces, not pieces recoloured from the supplied man.
 for side,(shoulder,elbow,hand) in ARMS.items():
-    arm=loft('Arm '+side,[shoulder.lerp(elbow,.35),shoulder.lerp(elbow,.65),elbow,elbow.lerp(hand,.28),elbow.lerp(hand,.7),hand], [.057,.055,.048,.053,.038,.027],20)
+    arm=curved_loft('Anatomical arm '+side,
+      [shoulder.lerp(elbow,.36),shoulder.lerp(elbow,.66),elbow,
+       elbow.lerp(hand,.24),elbow.lerp(hand,.56),elbow.lerp(hand,.86),hand],
+      [(.041,.040),(.041,.039),(.035,.035),(.037,.035),(.032,.030),(.024,.024),(.022,.022)],24)
     add(arm)
-    add(ellipsoid('Fingerless glove '+side,hand+V((0,-.005,.018)),(.041,.030,.051)), 'navy')
+    add(ellipsoid('Fingerless glove '+side,hand+V((0,-.009,.017)),(.034,.025,.043),24,14),'navy')
     for finger in range(4):
-        x=hand.x+(finger-1.5)*.014
-        add(loft('Gripping fingers '+side+str(finger),[(x,hand.y-.004,hand.z+.043),(x,hand.y-.035,hand.z+.048),(x,hand.y-.047,hand.z+.025)],[.007,.007,.005],8))
+        x=hand.x+(finger-1.5)*.012
+        add(curved_loft('Gripping fingers '+side+str(finger),
+          [(x,hand.y-.009,hand.z+.035),(x,hand.y-.030,hand.z+.044),(x,hand.y-.044,hand.z+.024)],
+          [.006,.006,.0045],10,3))
+    sign=1 if side=='L' else -1
+    add(curved_loft('Thumb '+side,[hand+V((-sign*.023,-.004,.018)),hand+V((-sign*.028,-.023,.037)),hand+V((-sign*.018,-.032,.039))],[.009,.008,.005],12,3))
 
-# Continuous shorts, with independent thigh weights and tricolour leg grippers.
-short_parts=[ellipsoid('Athletic pelvis',hip+V((0,.008,-.01)),(.176,.118,.145))]
-for side in ['L','R']:
+# Pelvis/gluteal volume flows into both thighs before smooth hip/thigh weights.
+# The two thighs are deliberately slimmer than the original tubular version.
+short_parts=[ellipsoid('Pelvis',hip+V((0,-.016,-.012)),(.156,.101,.122),32,20)]
+for side,sign in [('L',1),('R',-1)]:
     a=BIND['UpperLeg_'+side];k=BIND['LowerLeg_'+side]
-    short_parts.append(loft('Shorts leg '+side,[a,a.lerp(k,.25),a.lerp(k,.50),a.lerp(k,.68)], [.105,.106,.092,.082],24))
-shorts=union('Continuous cycling shorts',short_parts,5500)
+    short_parts.append(curved_loft('Anatomical shorts leg '+side,
+      [a,a.lerp(k,.15),a.lerp(k,.34),a.lerp(k,.52),a.lerp(k,.625)],
+      [(.085,.088),(.088,.089),(.085,.084),(.076,.075),(.070,.068)],28))
+shorts=union('Continuous cycling shorts',short_parts,6100)
 
 def shorts_colour(p):
     side=nearest_leg(p);t=project(p,BIND['UpperLeg_'+side],BIND['LowerLeg_'+side])
-    if .56<t<.605:return 'blue'
-    if .605<=t<.64:return 'white'
-    if .64<=t<.69:return 'red'
+    if .53<t<.557:return 'blue'
+    if .557<=t<.592:return 'white'
+    if .592<=t<.64:return 'red'
     return 'navy'
 add(shorts,shorts_colour,shorts_weights)
 for side in ['L','R']:
     a=BIND['UpperLeg_'+side];k=BIND['LowerLeg_'+side];f=BIND['Foot_'+side]
-    leg=loft('Leg skin '+side,[a.lerp(k,.53),a.lerp(k,.80),k,k.lerp(f,.14),k.lerp(f,.35),k.lerp(f,.65),f],[.078,.072,.062,.055,.057,.039,.028],24)
+    leg=curved_loft('Anatomical leg '+side,
+      [a.lerp(k,.54),a.lerp(k,.72),a.lerp(k,.89),k,k.lerp(f,.16),k.lerp(f,.34),k.lerp(f,.57),k.lerp(f,.82),f],
+      [(.067,.065),(.063,.062),(.051,.051),(.047,.049),(.046,.044),(.048,.044),(.039,.035),(.027,.027),(.024,.025)],26)
     add(leg,'skin',leg_weights(side))
-    sock=loft('White sock '+side,[k.lerp(f,.57),k.lerp(f,.68),k.lerp(f,.90),f],[.046,.042,.034,.033],24)
+    sock=curved_loft('White sock '+side,[k.lerp(f,.61),k.lerp(f,.72),k.lerp(f,.91),f],[(.041,.039),(.036,.035),(.030,.031),(.028,.030)],24)
     add(sock,'white',rigid('LowerLeg_'+side))
-    add(ellipsoid('Sock ankle '+side,f+V((0,-.015,.005)),(.034,.038,.040),20,12),'white',rigid('Foot_'+side))
-    add(loft('Sock instep '+side,[f,f+V((0,-.04,.025)),f+V((0,-.065,.065))],[.031,.032,.027],20),'white',rigid('Foot_'+side))
-    # A fitted road shoe descends from the ankle towards the pedal/toe, with a
-    # slim sole, two fasteners and a BOA dial, all following the foot bone.
-    heel=f+V((0,-.046,-.055));toe=f+V((0,-.10,.155))
-    shoe=loft('White road shoe '+side,[heel,heel.lerp(toe,.25),heel.lerp(toe,.65),toe],[(.026,.024),(.043,.033),(.044,.031),(.031,.018)],22)
+    add(ellipsoid('Sock ankle '+side,f+V((0,-.015,.005)),(.029,.034,.034),20,12),'white',rigid('Foot_'+side))
+    add(curved_loft('Sock instep '+side,[f,f+V((0,-.037,.025)),f+V((0,-.065,.065))],[.027,.029,.025],20),'white',rigid('Foot_'+side))
+    heel=f+V((0,-.046,-.052));toe=f+V((0,-.10,.155))
+    shoe=curved_loft('White road shoe '+side,[heel,heel.lerp(toe,.22),heel.lerp(toe,.58),heel.lerp(toe,.86),toe],[(.026,.023),(.039,.032),(.042,.030),(.034,.023),(.019,.014)],24)
     add(shoe,'white',rigid('Foot_'+side))
-    add(loft('Sole '+side,[heel+V((0,-.024,0)),toe+V((0,-.018,0))],[(.028,.006),(.033,.006)],16),'black',rigid('Foot_'+side))
-    for t in [.40,.63]:
-        c=heel.lerp(toe,t)+V((0,.031,0))
-        add(loft('Shoe strap '+side,[c+V((-.038,0,0)),c+V((.038,0,0))],[.005,.005],8),'navy',rigid('Foot_'+side))
-    add(ellipsoid('Shoe dial '+side,heel.lerp(toe,.36)+V((.039,.015,0)),(.007,.010,.010),12,8),'black',rigid('Foot_'+side))
+    add(curved_loft('Sole '+side,[heel+V((0,-.023,0)),heel.lerp(toe,.50)+V((0,-.027,0)),toe+V((0,-.018,0))],[(.027,.005),(.040,.006),(.022,.005)],20),'black',rigid('Foot_'+side))
+    for t in [.38,.59]:
+        c=heel.lerp(toe,t)+V((0,.030,0))
+        add(curved_loft('Shoe strap '+side,[c+V((-.034,-.006,0)),c+V((0,.001,0)),c+V((.034,-.006,0))],[.004,.004,.004],10),'navy',rigid('Foot_'+side))
+    add(ellipsoid('Shoe dial '+side,heel.lerp(toe,.35)+V((.037,.012,0)),(.006,.008,.008),12,8),'black',rigid('Foot_'+side))
 
-# Face, chin and nose are separately modelled, with sports glasses and a helmet.
-add(loft('Neck',[neck-V((0,.02,0)),head+V((0,-.015,-.005))],[.043,.042],20))
-face_center=head+V((0,.038,.018))
-add(ellipsoid('Face and jaw',head+V((0,.075,.020)),(.062,.090,.073),30,20),'skin',rigid('Head'))
-nose=[head+V(p) for p in [(-.010,.080,.083),(.010,.080,.083),(-.009,.026,.089),(.009,.026,.089),(0,.043,.106)]]
-add(mesh('Shaped nose',nose,[(0,1,4),(1,3,4),(3,2,4),(2,0,4),(0,2,3,1)]),'skin',rigid('Head'))
-add(loft('Neutral lips',[head+V((-.015,.018,.092)),head+V((0,.016,.095)),head+V((.015,.018,.092))],[.0023,.0023,.0015],8),'lips',rigid('Head'))
-for side in [-1,1]:
-    add(ellipsoid('Ear',head+V((side*.062,.064,-.005)),(.011,.025,.016),16,10),'skin',rigid('Head'))
-    lens=[head+V((side*x,y,z)) for x,y,z in [(0,.102,.103),(.067,.098,.065),(.074,.068,.040),(.018,.058,.100)]]
-    verts=lens+[p-V((0,0,.0015)) for p in lens]
-    add(mesh('Wraparound sports lens',verts,[(0,1,2,3),(4,7,6,5),(0,4,5,1),(1,5,6,2),(2,6,7,3),(3,7,4,0)]),'lens',rigid('Head'))
-    add(loft('Glasses arm',[head+V((side*.074,.092,.042)),head+V((side*.065,.084,-.020))],[.004,.004],8),'navy',rigid('Head'))
-    jaw=head+V((side*.045,-.032,.024))
-    add(loft('Helmet strap',[head+V((side*.071,.10,-.032)),jaw,head+V((side*.071,.10,.049))],[.004,.004,.004],8),'black',rigid('Head'))
-add(loft('Glasses bridge',[head+V((-.013,.096,.103)),head+V((.013,.096,.103))],[.005,.005],8),'navy',rigid('Head'))
+# Adult head: crown/jaw/chin rings, cheeks, brow, lips and a smoothly rounded
+# nose. Larger cranial volume, shorter neck, fitted eyewear and helmet.
+head_weight=rigid('Head')
+add(curved_loft('Short neck',[neck+V((0,-.026,-.018)),head+V((0,.008,-.014)),head+V((0,.036,-.009))],[.042,.039,.042],24))
+face=curved_loft('Sculpted head',
+ [head+V((0,-.003,.038)),head+V((0,.018,.027)),head+V((0,.050,.009)),head+V((0,.091,-.003)),head+V((0,.132,-.010)),head+V((0,.165,-.013)),head+V((0,.180,-.013))],
+ [(.026,.030),(.044,.047),(.062,.069),(.069,.078),(.068,.077),(.050,.056),(.009,.010)],32)
+# Fuse the nose into the face to avoid a detached pointed pyramid.
+nose=ellipsoid('Nose bridge',head+V((0,.071,.077)),(.012,.027,.018),20,14)
+tip=ellipsoid('Nose tip',head+V((0,.048,.089)),(.015,.010,.012),20,12)
+face=union('Sculpted face',[face,nose,tip],3200)
+add(face,'skin',head_weight)
+add(curved_loft('Lips',[head+V((-.016,.024,.068)),head+V((0,.022,.072)),head+V((.016,.024,.068))],[.0018,.0028,.0018],10),'lips',head_weight)
+for sign in [-1,1]:
+    add(ellipsoid('Ear',head+V((sign*.067,.073,-.008)),(.010,.023,.014),20,12),'skin',head_weight)
+    add(ellipsoid('Ear inner',head+V((sign*.075,.073,-.006)),(.003,.012,.007),16,10),'lips',head_weight)
+    # Curved four-corner lens with raised intermediate points.
+    lenses=[]
+    for row in range(3):
+        for col in range(9):
+            t=col/8;x=sign*(.006+.065*t)
+            z=.092-.046*t*t;y=.103-.016*t-(.029-row*.014)
+            lenses.append(head+V((x,y,z)))
+    faces=[]
+    for row in range(2):
+        for col in range(8):
+            q=row*9+col;faces.append((q,q+1,q+10,q+9))
+    lens=mesh('Curved sports lens',lenses,faces)
+    solid=lens.modifiers.new('Lens thickness','SOLIDIFY');solid.thickness=.002
+    bpy.context.view_layer.objects.active=lens;bpy.ops.object.modifier_apply(modifier=solid.name)
+    add(lens,'lens',head_weight)
+    rim=[head+V((sign*(.006+.065*t),.105-.016*t,.094-.046*t*t)) for t in [i/12 for i in range(13)]]
+    add(loft('Eyewear upper frame',rim,[.0035]*len(rim),10),'navy',head_weight)
+    add(curved_loft('Glasses temple',[head+V((sign*.072,.091,.047)),head+V((sign*.074,.085,-.014)),head+V((sign*.066,.070,-.029))],[.004,.004,.003],10),'navy',head_weight)
+    jaw=head+V((sign*.042,-.012,.025))
+    add(loft('Helmet strap',[head+V((sign*.067,.155,-.043)),jaw,head+V((sign*.067,.155,.039))],[.003,.003,.003],10),'black',head_weight)
+add(curved_loft('Glasses bridge',[head+V((-.010,.100,.093)),head+V((0,.102,.095)),head+V((.010,.100,.093))],[.004,.004,.004],10),'navy',head_weight)
 
-helmet_center=head+V((0,.125,0))
-add(loft('Helmet black vent interiors',[helmet_center+V((0,-.008,0)),helmet_center+V((0,.01,0)),helmet_center+V((0,.035,0)),helmet_center+V((0,.052,0))],[(.084,.108),(.083,.107),(.066,.08),(.004,.006)],28),'black',rigid('Head'))
-# Long white ribs leave actual open ventilation channels over the dark liner.
-for lo,hi in [(-.99,-.80),(-.69,-.51),(-.37,-.17),(-.065,.065),(.17,.37),(.51,.69),(.80,.99)]:
-    verts=[];faces=[];rows=30;columns=3
+helmet_center=head+V((0,.148,-.014))
+add(curved_loft('Dark helmet liner',[helmet_center+V((0,-.012,0)),helmet_center+V((0,.009,0)),helmet_center+V((0,.041,0)),helmet_center+V((0,.064,0))],[(.086,.108),(.087,.109),(.066,.082),(.007,.009)],32),'black',head_weight)
+# Actual white shell ribs and channels; taller crown follows the reference.
+shell_patches=[(lo,hi,-1.72,1.72) for lo,hi in [(-.995,-.82),(-.70,-.52),(-.38,-.19),(-.07,.07),(.19,.38),(.52,.70),(.82,.995)]]
+# Forehead/rear bridges and crown leave bounded vents rather than open stripes.
+shell_patches += [(lo,hi,start,end) for lo,hi in [(-.82,-.70),(-.52,-.38),(-.19,-.07),(.07,.19),(.38,.52),(.70,.82)] for start,end in [(-1.72,-1.16),(-.18,.18),(1.16,1.72)]]
+for lo,hi,t_start,t_end in shell_patches:
+    verts=[];faces=[];rows=max(3,round(20*(t_end-t_start)/3.44));columns=2
     for inner in [False,True]:
         for i in range(rows+1):
-            t=-1.72+3.44*i/rows
+            t=t_start+(t_end-t_start)*i/rows
             for j in range(columns+1):
                 x=lo+(hi-lo)*j/columns;rad=math.sqrt(max(0,1-x*x))
-                verts.append(helmet_center+V((x*(.089-(.003 if inner else 0)),rad*(.067-(.004 if inner else 0))*math.cos(t),rad*(.116-(.004 if inner else 0))*math.sin(t))))
+                verts.append(helmet_center+V((x*(.095-(.003 if inner else 0)),rad*(.080-(.004 if inner else 0))*math.cos(t),rad*(.121-(.004 if inner else 0))*math.sin(t))))
     n=(rows+1)*(columns+1)
     for i in range(rows):
         for j in range(columns):
@@ -226,34 +292,42 @@ for lo,hi in [(-.99,-.80),(-.69,-.51),(-.37,-.17),(-.065,.065),(.17,.37),(.51,.6
         q+=columns;r+=columns;faces.append((q,n+q,n+r,r))
     for j in range(columns):
         faces.append((j,n+j,n+j+1,j+1));q=rows*(columns+1)+j;faces.append((q,q+1,n+q+1,n+q))
-    add(mesh('Vented white helmet rib',verts,faces),'white',rigid('Head'))
+    add(mesh('Vented white helmet rib',verts,faces),'white',head_weight)
 
-# Brown scalp and three interwoven tapered strands resting behind the jersey.
-add(ellipsoid('Hair at nape',head+V((0,.075,-.040)),(.055,.045,.035)),'hair_dark',rigid('Head'))
-controls=[head+V((0,.05,-.082)),head+V((0,-.025,-.15)),head+V((0,-.10,-.24)),head+V((0,-.16,-.36)),head+V((0,-.21,-.41))]
+add(ellipsoid('Brown hair cap',head+V((0,.116,-.030)),(.066,.060,.062),28,16),'hair_dark',head_weight)
+# The braid rests along the back, rather than extending into empty space.
+controls=[head+V((0,.073,-.070)),V((0,1.399,.243)),V((0,1.370,.158)),V((0,1.329,.067)),V((0,1.280,-.010))]
 def braid_center(t):
     x=t*(len(controls)-1);i=min(len(controls)-2,int(x));return controls[i].lerp(controls[i+1],x-i)
 for strand,colour in enumerate(['hair','hair_light','hair_dark']):
     centres=[];radii=[]
-    for i in range(81):
-        t=i/80;c=braid_center(t);d=(braid_center(min(1,t+.01))-braid_center(max(0,t-.01))).normalized()
-        u=V((1,0,0));w=d.cross(u).normalized();angle=t*math.tau*6+strand*math.tau/3
-        centres.append(c+(u*math.cos(angle)+w*math.sin(angle))*(.014*(1-t*.55)))
-        radii.append(.0125*(1-t*.60))
-    add(loft('Braided strand '+str(strand),centres,radii,8),colour,rigid('Head'))
+    for i in range(65):
+        t=i/64;c=braid_center(t);d=(braid_center(min(1,t+.01))-braid_center(max(0,t-.01))).normalized()
+        u=V((1,0,0));w=d.cross(u).normalized();angle=t*math.tau*5+strand*math.tau/3
+        centres.append(c+(u*math.cos(angle)+w*math.sin(angle))*(.012*(1-t*.60)))
+        radii.append(.0105*(1-t*.65))
+    add(loft('Braided strand '+str(strand),centres,radii,8),colour,head_weight)
 end=braid_center(.96)
-add(loft('Braid tie',[end-V((0,.006,0)),end+V((0,.006,0))],[.015,.015],12),'navy',rigid('Head'))
+add(loft('Braid tie',[end-V((0,.004,0)),end+V((0,.004,0))],[.010,.010],12),'navy',head_weight)
 
-# Small front zipper and rear jersey pocket seams, placed outside the cloth.
 zip_points=[]
-for i in range(24):
-    t=.04+.94*i/23;x=t*(len(TORSO_CENTRES)-1);j=min(len(TORSO_CENTRES)-2,int(x));fraction=x-j
+for i in range(30):
+    t=.04+.94*i/29;x=t*(len(TORSO_CENTRES)-1);j=min(len(TORSO_CENTRES)-2,int(x));fraction=x-j
     c=TORSO_CENTRES[j].lerp(TORSO_CENTRES[j+1],fraction)
     direction=(TORSO_CENTRES[j+1]-TORSO_CENTRES[j]).normalized()
     front=-direction.cross(V((1,0,0))).normalized()
     depth=TORSO_RADII[j][1]*(1-fraction)+TORSO_RADII[j+1][1]*fraction
     zip_points.append(c+front*(depth+.0015))
-add(loft('Front zipper',zip_points,[.0018]*len(zip_points),8),'silver')
+add(loft('Front zipper',zip_points,[.0012]*len(zip_points),8),'silver')
+
+# Apply one bounded reduction offline, rather than spending extra GPU work on
+# redundant rings. Material boundaries are cut afterwards and stay crisp.
+raw_triangles=sum(sum(len(p.vertices)-2 for p in obj.data.polygons) for obj,_,_ in PARTS)
+ratio=min(1.0,29500/raw_triangles)
+for obj,_,_ in PARTS:
+    if len(obj.data.polygons)<80:continue
+    modifier=obj.modifiers.new('Offline final mesh budget','DECIMATE');modifier.ratio=ratio
+    bpy.context.view_layer.objects.active=obj;bpy.ops.object.modifier_apply(modifier=modifier.name)
 
 # Drop every original character mesh, keeping the donor bicycle and its rig.
 remove=set()
@@ -305,15 +379,15 @@ for obj,material,weight in PARTS:
         pieces=[polygon];boundaries=[];scalar=None
         if material==jersey_colour:
             scalar=lambda p:(p-hip).dot(axis)/axis_length
-            boundaries=[.48,.545,.61,.675,.73]
-            for shoulder,elbow,hand in ARMS.values():
-                t=project(center,shoulder,elbow)
-                if t>.25 and (center-shoulder.lerp(elbow,t)).length<.10:
-                    scalar=lambda p,a=shoulder,b=elbow:project(p,a,b)
-                    boundaries=[.34,.40,.445,.52];break
+            boundaries=[.56,.605,.665,.71]
+            sleeve=sleeve_region(center)
+            if sleeve:
+                shoulder,elbow=sleeve
+                scalar=lambda p,a=shoulder,b=elbow:project(p,a,b)
+                boundaries=[.32,.365,.415,.50]
         elif material==shorts_colour:
             side=nearest_leg(center);a=BIND['UpperLeg_'+side];b=BIND['LowerLeg_'+side]
-            scalar=lambda p,a=a,b=b:project(p,a,b);boundaries=[.56,.605,.64,.69]
+            scalar=lambda p,a=a,b=b:project(p,a,b);boundaries=[.53,.557,.592,.64]
         # Split triangles on the actual colour boundaries instead of assigning
         # whole decimated faces across stripes (which produces jagged borders).
         for boundary in boundaries:
@@ -348,5 +422,6 @@ triangles=sum(len(d['p'])//3 for d in groups.values())
 (OUTPUT.parent/'metadata.json').write_text(json.dumps({'name':'Cycliste tricolore','source_bicycle_sha256':hashlib.sha256(source_bytes).hexdigest(),
  'sha256':hashlib.sha256(result).hexdigest(),'character_triangles':triangles,'character_materials':len(groups),
  'reference':'User supplied multi-view image, navy tricolour kit, white vented helmet, brown braid',
+ 'revision':2,'proportions':{'back_angle_degrees':round(math.degrees(math.atan2(ARMS['L'][0].y-hip.y,ARMS['L'][0].z-hip.z)),1),'shoulder_width_m':.322,'head_height_m':.18,'upper_arm_radius_m':.041,'thigh_radius_m':.088},
  'authoring':'tools/build_tricolour_cyclist.py; original character geometry removed; donor bicycle, rig and animation retained'},indent=2)+'\n')
 print('TRICOLOUR_BUILT',OUTPUT,len(result),triangles,'character triangles',flush=True)

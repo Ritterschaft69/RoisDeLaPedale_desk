@@ -1,9 +1,13 @@
 # Rois de la Pédale
 
-**Windows : [télécharger l’installeur v0.6.7](https://github.com/Ritterschaft69/RoisDeLaPedale_desk/releases/download/v0.6.7/RoisDeLaPedale-0.6.7-Setup.exe)** · [Page de la préversion](https://github.com/Ritterschaft69/RoisDeLaPedale_desk/releases/tag/v0.6.7)
+**Windows : [télécharger l’installeur v0.6.8](https://github.com/Ritterschaft69/RoisDeLaPedale_desk/releases/download/v0.6.8/RoisDeLaPedale-0.6.8-Setup.exe)** · [Page de la préversion](https://github.com/Ritterschaft69/RoisDeLaPedale_desk/releases/tag/v0.6.8)
 [Voir les circuits reconstruits et les captures natives](https://github.com/Ritterschaft69/RoisDeLaPedale_desk/releases/tag/v0.6.0)
 
 Prototype **desktop natif**, Godot **4.6.3**, quatre circuits et données géographiques hors ligne. Aucun serveur ni navigateur requis.
+
+## Cycliste tricolore remodelée — 0.6.8
+
+La seconde cycliste a été reconstruite : posture de course plus basse, tête adulte plus grande, cou court, bras et cuisses affinés, épaules fondues au torse et raccord du maillot au bassin. Visage, lunettes courbes, casque ajouré et tresse repositionnée complètent la silhouette. Le modèle reste sous 35 000 triangles de personnage. [Captures et détails](docs/RELEASE_v0.6.8.md).
 
 ## Deux cyclistes au choix — 0.6.7
 

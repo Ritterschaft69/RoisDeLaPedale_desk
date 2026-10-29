@@ -10,7 +10,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: release-v0.6.7
+  group: release-v0.6.8
   cancel-in-progress: false
 
 jobs:
@@ -88,11 +88,11 @@ jobs:
       - name: Upload installer and publish prerelease
         shell: bash
         run: |
-          if ! gh release view v0.6.7 > /dev/null 2>&1; then
-            gh release create v0.6.7 --target "$GITHUB_SHA" --title "Rois de la Pédale v0.6.7 — Deux cyclistes au choix" --notes-file docs/RELEASE_v0.6.7.md --draft --prerelease
+          if ! gh release view v0.6.8 > /dev/null 2>&1; then
+            gh release create v0.6.8 --target "$GITHUB_SHA" --title "Rois de la Pédale v0.6.8 — Cycliste tricolore remodelée" --notes-file docs/RELEASE_v0.6.8.md --draft --prerelease
           fi
           cd build
-          sha256sum RoisDeLaPedale-0.6.7-Setup.exe > SHA256SUMS.txt
-          gh release upload v0.6.7 RoisDeLaPedale-0.6.7-Setup.exe SHA256SUMS.txt --clobber
-          gh release upload v0.6.7 ../docs/previews/v0.6.7-tricolour-*.png ../docs/previews/v0.6.7-choice-*.png --clobber
-          gh release edit v0.6.7 --draft=false --prerelease
+          sha256sum RoisDeLaPedale-0.6.8-Setup.exe > SHA256SUMS.txt
+          gh release upload v0.6.8 RoisDeLaPedale-0.6.8-Setup.exe SHA256SUMS.txt --clobber
+          gh release upload v0.6.8 ../docs/previews/v0.6.8-tricolour-*.png ../docs/previews/v0.6.8-choice-*.png --clobber
+          gh release edit v0.6.8 --draft=false --prerelease

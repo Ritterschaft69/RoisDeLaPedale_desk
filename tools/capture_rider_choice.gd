@@ -8,9 +8,9 @@ func run():
   app.show_home();app.select_rider(id);app.rider.crank=.85;app.rider.animate(0,0,0);app.position_scene(0,true)
   for i in range(3):await process_frame
   await RenderingServer.frame_post_draw
-  root.get_texture().get_image().save_png("res://docs/previews/v0.6.7-choice-"+id+".png")
+  root.get_texture().get_image().save_png("res://docs/previews/v0.6.8-choice-"+id+".png")
  app.show_home()
  for i in range(3):await process_frame
  await RenderingServer.frame_post_draw
- root.get_texture().get_image().save_png("res://docs/previews/v0.6.7-home.png")
+ root.get_texture().get_image().save_png("res://docs/previews/v0.6.8-home.png")
  app.free();await process_frame;quit()
