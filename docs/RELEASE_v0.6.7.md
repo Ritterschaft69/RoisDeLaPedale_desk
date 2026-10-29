@@ -12,3 +12,5 @@ Le nouveau personnage possède sa propre géométrie, avec maillot et cuissard c
 Les quatre circuits, les sons, les routes corrigées et les trois vues sont conservés. La recette Blender est fournie pour la création hors ligne ; Blender n’est pas nécessaire pour jouer.
 
 Validation : 309 contrôles réussis, dont sélection, conservation des phases, remplacement sans doublon, corps déformé pendant un cycle complet, aperçu animé, mémorisation et retour à la vue de conduite. Export Linux testé sur les huit combinaisons de quatre circuits et deux personnages. Captures natives du personnage et du sélecteur vérifiées.
+
+Installateur publié et téléchargé pour contrôle : 116037586 octets ; SHA-256 `141c99129c6ee6f64c6aee274edd43cf4ae4bc2433ea2a96ff664b5e31d29b13`, conforme à `SHA256SUMS.txt`. Compilation réussie : https://github.com/Ritterschaft69/RoisDeLaPedale_desk/actions/runs/40922585445.
