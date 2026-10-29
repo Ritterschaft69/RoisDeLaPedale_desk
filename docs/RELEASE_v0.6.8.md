@@ -11,3 +11,5 @@ Le modèle reste une interprétation 3D des images de référence. Captures nati
 Validation : 309 contrôles de l’application réussis. Le budget du personnage est vérifié sous 35 000 triangles ; le corps déformé est contrôlé sur 32 phases du cycle. Les captures natives couvrent les quatre positions principales des pédales et les différents angles du personnage.
 
 Export Linux vérifié sur les huit combinaisons de quatre circuits et deux personnages.
+
+Installateur publié et téléchargé pour contrôle : 116137760 octets ; SHA-256 `caf4e90d3ce8d668c8de82e2a64b6a560925ccfdf00cfe2886fb1948644d0786`, conforme à `SHA256SUMS.txt`. Compilation réussie : https://github.com/Ritterschaft69/RoisDeLaPedale_desk/actions/runs/40927844026.
