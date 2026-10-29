@@ -7,7 +7,7 @@
 - **© OpenStreetMap contributors** : sources routières et bases dérivées sous [ODbL 1.0](https://opendatacommons.org/licenses/odbl/1-0/), [copyright et attribution](https://www.openstreetmap.org/copyright). Depuis 0.6.0, tracés recalés et routes voisines sont rendus. Sources, bases dérivées et formats ouverts : `assets/geodata/circuits/`, disponibles dans le dépôt public. Les notices sont distinctes de la licence du code.
 - **GPX fournis par l’utilisateur** : sources originales conservées séparément pour le projet demandé, sans les présenter comme des données IGN/OSM.
 - **Cahier des charges fourni** : document de référence utilisateur, conservé dans `docs/`.
-- **Avatar, vélo, arbres, toitures, façades et icône** : géométries/presets procéduraux créés pour ce projet. Aucun asset récupéré d’un jeu tiers, aucune image Street View utilisée.
+- **Ancien avatar/vélo, arbres, toitures, façades et icône** : géométries/presets procéduraux créés pour ce projet. Aucun asset récupéré d’un jeu tiers, aucune image Street View utilisée.
 
 Le style toon est une cible graphique. L’image fournie n’est ni intégrée ni redistribuée comme texture ou fond.
 
@@ -17,3 +17,5 @@ Le style toon est une cible graphique. L’image fournie n’est ni intégrée n
 Sources et bases dérivées de cette version : https://github.com/Ritterschaft69/RoisDeLaPedale_desk/tree/v0.6.0/assets/geodata/circuits . Le dépôt fournit les formats ouverts et les scripts de transformation.
 
 - **Ambiances La Sonothèque** : dix enregistrements fournis par l’utilisateur sous **CC0 1.0 Universel**, doublons retirés, niveau ajusté et conversion Ogg avec raccords fondus. [Notice et identifiants](../assets/audio/LICENSE.md), noms sources et empreintes dans `assets/audio/catalog.json`. Les ambiances sont illustratives, sans relevé acoustique local.
+
+- **Cycliste et vélo GLB fournis par l’utilisateur**, intégrés en 0.6.6 : géométries, skin, matériaux et clips fournis dans `cycliste-autonome.zip`, sans nouvelle licence attribuée par ce projet. Provenance et empreintes dans `assets/models/imported-cyclist/`. La déclaration CC0 des sons ne s’étend pas à ces géométries.

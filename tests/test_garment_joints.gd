@@ -31,7 +31,7 @@ func continuous_closed(mesh: ArrayMesh) -> bool:
  return count==vertices.size()
 func _initialize(): call_deferred("run")
 func run():
- var rider = load("res://scripts/rider.gd").new()
+ var rider = load("res://tools/legacy_rider.gd").new()
  root.add_child(rider)
  check(continuous_closed(rider.jersey_mesh.mesh),"torso and both sleeves are one connected, closed manifold mesh")
  check(continuous_closed(rider.pants_mesh.mesh),"pelvis and both shorts legs are one connected, closed manifold mesh")

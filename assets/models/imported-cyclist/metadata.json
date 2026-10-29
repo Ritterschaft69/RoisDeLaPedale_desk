@@ -1,0 +1,46 @@
+{
+  "file": "cycliste-universel.glb",
+  "bytes": 995936,
+  "sha256": "bb1b9a9385bc27e0c18f88979c0d1feed14b44c29c7cbbab205b9e0368a6e9e3",
+  "bones": 22,
+  "triangles": 12072,
+  "units": "metres",
+  "up": "+Y",
+  "forward": "+Z",
+  "wheelRadiusM": 0.3355,
+  "clips": [
+    {
+      "name": "PedalForward_60rpm",
+      "durationS": 1,
+      "tracks": [
+        "Crankset.quaternion",
+        "Pedal_R.quaternion",
+        "Pedal_L.quaternion",
+        "UpperLeg_L.quaternion",
+        "LowerLeg_L.quaternion",
+        "Foot_L.quaternion",
+        "UpperLeg_R.quaternion",
+        "LowerLeg_R.quaternion",
+        "Foot_R.quaternion"
+      ]
+    },
+    {
+      "name": "WheelRoll_1turn",
+      "durationS": 1,
+      "tracks": [
+        "Wheel_Front.quaternion",
+        "Wheel_Rear.quaternion"
+      ]
+    }
+  ],
+  "independentClipsVerified": true,
+  "forwardQuarterPedal": [
+    0.115,
+    0.2700000058873092,
+    0.1719999941126908
+  ],
+  "externalResources": false,
+  "sourceFile": "assets/models/cyclist-hy3d-rigged.glb",
+  "sourceSha256": "9838259aefb073ab143de629fb420eba8d023678568f5abfca201ea4f56c71e6",
+  "license": "Derivative of user-provided geometry; no new license asserted"
+}

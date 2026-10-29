@@ -5,6 +5,10 @@
 
 Prototype **desktop natif**, Godot **4.6.3**, quatre circuits et données géographiques hors ligne. Aucun serveur ni navigateur requis.
 
+## Cycliste fourni — 0.6.6
+
+Le cycliste et son vélo sont remplacés par le GLB de l’archive fournie, avec ses matériaux et son squelette. Les jambes suivent la cadence et les roues la vitesse, indépendamment. Les trois vues et le masquage en vue du cycliste sont conservés. [Provenance et intégration](assets/models/imported-cyclist/README.md).
+
 ## Routes secondaires — 0.6.5
 
 Les routes du décor sont découpées et plaquées sur les triangles du terrain affiché. Elles partagent l’asphalte et les accotements de la route principale ; les chemins non revêtus ont un aspect distinct. Les carrefours ouvrent les bandes de rive de la chaussée principale. Le raccord du relief proche à l’arrière-plan est corrigé. [Notes 0.6.5](docs/RELEASE_v0.6.5.md).
@@ -73,6 +77,7 @@ godot --headless --path . --script tests/test_geometry.gd
 godot --headless --path . --script tests/test_secondary_roads.gd
 godot --headless --path . --script tests/test_route_smoothing.gd
 godot --headless --path . --script tests/test_rider_model.gd
+godot --headless --path . --script tests/test_imported_rider.gd
 godot --headless --path . --script tests/test_garment_joints.gd
 godot --headless --path . --script tests/test_camera_follow.gd
 godot --headless --path . --script tests/test_circuit_geography.gd
@@ -99,6 +104,6 @@ Les requêtes brutes sont mises en cache dans `build/geography/cache/`, les reç
 
 Le MNT/MNH LiDAR HD est rééchantillonné à 10 m près du parcours et le relief lointain à 100 m ; les nuages LAZ complets ne sont pas embarqués. Les façades, toitures et formes individuelles des arbres sont procédurales ; les largeurs routières sans mesure sont estimées. Les tunnels ne sont pas reconstruits comme des ouvrages souterrains complets. Le recalage automatique reste une interprétation du GPX, et les intervalles non raccordés sont signalés dans les rapports et dans le jeu.
 
-Bluetooth FTMS/ANT+, résistance du home trainer ne sont pas intégrés. Installeur non signé ; exécution et désinstallation sur Windows restent à vérifier sur un vrai poste. Le cycliste demeure une interprétation 3D stylisée du modèle fourni.
+Bluetooth FTMS/ANT+, résistance du home trainer ne sont pas intégrés. Installeur non signé ; exécution et désinstallation sur Windows restent à vérifier sur un vrai poste. Le cycliste utilise désormais le modèle GLB fourni par l’utilisateur.
 
 [Architecture](docs/ARCHITECTURE.md) · [Licences](docs/THIRD_PARTY.md) · [Cahier des charges](docs/CAHIER_DES_CHARGES.md)

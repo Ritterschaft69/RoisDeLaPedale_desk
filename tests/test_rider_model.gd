@@ -44,8 +44,13 @@ func run():
  holder.add_child(rider)
  var all_valid := true
  for node in rider.find_children("*","MeshInstance3D",true,false):
-  if node.mesh is ArrayMesh and not geometry(node): all_valid=false
- check(all_valid,"all final cyclist custom meshes preserve finite outward geometry")
+  for surface in range(node.mesh.get_surface_count()):
+   var arrays=node.mesh.surface_get_arrays(surface)
+   var vertices:PackedVector3Array=arrays[Mesh.ARRAY_VERTEX]
+   var normals:PackedVector3Array=arrays[Mesh.ARRAY_NORMAL]
+   for i in range(vertices.size()):
+    if not vertices[i].is_finite() or not normals[i].is_finite() or absf(normals[i].length()-1)>.001:all_valid=false
+ check(all_valid,"supplied cyclist imports with finite vertices and unit normals")
  var meshes: int = rider.find_children("*","MeshInstance3D",true,false).size()
  print("RIDER_MESHES=",meshes)
  check(meshes<220,"cyclist avoids hundreds of separate helmet pieces")
@@ -54,7 +59,7 @@ func run():
  check(absf(sin(rider.crank)-sin(5*PI))<.0001,"normal frame rates preserve commanded cadence exactly")
  rider.crank=0
  rider.animate(.6,90,0)
- check(rider.limbs[0].shoe.position.z<.035,"after a long render stall, top pedal visibly advances toward the front")
+ check(rider.pedal_position(0).z<.035,"after a long render stall, top pedal visibly advances toward the front")
  holder.queue_free()
  await process_frame
  print("RESULT_RIDER_MODEL passed=",passed," failed=",failures.size())

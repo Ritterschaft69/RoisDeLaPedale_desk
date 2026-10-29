@@ -76,26 +76,27 @@ func run() -> void:
 	check(clearance>.01,"terrain stays below both lanes through the real Grand Ballon bend")
 	app.rider.crank = 0
 	app.rider.animate(0,60,4)
-	var foot: Vector3 = app.rider.limbs[0].shoe.position
-	var angle: float = app.rider.wheels[0].rotation.x
+	var foot: Vector3 = app.rider.pedal_position(0)
+	var angle: float = app.rider.wheel_phase
 	var finite := true
 	for i in range(24):
 		app.rider.animate(1.0/24,60,4)
-		for leg in app.rider.limbs:
-			if not leg.shoe.position.is_finite() or leg.shoe.position.y<0.10: finite = false
-	check(finite and app.rider.limbs[0].shoe.position.distance_to(foot)<0.001,"pedal animation is cyclic, finite and above the pavement")
-	check(absf(app.rider.wheels[0].rotation.x-angle+4.0/0.349)<0.001,"wheel rotation matches distance and 700C tyre radius")
+		for index in range(2):
+			var pedal: Vector3 = app.rider.pedal_position(index)
+			if not pedal.is_finite() or pedal.y<0.09: finite = false
+	check(finite and app.rider.pedal_position(0).distance_to(foot)<0.001,"pedal animation is cyclic, finite and above the pavement")
+	check(absf(wrapf(app.rider.wheel_phase-angle-4.0/app.rider.WHEEL_RADIUS,-PI,PI))<0.001,"wheel rotation matches distance and supplied tyre radius")
 	app.rider.crank = 0
 	app.rider.animate(0,60,0)
-	var top: Vector3 = app.rider.limbs[0].shoe.position
-	app.rider.animate(.25,60,0)
-	var front: Vector3 = app.rider.limbs[0].shoe.position
-	app.rider.animate(.25,60,0)
-	var bottom: Vector3 = app.rider.limbs[0].shoe.position
-	app.rider.animate(.25,60,0)
-	var back: Vector3 = app.rider.limbs[0].shoe.position
+	var top: Vector3 = app.rider.pedal_position(0)
+	app.rider.animate(.125,60,0);app.rider.animate(.125,60,0)
+	var front: Vector3 = app.rider.pedal_position(0)
+	app.rider.animate(.125,60,0);app.rider.animate(.125,60,0)
+	var bottom: Vector3 = app.rider.pedal_position(0)
+	app.rider.animate(.125,60,0);app.rider.animate(.125,60,0)
+	var back: Vector3 = app.rider.pedal_position(0)
 	check(front.z<top.z and bottom.y<front.y and back.z>bottom.z,"forward pedal cycle: top, forward (-Z), bottom, rear")
-	check(app.rider.limbs[0].shoe.position.y != app.rider.limbs[1].shoe.position.y or absf(app.rider.limbs[0].shoe.position.z-app.rider.limbs[1].shoe.position.z)>.3,"pedals remain diametrically opposed")
+	check(app.rider.pedal_position(0).y != app.rider.pedal_position(1).y or absf(app.rider.pedal_position(0).z-app.rider.pedal_position(1).z)>.3,"pedals remain diametrically opposed")
 	app.rider.crank = 0
 	app.rider.animate(.6,90,0)
 	check(app.rider.crank>0 and app.rider.crank<=PI/3+.00001,"render stalls cannot skip backward-looking pedal phases")

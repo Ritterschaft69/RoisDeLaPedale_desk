@@ -13,7 +13,7 @@ func part(instance: MeshInstance3D) -> Dictionary:
   for i in range(vertices.size()): indices.append(i)
  return {"vertices":vertices,"indices":Array(indices)}
 func run():
- var rider = load("res://scripts/rider.gd").new()
+ var rider = load("res://tools/legacy_rider.gd").new()
  rider.authoring_source = true
  root.add_child(rider)
  var shirt: Array = [part(rider.source_torso)]

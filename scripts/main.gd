@@ -471,7 +471,7 @@ func position_scene(dt: float, immediate: bool = false) -> void:
 		lateral = lerpf(previous_lateral,lane.lateral,fraction)
 	camera.fov = camera_follow.field_of_view()
 	rider.visible = camera_follow.view!=CameraFollow.View.FIRST_PERSON
-	rider.position = world.roadside(station,lateral)+Vector3.UP*0.065
+	rider.position = world.roadside(station,lateral)+Vector3.UP*0.045
 	var forward := route.direction(station)
 	var right := Vector3(-forward.z,0,forward.x).normalized()
 	var steering := forward+right*(lane.velocity/maxf(speed,2))
