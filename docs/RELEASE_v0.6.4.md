@@ -10,3 +10,5 @@ Les quatre circuits, les ambiances sonores et le mode Légère sont conservés.
 
 Validation : 262 contrôles automatiques réussis ; huit nouveaux contrôles couvrent les positions, le cycle des vues, l’arrêt, la pause, les répétitions de touche et la mémorisation. Captures natives des trois vues vérifiées.
 Export Linux démarré avec succès sur les quatre circuits, avec les sons et l’enregistrement des activités.
+
+Installateur publié et téléchargé pour contrôle : 115001947 octets ; SHA-256 `697fb75cac5a45fbde307a2769cea4fe56a71e9847ee1d724640f092d1a43d6d`, conforme à `SHA256SUMS.txt`. Compilation réussie : https://github.com/Ritterschaft69/RoisDeLaPedale_desk/actions/runs/40838323936.
