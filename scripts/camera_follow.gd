@@ -1,5 +1,20 @@
 ## Comfort camera: independent road frame, fixed framing and a level horizon.
 extends RefCounted
+enum View { CHASE, FIRST_PERSON, DISTANT }
+const VIEW_NAMES := ["Vue arrière", "Vue du cycliste", "Vue arrière éloignée"]
+var view := View.CHASE
+var reframe := false
+
+func set_view(value: int) -> void:
+ view = clampi(value,View.CHASE,View.DISTANT)
+ reframe = true
+
+func field_of_view() -> float:
+ return 65.0 if view==View.FIRST_PERSON else 48.0
+
+func cycle_view() -> void:
+ set_view((view+1)%VIEW_NAMES.size())
+
 const DEFAULT_LATERAL := 1.55
 const LATERAL_DEAD_ZONE := .55
 const HEADING_DEAD_ZONE := deg_to_rad(.8)
@@ -30,7 +45,7 @@ func step(route: RefCounted, station: float, rider_lateral: float, speed: float,
  var after: Vector3 = route.smooth_position(station+4)
  var desired_height := (before.y+2*centre.y+after.y)*.25
  var reset := immediate or not initialised or route_id!=route.get_instance_id() or absf(station-last_station)>30
- if not reset and speed<=.001 and absf(station-last_station)<.00001:
+ if not reset and not reframe and speed<=.001 and absf(station-last_station)<.00001:
   return pose
  if reset:
   yaw = desired_yaw
@@ -62,6 +77,16 @@ func step(route: RefCounted, station: float, rider_lateral: float, speed: float,
  anchor.y = ground_height+.065
  var eye := anchor-forward*BACK_DISTANCE+Vector3.UP*2.2-right*.45
  var target := anchor+forward*LOOK_AHEAD+Vector3.UP*1.3
+ if view==View.DISTANT:
+  eye = anchor-forward*7.5+Vector3.UP*3.2-right*.45
+ elif view==View.FIRST_PERSON:
+  # Use the rider's lane, but never inherit head bob, pedalling or bicycle roll.
+  anchor = centre+road_right*rider_lateral
+  anchor.y = ground_height+.065
+  eye = anchor+forward*.45+Vector3.UP*1.5
+  target = anchor+forward*14+Vector3.UP*1.5
+  target.y += clampf(route.smooth_position(station+14).y-centre.y,-3,3)
+ reframe = false
  # Position and target share the same filtered frame. No unsmoothed look_at
  # target, no rider lean/pedalling input, no zoom, and no camera roll.
  pose = Transform3D(Basis.looking_at(target-eye,Vector3.UP),eye)

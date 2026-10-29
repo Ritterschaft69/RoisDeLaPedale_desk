@@ -41,6 +41,7 @@ var smoke_frames := -1
 
 func _ready() -> void:
 	settings.load("user://settings.cfg")
+	camera_follow.set_view(settings.get_value("graphics","camera_view",0))
 	add_child(ambience)
 	ambience.configure(settings.get_value("audio","enabled",true),settings.get_value("audio","volume",0.5))
 	var saved_circuit: String = settings.get_value("route","selected_id","saint_die")
@@ -401,6 +402,7 @@ func save_settings() -> void:
 	settings.set_value("rider","mass_kg",rider_mass)
 	settings.set_value("rider","demo_watts",input.demo_watts)
 	settings.set_value("graphics","quality",world.quality)
+	settings.set_value("graphics","camera_view",camera_follow.view)
 	settings.set_value("graphics","fullscreen",DisplayServer.window_get_mode() == DisplayServer.WINDOW_MODE_FULLSCREEN)
 	var status := settings.save("user://settings.cfg")
 	if status != OK: push_warning("Échec d’enregistrement des paramètres : "+error_string(status))
@@ -413,6 +415,9 @@ func _unhandled_key_input(event: InputEvent) -> void:
 	if not event is InputEventKey or not event.pressed: return
 	match event.keycode:
 		KEY_F11: toggle_fullscreen()
+		KEY_V:
+			if not event.echo and screen in ["ride","paused"]:
+				cycle_camera_view()
 		KEY_H:
 			if screen=="ride" and not event.echo:
 				hud.visible = not hud.visible
@@ -443,6 +448,15 @@ func _physics_process(dt: float) -> void:
 	recorder.tick(dt,distance-route.start_m,speed,watts,cadence,route.sample(distance) if recorder.geographic_route else route.sample_raw(distance),lane.lateral)
 	if distance >= route.length_m: finish_session()
 
+func cycle_camera_view() -> void:
+	camera_follow.cycle_view()
+	camera.fov = camera_follow.field_of_view()
+	# Reframe at the same interpolated position without disturbing the filters.
+	camera.transform = camera_follow.step(route,camera_follow.last_station,lane.lateral,speed,0)
+	rider.visible = camera_follow.view!=CameraFollow.View.FIRST_PERSON
+	save_settings()
+	hud.queue_redraw()
+
 func position_scene(dt: float, immediate: bool = false) -> void:
 	if immediate:
 		previous_distance = distance
@@ -455,6 +469,8 @@ func position_scene(dt: float, immediate: bool = false) -> void:
 		var fraction := Engine.get_physics_interpolation_fraction()
 		station = lerpf(previous_distance,distance,fraction)
 		lateral = lerpf(previous_lateral,lane.lateral,fraction)
+	camera.fov = camera_follow.field_of_view()
+	rider.visible = camera_follow.view!=CameraFollow.View.FIRST_PERSON
 	rider.position = world.roadside(station,lateral)+Vector3.UP*0.065
 	var forward := route.direction(station)
 	var right := Vector3(-forward.z,0,forward.x).normalized()

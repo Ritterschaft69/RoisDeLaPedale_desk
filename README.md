@@ -5,6 +5,10 @@
 
 Prototype **desktop natif**, Godot **4.6.3**, quatre circuits et données géographiques hors ligne. Aucun serveur ni navigateur requis.
 
+## Vues caméra — 0.6.4
+
+La touche **V** fait défiler la vue actuelle, la vue du cycliste et une vue arrière plus éloignée. La stabilisation est conservée et le choix reste mémorisé.
+
 ## Ambiances sonores — 0.6.3
 
 Dix enregistrements CC0 fournis par l’utilisateur accompagnent les paysages : campagne, village, forêt, lisière, eau et vent. Les transitions sont progressives. Les sons s’arrêtent dans les menus et pendant la pause ; le volume et l’activation sont mémorisés dans **Paramètres**. Les ambiances illustrent le décor, sans prétendre reproduire la faune ou la météo observées sur place. [Notes 0.6.3](docs/RELEASE_v0.6.3.md) · [Licences des sons](assets/audio/LICENSE.md).
@@ -48,7 +52,7 @@ Ouvrir `project.godot` dans Godot 4.6.3 standard, ou exécuter :
 godot --path .
 ```
 
-**Choisir un circuit**, puis **Démarrer en mode démo**. Flèches haut/bas : watts simulés ; Espace/Échap : pause ; F11 : plein écran ; H : masquer l’interface. Conduite à droite et évitement automatiques ; passants et faune procéduraux. Le dernier circuit est mémorisé. Activités et paramètres sont stockés dans le répertoire applicatif de l’utilisateur.
+**Choisir un circuit**, puis **Démarrer en mode démo**. Flèches haut/bas : watts simulés ; Espace/Échap : pause ; F11 : plein écran ; H : masquer l’interface ; **V : vue du cycliste, arrière éloignée, puis arrière actuelle**. Conduite à droite et évitement automatiques ; passants et faune procéduraux. Le dernier circuit est mémorisé. Activités et paramètres sont stockés dans le répertoire applicatif de l’utilisateur.
 
 ## Vérifier
 

@@ -106,7 +106,7 @@ func _draw() -> void:
 	panel(Rect2(w-338,h-147,306,104))
 	text_at(Vector2(w-318,h-118),"MODE DÉMO · %d W" % app.input.demo_watts,12,GOLD,true)
 	text_at(Vector2(w-318,h-91),"↑ ↓  Puissance     Espace  Pause",12,CREAM)
-	text_at(Vector2(w-318,h-66),"F11  Plein écran     H  Interface",12,MUTED)
+	text_at(Vector2(w-318,h-66),"V  Vue   F11  Plein écran   H  Interface",12,MUTED)
 	if app.screen == "paused":
 		draw_rect(Rect2(Vector2.ZERO,size),Color(0.03,0.07,0.07,0.38))
 

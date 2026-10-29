@@ -10,7 +10,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: release-v0.6.3
+  group: release-v0.6.4
   cancel-in-progress: false
 
 jobs:
@@ -85,13 +85,11 @@ jobs:
       - name: Upload installer and publish prerelease
         shell: bash
         run: |
-          if ! gh release view v0.6.3 > /dev/null 2>&1; then
-            gh release create v0.6.3 --target "$GITHUB_SHA" --title "Rois de la Pédale v0.6.3 — Ambiances sonores CC0" --notes-file docs/RELEASE_v0.6.3.md --draft --prerelease
+          if ! gh release view v0.6.4 > /dev/null 2>&1; then
+            gh release create v0.6.4 --target "$GITHUB_SHA" --title "Rois de la Pédale v0.6.4 — Trois vues caméra" --notes-file docs/RELEASE_v0.6.4.md --draft --prerelease
           fi
           cd build
-          sha256sum RoisDeLaPedale-0.6.3-Setup.exe > SHA256SUMS.txt
-          gh release upload v0.6.3 RoisDeLaPedale-0.6.3-Setup.exe SHA256SUMS.txt --clobber
-          gh release upload v0.6.3 ../docs/previews/v0.6.2-home-sweet-home.png --clobber
-          gh release upload v0.6.3 ../docs/previews/v0.6.2-circuits.png --clobber
-          gh release upload v0.6.3 ../docs/previews/v0.6.3-audio.png --clobber
-          gh release edit v0.6.3 --draft=false --prerelease
+          sha256sum RoisDeLaPedale-0.6.4-Setup.exe > SHA256SUMS.txt
+          gh release upload v0.6.4 RoisDeLaPedale-0.6.4-Setup.exe SHA256SUMS.txt --clobber
+          gh release upload v0.6.4 ../docs/previews/v0.6.4-view-*.png --clobber
+          gh release edit v0.6.4 --draft=false --prerelease
