@@ -3,7 +3,7 @@
 Les routes du décor ne sont plus placées sur des altitudes IGN indépendantes du maillage visible. Elles sont découpées sur les triangles du terrain réellement affiché et suivent ses faces jusque dans les creux et sur les bosses. La séparation résiduelle est de l’ordre de 2 à 3 cm pour éviter les conflits de profondeur.
 
 - Asphalte et accotements partagés avec la route principale, coordonnées de texture cohérentes et normales dirigées vers le haut.
-- Largeurs selon les attributs OSM disponibles ; estimations explicites sinon. Les chemins et pistes non revêtus conservent un matériau distinct et restent sans marquage routier.
+- Largeurs selon les attributs OSM disponibles ; estimations explicites sinon. Les chemins et pistes non revêtus ont un matériau distinct et restent sans marquage routier.
 - Jonctions des segments par bords communs, angles limités et lissage visuel borné à 45 cm ; les données OSM sources restent inchangées.
 - Marquages des chaussées appropriées ; ouvertures des lignes de rive et des bandes de gravier à la rencontre des routes latérales.
 - Arrière-plan découpé autour du terrain proche et raccordé à ses hauteurs de bord, pour éviter les superpositions de relief.
@@ -15,3 +15,5 @@ Contrôle géométrique : les centres des triangles routiers suivent le terrain 
 Les croisements explicitement signalés comme ponts, tunnels ou niveaux distincts ne créent pas de fausse ouverture de carrefour.
 
 Validation : 280 contrôles réussis, dont 18 contrôles dédiés aux routes secondaires, aux bosses du terrain, aux carrefours et aux croisements sans connexion. Captures natives de trois carrefours vérifiées. Export Linux démarré sur les quatre circuits avec les sons et l’enregistrement des activités.
+
+Installateur publié et téléchargé pour contrôle : 115019060 octets ; SHA-256 `de9a5dfd29474b8648dbcf4946be8b8439a08f4e7ba1a4070d9ab41fb73bf0fa`, conforme à `SHA256SUMS.txt`. Compilation réussie : https://github.com/Ritterschaft69/RoisDeLaPedale_desk/actions/runs/40843990565.

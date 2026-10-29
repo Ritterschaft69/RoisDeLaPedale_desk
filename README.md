@@ -1,13 +1,13 @@
 # Rois de la Pédale
 
-**Windows : [télécharger l’installeur v0.6.4](https://github.com/Ritterschaft69/RoisDeLaPedale_desk/releases/download/v0.6.4/RoisDeLaPedale-0.6.4-Setup.exe)** · [Page de la préversion](https://github.com/Ritterschaft69/RoisDeLaPedale_desk/releases/tag/v0.6.4)
+**Windows : [télécharger l’installeur v0.6.5](https://github.com/Ritterschaft69/RoisDeLaPedale_desk/releases/download/v0.6.5/RoisDeLaPedale-0.6.5-Setup.exe)** · [Page de la préversion](https://github.com/Ritterschaft69/RoisDeLaPedale_desk/releases/tag/v0.6.5)
 [Voir les circuits reconstruits et les captures natives](https://github.com/Ritterschaft69/RoisDeLaPedale_desk/releases/tag/v0.6.0)
 
 Prototype **desktop natif**, Godot **4.6.3**, quatre circuits et données géographiques hors ligne. Aucun serveur ni navigateur requis.
 
 ## Routes secondaires — 0.6.5
 
-Les routes du décor sont découpées et plaquées sur les triangles du terrain affiché. Elles partagent l’asphalte et les accotements de la route principale ; les chemins non revêtus gardent leur aspect. Les carrefours ouvrent les bandes de rive de la chaussée principale. Le raccord du relief proche à l’arrière-plan est corrigé. [Notes 0.6.5](docs/RELEASE_v0.6.5.md).
+Les routes du décor sont découpées et plaquées sur les triangles du terrain affiché. Elles partagent l’asphalte et les accotements de la route principale ; les chemins non revêtus ont un aspect distinct. Les carrefours ouvrent les bandes de rive de la chaussée principale. Le raccord du relief proche à l’arrière-plan est corrigé. [Notes 0.6.5](docs/RELEASE_v0.6.5.md).
 
 ## Vues caméra — 0.6.4
 
