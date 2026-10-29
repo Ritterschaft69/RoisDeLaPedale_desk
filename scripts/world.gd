@@ -19,6 +19,7 @@ var shoulder_material: Material
 var stripe_material: Material
 var quality := 1
 var geographic := preload("res://scripts/geoworld.gd").new("")
+var road_overlay := preload("res://scripts/terrain_overlay.gd").new()
 var road_cells: Dictionary = {}
 var tree_batches: Dictionary = {}
 var terrain_samples: Array[Dictionary] = []
@@ -128,6 +129,7 @@ func rebuild(distance: float, force: bool, ticket: int, target: Node3D) -> void:
 	var tick: Signal = Signal() if force else stream_frame
 	var guard := func(): return stream_valid(ticket)
 	tree_batches.clear()
+	road_overlay.clear()
 	var start := maxf(route.start_m-48,floorf((distance-100)/6)*6)
 	var end := minf(route.length_m,distance+(440 if quality>0 else 280))
 	terrain_samples.clear()
@@ -145,6 +147,10 @@ func rebuild(distance: float, force: bool, ticket: int, target: Node3D) -> void:
 				var key := Vector2i(x,z)
 				if not terrain_cells.has(key): terrain_cells[key] = []
 				terrain_cells[key].append(i)
+	if force:geographic.prepare_junctions(self,roadside(distance,0))
+	else:
+		await geographic.prepare_junctions(self,roadside(distance,0),tick,guard)
+		if not await next_stage(ticket):return
 	if force: terrain(distance,start,end)
 	else:
 		await terrain(distance,start,end,tick,guard)
@@ -161,10 +167,12 @@ func rebuild(distance: float, force: bool, ticket: int, target: Node3D) -> void:
 		var angle := route.direction(s).angle_to(route.direction(minf(end,s+4)))
 		var next := minf(minf(end,s+clampf(.08/maxf(angle/4,.0133),.75,3)),(floorf(s/3)+1)*3)
 		quad(surfaces[0],s,next,-3.3,3.3,0.045)
-		quad(surfaces[1],s,next,-3.95,-3.3,0.018)
-		quad(surfaces[1],s,next,3.3,3.95,0.018)
-		quad(surfaces[2],s,next,-3.03,-2.94,0.053)
-		quad(surfaces[2],s,next,2.94,3.03,0.053)
+		var left_junction := geographic.junction_at((s+next)*.5,-1)
+		var right_junction := geographic.junction_at((s+next)*.5,1)
+		quad(surfaces[0] if left_junction else surfaces[1],s,next,-3.95,-3.3,0.018)
+		quad(surfaces[0] if right_junction else surfaces[1],s,next,3.3,3.95,0.018)
+		if not left_junction:quad(surfaces[2],s,next,-3.03,-2.94,0.053)
+		if not right_junction:quad(surfaces[2],s,next,2.94,3.03,0.053)
 		if posmod(int(floor(s/3)),4)==0:
 			quad(surfaces[2],s,next,-0.065,0.065,0.056)
 		s = next
@@ -295,6 +303,7 @@ func terrain(distance: float, start: float, end: float, tick: Signal = Signal(),
 				var p := roadside(station,float(edge[0]))
 				terrain_point(points,heights,keys,Vector2(p.x,p.z),p.y-float(edge[1]))
 		station += 3
+	road_overlay.hull = Geometry2D.convex_hull(points)
 	var indices := Geometry2D.triangulate_delaunay(points)
 	var surface := SurfaceTool.new()
 	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
@@ -309,6 +318,7 @@ func terrain(distance: float, start: float, end: float, tick: Signal = Signal(),
 		var b := points[indices[i+1]]
 		var c := points[indices[i+2]]
 		var winding := [0,1,2] if (b-a).cross(c-a)>0 else [0,2,1]
+		road_overlay.add_triangle(Vector3(a.x,heights[indices[i]],a.y),Vector3(b.x,heights[indices[i+1]],b.y),Vector3(c.x,heights[indices[i+2]],c.y))
 		for j in winding:
 			var index := indices[i+j]
 			var p := points[index]
@@ -458,6 +468,7 @@ func backdrop(distance: float, tick: Signal = Signal(), guard: Callable = Callab
 		radii.append_array([2500.0,4000.0,7000.0,11000.0,16000.0])
 	# Sample each ring vertex once, instead of six times per quad.
 	var segments := 128 if quality>0 else 64
+	var ring_vertices := PackedVector3Array()
 	for ring in range(radii.size()):
 		if not tick.is_null() and Time.get_ticks_usec()-budget>6000:
 			await tick
@@ -473,11 +484,42 @@ func backdrop(distance: float, tick: Signal = Signal(), guard: Callable = Callab
 			var tint := Color("728c74").lerp(Color("94b0b5"),float(ring)/(radii.size()-1))
 			surface.set_color(tint.srgb_to_linear())
 			surface.add_vertex(at)
+			ring_vertices.append(at)
+	var next_vertex := ring_vertices.size()
 	for ring in range(radii.size()-1):
 		for i in range(segments):
+			if not tick.is_null() and Time.get_ticks_usec()-budget>6000:
+				await tick
+				if not guard.is_valid() or not guard.call():return
+				budget=Time.get_ticks_usec()
 			var a := ring*(segments+1)+i
 			var b := a+segments+1
-			for index in [a,b,b+1,a,b+1,a+1]: surface.add_index(index)
+			if ring>=2:
+				for index in [a,b,b+1,a,b+1,a+1]:surface.add_index(index)
+				continue
+			# The coarse horizon must not poke through the near terrain. Trim its
+			# inner bands and stitch their boundary to the actual near mesh.
+			for face in [[a,b,b+1],[a,b+1,a+1]]:
+				var triangle := PackedVector3Array([ring_vertices[face[0]],ring_vertices[face[1]],ring_vertices[face[2]]])
+				var polygon := PackedVector2Array()
+				for p in triangle:polygon.append(Vector2(p.x,p.z))
+				for piece in Geometry2D.clip_polygons(polygon,road_overlay.hull):
+					var indices := Geometry2D.triangulate_polygon(piece)
+					for j in range(0,indices.size(),3):
+						var actual := PackedVector3Array()
+						var order := [indices[j],indices[j+1],indices[j+2]]
+						if (piece[order[1]]-piece[order[0]]).cross(piece[order[2]]-piece[order[0]])<0:order.reverse()
+						for vertex in order:
+							var p: Vector2 = piece[vertex]
+							var y: float = road_overlay.height(p,true)
+							if not is_finite(y):y=road_overlay.plane_height(p,triangle)
+							var v := Vector3(p.x,y,p.y)
+							var blend := clampf((p.distance_to(Vector2(center.x,center.z))-radii[ring])/(radii[ring+1]-radii[ring]),0,1)
+							var tint := Color("728c74").lerp(Color("94b0b5"),(ring+blend)/(radii.size()-1))
+							surface.set_color(tint.srgb_to_linear());surface.add_vertex(v);surface.add_index(next_vertex)
+							next_vertex+=1;actual.append(v)
+						road_overlay.add_triangle(actual[0],actual[1],actual[2],true)
+
 	surface.generate_normals()
 	var hills := M.mesh(build_target,surface.commit(),grass_material,Vector3.ZERO)
 	hills.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF

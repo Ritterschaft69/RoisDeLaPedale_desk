@@ -5,6 +5,10 @@
 
 Prototype **desktop natif**, Godot **4.6.3**, quatre circuits et données géographiques hors ligne. Aucun serveur ni navigateur requis.
 
+## Routes secondaires — 0.6.5
+
+Les routes du décor sont découpées et plaquées sur les triangles du terrain affiché. Elles partagent l’asphalte et les accotements de la route principale ; les chemins non revêtus gardent leur aspect. Les carrefours ouvrent les bandes de rive de la chaussée principale. Le raccord du relief proche à l’arrière-plan est corrigé. [Notes 0.6.5](docs/RELEASE_v0.6.5.md).
+
 ## Vues caméra — 0.6.4
 
 La touche **V** fait défiler la vue actuelle, la vue du cycliste et une vue arrière plus éloignée. La stabilisation est conservée et le choix reste mémorisé.
@@ -66,6 +70,7 @@ godot --headless --path . --script tests/test_desktop.gd
 godot --headless --path . --script tests/test_circuits.gd
 godot --headless --path . --script tests/test_navigation.gd
 godot --headless --path . --script tests/test_geometry.gd
+godot --headless --path . --script tests/test_secondary_roads.gd
 godot --headless --path . --script tests/test_route_smoothing.gd
 godot --headless --path . --script tests/test_rider_model.gd
 godot --headless --path . --script tests/test_garment_joints.gd

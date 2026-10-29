@@ -15,6 +15,9 @@ var last_building_candidates := 0
 var vegetation_ready := false
 var road_cells: Dictionary = {}
 var road_segments := PackedInt64Array()
+var road_shapes: Dictionary = {}
+var road_shape_order: Array[int] = []
+var junctions: Array[Dictionary] = []
 const CELL := 128.0
 
 func index_bounds(index: Dictionary, bounds: Rect2, item: int) -> void:
@@ -185,48 +188,154 @@ func buildings(parent: Node3D, station: float, center: Vector3 = Vector3.INF, ti
 		mesh.name = "BuildingsBatch"
 		mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if material.next_pass!=null else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 
-func side_roads(parent: Node3D, world: Node3D, center: Vector3, tick: Signal = Signal(), guard: Callable = Callable()) -> void:
-	var budget := Time.get_ticks_usec()
-	if roads.is_empty(): return
-	var surface := SurfaceTool.new()
-	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
-	var count := 0
-	var candidates: Dictionary = {}
+static func road_style(tags: Dictionary) -> Dictionary:
+	var kind: String = tags.get("highway","")
+	var narrow := kind in ["path","footway","cycleway","track","pedestrian"]
+	var width := 1.8 if narrow else 5.0
+	if kind=="track":width=2.6
+	elif kind in ["primary","secondary","tertiary"]:width=6.0
+	elif kind in ["service","living_street"]:width=3.5
+	var lanes := str(tags.get("lanes",""))
+	if not narrow and lanes.is_valid_int():width=clampf(float(lanes)*2.8+.4,2.5,10)
+	var explicit_width := str(tags.get("width","")).replace(",",".").get_slice(" ",0)
+	if explicit_width.is_valid_float():width=clampf(float(explicit_width),1,12)
+	var finish: String = tags.get("surface","")
+	var dirt := finish in ["unpaved","gravel","fine_gravel","ground","dirt","earth","grass","sand","compacted"] or (finish=="" and kind in ["path","track","footway"])
+	var marked := not dirt and not narrow and kind not in ["service","living_street","residential"] and width>=4.8
+	return {"width":width,"dirt":dirt,"marked":marked,"center_marked":marked and width>=5.5,"shoulder":.35 if not narrow else .15}
+
+func road_shape(index: int) -> Dictionary:
+	if road_shapes.has(index):return road_shapes[index]
+	var source: Array = roads[index].points
+	var points := PackedVector2Array()
+	var normals := PackedVector2Array()
+	var stations := PackedFloat32Array()
+	for i in range(source.size()):
+		var p := Vector2(source[i][0],source[i][2])
+		if i>0 and i<source.size()-1:
+			var previous := Vector2(source[i-1][0],source[i-1][2])
+			var next := Vector2(source[i+1][0],source[i+1][2])
+			p+=((previous+next-2*p)*.25).limit_length(.45)
+		points.append(p)
+		stations.append(0 if i==0 else stations[i-1]+p.distance_to(points[i-1]))
+	for i in range(points.size()):
+		var before := (points[i]-points[maxi(0,i-1)]).normalized()
+		var after := (points[mini(i+1,points.size()-1)]-points[i]).normalized()
+		if before==Vector2.ZERO:before=after
+		if after==Vector2.ZERO:after=before
+		var edge := Vector2(-after.y,after.x)
+		var join := Vector2(-(before+after).y,(before+after).x).normalized()
+		normals.append(join/maxf(absf(join.dot(edge)),.5) if join!=Vector2.ZERO else edge)
+	var shape := {"points":points,"normals":normals,"stations":stations,"style":road_style(roads[index].tags)}
+	road_shapes[index]=shape;road_shape_order.append(index)
+	if road_shape_order.size()>64:road_shapes.erase(road_shape_order.pop_front())
+	return shape
+
+func road_strip(overlay: RefCounted, surface: SurfaceTool, shape: Dictionary, i: int, left: float, right: float, lift: float, t0: float = 0, t1: float = 1) -> int:
+	var a: Vector2 = shape.points[i].lerp(shape.points[i+1],t0)
+	var b: Vector2 = shape.points[i].lerp(shape.points[i+1],t1)
+	var n0: Vector2 = shape.normals[i].lerp(shape.normals[i+1],t0)
+	var n1: Vector2 = shape.normals[i].lerp(shape.normals[i+1],t1)
+	var forward := (b-a).normalized()
+	var polygon := PackedVector2Array([a+n0*left,b+n1*left,b+n1*right,a+n0*right])
+	return overlay.paint(surface,polygon,lift,a,forward,Vector2(-forward.y,forward.x),lerpf(shape.stations[i],shape.stations[i+1],t0))
+
+func road_candidates(center: Vector3) -> Array:
+	var result: Dictionary = {}
 	for x in range(floori((center.x-440)/CELL),floori((center.x+440)/CELL)+1):
 		for z in range(floori((center.z-440)/CELL),floori((center.z+440)/CELL)+1):
-			for item in road_cells.get(Vector2i(x,z),[]): candidates[item] = true
-	for item in candidates:
+			for item in road_cells.get(Vector2i(x,z),[]):result[item]=true
+	return result.keys()
+
+func prepare_junctions(world: Node3D, center: Vector3, tick: Signal = Signal(), guard: Callable = Callable()) -> void:
+	junctions.clear()
+	var budget := Time.get_ticks_usec()
+	for item in road_candidates(center):
 		if not tick.is_null() and Time.get_ticks_usec()-budget>6000:
 			await tick
-			if not guard.is_valid() or not guard.call(): return
-			budget = Time.get_ticks_usec()
+			if not guard.is_valid() or not guard.call():return
+			budget=Time.get_ticks_usec()
 		var packed: int = road_segments[item]
-		var road: Dictionary = roads[packed>>32]
-		var type: String = road.tags.get("highway","")
-		var width := 1.8 if type in ["path","footway","cycleway","track"] else 5.0
-		if road.tags.has("width") and str(road.tags.width).is_valid_float(): width = clampf(float(road.tags.width),1.0,12.0)
-		for i in [packed&0xffffffff]:
-			var pa: Array = road.points[i]
-			var pb: Array = road.points[i+1]
-			var a := Vector3(pa[0],pa[1],pa[2])
-			var b := Vector3(pb[0],pb[1],pb[2])
-			if a.distance_to(center)>430 and b.distance_to(center)>430: continue
-			# The ridden carriageway has its own smoothed mesh and markings.
-			var mid := (a+b)*.5
-			if not world.clear_of_road(mid,3.0): continue
-			var right := Vector3(-(b-a).z,0,(b-a).x).normalized()*width*.5
-			var vertices := [a-right,b-right,b+right,a+right]
-			for j in range(4):
-				var p: Vector3 = vertices[j]
-				p.y = elevation_at(Vector2(p.x,p.z),0,0,p.y)+.025
-				vertices[j] = p
-			for index in [0,1,2,0,2,3]:
-				var p: Vector3 = vertices[index]
-				surface.add_vertex(p)
-			count += 1
-	if count>0:
-		surface.generate_normals()
-		M.mesh(parent,surface.commit(),M.asphalt(),Vector3.ZERO)
+		var tags: Dictionary = roads[packed>>32].tags
+		if str(tags.get("bridge","no")) not in ["no","false","0"] or str(tags.get("tunnel","no")) not in ["no","false","0"] or str(tags.get("layer","0"))!="0":continue
+		var shape := road_shape(packed>>32)
+		if shape.style.dirt:continue
+		var i := int(packed&0xffffffff)
+		var a: Vector2 = shape.points[i]
+		var b: Vector2 = shape.points[i+1]
+		var n: Dictionary = world.nearest((a+b)*.5,true)
+		if n.is_empty() or n.distance>8:continue
+		if world.route.structure_at(n.s)!="":continue
+		var direction: Vector3 = world.route.direction(n.s)
+		var main := Vector2(direction.x,direction.z).normalized()
+		var branch := (b-a).normalized()
+		if absf(main.dot(branch))>.8:continue
+		var na: Dictionary = world.nearest(a,true)
+		var nb: Dictionary = world.nearest(b,true)
+		if na.is_empty() or nb.is_empty() or minf(na.distance,nb.distance)>5.5:continue
+		var left := minf(na.cross,nb.cross)<-1.5
+		var right := maxf(na.cross,nb.cross)>1.5
+		if not left and not right:continue
+		var half: float = shape.style.width*.5/maxf(absf(main.cross(branch)),.4)+1.0
+		var start: float = n.s-half
+		var end: float = n.s+half
+		var merged := false
+		for junction in junctions:
+			if junction.left==left and junction.right==right and junction.end>=start and junction.start<=end:
+				junction.start=minf(junction.start,start);junction.end=maxf(junction.end,end);merged=true;break
+		if not merged:junctions.append({"start":start,"end":end,"left":left,"right":right})
+
+func junction_at(station: float, side: int) -> bool:
+	for junction in junctions:
+		if station>=junction.start and station<=junction.end and (junction.left if side<0 else junction.right):return true
+	return false
+
+func side_roads(parent: Node3D, world: Node3D, center: Vector3, tick: Signal = Signal(), guard: Callable = Callable()) -> void:
+	var budget := Time.get_ticks_usec()
+	if roads.is_empty():return
+	var surfaces := [SurfaceTool.new(),SurfaceTool.new(),SurfaceTool.new(),SurfaceTool.new()]
+	var counts := [0,0,0,0]
+	for surface in surfaces:surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+	for item in road_candidates(center):
+		if not tick.is_null() and Time.get_ticks_usec()-budget>6000:
+			await tick
+			if not guard.is_valid() or not guard.call():return
+			budget=Time.get_ticks_usec()
+		var packed: int = road_segments[item]
+		var shape := road_shape(packed>>32)
+		var i := int(packed&0xffffffff)
+		var a: Vector2 = shape.points[i]
+		var b: Vector2 = shape.points[i+1]
+		if a.distance_to(Vector2(center.x,center.z))>430 and b.distance_to(Vector2(center.x,center.z))>430:continue
+		if a.distance_squared_to(b)<.001:continue
+		# Only suppress segments wholly inside the ridden carriageway. Testing
+		# just a midpoint used to remove the end of intersecting side roads.
+		var na: Dictionary = world.nearest(a,true)
+		var nb: Dictionary = world.nearest(b,true)
+		if not na.is_empty() and not nb.is_empty() and na.distance<2.6 and nb.distance<2.6:continue
+		var style: Dictionary = shape.style
+		var half: float = style.width*.5
+		var base := 1 if style.dirt else 0
+		counts[base]+=road_strip(world.road_overlay,surfaces[base],shape,i,-half,half,.025)
+		counts[2]+=road_strip(world.road_overlay,surfaces[2],shape,i,-half-style.shoulder,-half,.018)
+		counts[2]+=road_strip(world.road_overlay,surfaces[2],shape,i,half,half+style.shoulder,.018)
+		if style.marked:
+			for side in [-1,1]:
+				counts[3]+=road_strip(world.road_overlay,surfaces[3],shape,i,side*(half-.20)-.035,side*(half-.20)+.035,.031)
+			var start: float = shape.stations[i]
+			var end: float = shape.stations[i+1]
+			var dash := floorf(start/12)*12
+			while style.center_marked and dash<end:
+				var lo := maxf(start,dash)
+				var hi := minf(end,dash+3)
+				if hi>lo:counts[3]+=road_strip(world.road_overlay,surfaces[3],shape,i,-.055,.055,.032,(lo-start)/(end-start),(hi-start)/(end-start))
+				dash+=12
+	for i in range(4):
+		if counts[i]==0:continue
+		surfaces[i].generate_normals()
+		var node := M.mesh(parent,surfaces[i].commit(),[world.road_material,world.shoulder_material,world.shoulder_material,world.stripe_material][i],Vector3.ZERO)
+		node.name=["SecondaryAsphalt","SecondaryTracks","SecondaryShoulders","SecondaryMarkings"][i]
+		node.cast_shadow=GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 
 func water_surfaces(parent: Node3D, center: Vector3) -> void:
 	var surface := SurfaceTool.new()
