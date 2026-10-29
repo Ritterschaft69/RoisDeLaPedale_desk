@@ -41,6 +41,7 @@ var smoke_frames := -1
 
 func _ready() -> void:
 	settings.load("user://settings.cfg")
+	rider.set_variant(settings.get_value("rider","model","original"))
 	camera_follow.set_view(settings.get_value("graphics","camera_view",0))
 	add_child(ambience)
 	ambience.configure(settings.get_value("audio","enabled",true),settings.get_value("audio","volume",0.5))
@@ -82,6 +83,10 @@ func _ready() -> void:
 				if not select_circuit(argument.get_slice("=",1)):
 					get_tree().quit(2)
 					return
+			elif argument.begins_with("--smoke-rider="):
+				if not rider.set_variant(argument.get_slice("=",1)):
+					get_tree().quit(5)
+					return
 	for argument in OS.get_cmdline_user_args():
 		if argument == "--smoke":
 			if route.geography.is_empty() or world.geographic.terrain_source == null or world.geographic.terrain_source.horizon_values.is_empty():
@@ -96,6 +101,7 @@ func _ready() -> void:
 					get_tree().quit(4)
 					return
 			print("AUDIO_SMOKE clips=",audio_catalog.clips.size())
+			print("RIDER_SMOKE id=",rider.variant_id," scene=",rider.model.scene_file_path)
 			start_session()
 			smoke_frames = 160
 		if argument == "--screenshot":
@@ -136,7 +142,7 @@ func card(title: String, subtitle: String, wide: bool = false) -> VBoxContainer:
 	clear_overlay()
 	var panel := PanelContainer.new()
 	overlay.add_child(panel)
-	panel.position = Vector2(32,65) if screen in ["home","circuits"] else Vector2(440,185)
+	panel.position = Vector2(32,65) if screen in ["home","circuits","riders"] else Vector2(440,185)
 	panel.custom_minimum_size = Vector2(510 if not wide else 650,0)
 	var style := StyleBoxFlat.new()
 	style.bg_color = Color(0.045,0.09,0.085,0.96)
@@ -150,7 +156,7 @@ func card(title: String, subtitle: String, wide: bool = false) -> VBoxContainer:
 	column.add_theme_constant_override("separation",14)
 	panel.add_child(column)
 	var eyebrow := Label.new()
-	eyebrow.text = "ROIS DE LA PÉDALE  /  0.2"
+	eyebrow.text = "ROIS DE LA PÉDALE  /  "+str(ProjectSettings.get_setting("application/config/version",""))
 	eyebrow.add_theme_font_size_override("font_size",12)
 	eyebrow.modulate = Color("efbe76")
 	column.add_child(eyebrow)
@@ -194,9 +200,17 @@ func show_home() -> void:
 	hud.show()
 	overlay.show()
 	screen = "home"
+	position_scene(0,true)
 	var column := card("Prenez la route.",str(selected_circuit.short_name)+"\n%d circuits installés, disponibles hors ligne." % circuits.size())
 	label_in(column,"%.1f km   ·   D+ %.0f m\nGPX source : %s points conservés" % [route.length_m/1000,route.ascent_m,route.source_points.size()])
-	button_in(column,"Choisir un circuit  ·  %d parcours" % circuits.size(),show_circuits)
+	var choices := HBoxContainer.new()
+	choices.add_theme_constant_override("separation",12)
+	column.add_child(choices)
+	var circuits_button := button_in(choices,"Circuits · %d" % circuits.size(),show_circuits)
+	circuits_button.size_flags_horizontal=Control.SIZE_EXPAND_FILL
+	var rider_button := button_in(choices,"Cycliste · "+Rider.CHARACTERS[rider.variant_id].short_name,show_riders)
+	rider_button.name="ChooseRider"
+	rider_button.size_flags_horizontal=Control.SIZE_EXPAND_FILL
 	var power_label := label_in(column,"Puissance démo : %d W" % input.demo_watts)
 	var slider := HSlider.new()
 	slider.min_value = 0
@@ -216,6 +230,27 @@ func show_home() -> void:
 	if not route.geography.is_empty(): scenery = "Route OSM · relief IGN LiDAR HD sur tout le circuit.\nBâtiments IGN ; arbres et façades interprétés."
 	label_in(column,"Puissance simulée\n"+scenery,true)
 	button_in(column,"Quitter",func(): save_settings(); get_tree().quit())
+
+func show_riders() -> void:
+	screen="riders"
+	var column:=card("Votre cycliste.","Deux modèles animés · choix mémorisé.")
+	for id in Rider.CHARACTERS:
+		var character_id: String=id
+		var chosen: bool=rider.variant_id==id
+		var text: String=("✓  " if chosen else "")+Rider.CHARACTERS[id].name
+		var button:=button_in(column,text,func():select_rider(character_id),chosen)
+		button.name="Rider_"+id
+		button.custom_minimum_size.y=64
+		label_in(column,"Cycliste d’origine · tenue orange" if id=="original" else "Tenue bleu marine et tricolore · casque blanc · tresse",true)
+	button_in(column,"Utiliser ce cycliste",show_home,true)
+	position_scene(0,true)
+
+func select_rider(id: String) -> bool:
+	if screen in ["ride","paused"]:return false
+	if not rider.set_variant(id):return false
+	save_settings()
+	show_riders()
+	return true
 
 func show_circuits() -> void:
 	screen = "circuits"
@@ -400,6 +435,7 @@ func save_settings() -> void:
 	settings.set_value("audio","volume",ambience.volume)
 	settings.set_value("route","selected_id",selected_circuit.id)
 	settings.set_value("rider","mass_kg",rider_mass)
+	settings.set_value("rider","model",rider.variant_id)
 	settings.set_value("rider","demo_watts",input.demo_watts)
 	settings.set_value("graphics","quality",world.quality)
 	settings.set_value("graphics","camera_view",camera_follow.view)
@@ -453,7 +489,7 @@ func cycle_camera_view() -> void:
 	camera.fov = camera_follow.field_of_view()
 	# Reframe at the same interpolated position without disturbing the filters.
 	camera.transform = camera_follow.step(route,camera_follow.last_station,lane.lateral,speed,0)
-	rider.visible = camera_follow.view!=CameraFollow.View.FIRST_PERSON
+	rider.visible = screen=="riders" or camera_follow.view!=CameraFollow.View.FIRST_PERSON
 	save_settings()
 	hud.queue_redraw()
 
@@ -469,8 +505,8 @@ func position_scene(dt: float, immediate: bool = false) -> void:
 		var fraction := Engine.get_physics_interpolation_fraction()
 		station = lerpf(previous_distance,distance,fraction)
 		lateral = lerpf(previous_lateral,lane.lateral,fraction)
-	camera.fov = camera_follow.field_of_view()
-	rider.visible = camera_follow.view!=CameraFollow.View.FIRST_PERSON
+	camera.fov = 45.0 if screen=="riders" else camera_follow.field_of_view()
+	rider.visible = screen=="riders" or camera_follow.view!=CameraFollow.View.FIRST_PERSON
 	rider.position = world.roadside(station,lateral)+Vector3.UP*0.045
 	var forward := route.direction(station)
 	var right := Vector3(-forward.z,0,forward.x).normalized()
@@ -480,13 +516,17 @@ func position_scene(dt: float, immediate: bool = false) -> void:
 	var bend := forward.cross(route.direction(minf(route.length_m,station+6))).y
 	rider.rotation.z = lerpf(rider.rotation.z,clampf(bend*0.8-lane.velocity*0.10,-0.13,0.13),1-exp(-dt*5))
 	rider.rotation.x = atan(clampf(route.grade(station),-0.25,0.25))
-	if immediate or screen == "ride":
+	if screen=="riders":
+		camera.position=rider.to_global(Vector3(-1.9,1.45,2.5))
+		camera.look_at(rider.to_global(Vector3(0,.85,0)),Vector3.UP)
+	elif immediate or screen == "ride":
 		camera.transform = camera_follow.step(route,station,lateral,speed,dt,immediate)
 
 func _process(dt: float) -> void:
 	ambience.step(dt,world,distance,speed,screen=="ride")
 	position_scene(dt)
 	if screen == "ride": rider.animate(dt,cadence,speed)
+	elif screen=="riders":rider.animate(dt,60,3.5)
 	world.update_at(distance)
 	hud.queue_redraw()
 	if smoke_frames > 0:

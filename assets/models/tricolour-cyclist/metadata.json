@@ -1,0 +1,9 @@
+{
+  "name": "Cycliste tricolore",
+  "source_bicycle_sha256": "bb1b9a9385bc27e0c18f88979c0d1feed14b44c29c7cbbab205b9e0368a6e9e3",
+  "sha256": "3ff41a6a268a2437ff34cebaed2d55f351db4e29cfe160ca3be2fc51c6e1e5e2",
+  "character_triangles": 32172,
+  "character_materials": 13,
+  "reference": "User supplied multi-view image, navy tricolour kit, white vented helmet, brown braid",
+  "authoring": "tools/build_tricolour_cyclist.py; original character geometry removed; donor bicycle, rig and animation retained"
+}

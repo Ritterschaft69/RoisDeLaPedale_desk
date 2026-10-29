@@ -4,6 +4,11 @@ extends Node3D
 ## The supplied asset faces +Z; the simulation faces -Z. Rotate the whole model,
 ## keeping its meshes, skin and animation targets in the same coordinate frame.
 const MODEL = preload("res://assets/models/imported-cyclist/cycliste-universel.glb")
+const CHARACTERS := {
+	"original":{"name":"Orange · Modèle fourni","short_name":"Orange","path":"res://assets/models/imported-cyclist/cycliste-universel.glb"},
+	"tricolour":{"name":"Bleu marine · Tricolore","short_name":"Tricolore","path":"res://assets/models/tricolour-cyclist/cycliste-tricolore.glb"}
+}
+var variant_id := "original"
 const WHEEL_RADIUS := 0.3355
 const PEDAL_CLIP := "PedalForward_60rpm"
 const WHEEL_CLIP := "WheelRoll_1turn"
@@ -17,7 +22,22 @@ var crank := 0.0
 var wheel_phase := 0.0
 
 func _ready() -> void:
-	model = MODEL.instantiate()
+	if not CHARACTERS.has(variant_id):variant_id="original"
+	build_model()
+
+func set_variant(id: String) -> bool:
+	if not CHARACTERS.has(id):return false
+	if id==variant_id and is_instance_valid(model):return true
+	variant_id=id
+	if is_inside_tree():build_model()
+	return true
+
+func build_model() -> void:
+	if is_instance_valid(model):model.free()
+	pedal_player=null;wheel_player=null;skeleton=null
+	wheels.clear();pedals.clear()
+	var scene: PackedScene=MODEL if variant_id=="original" else load(CHARACTERS[variant_id].path)
+	model = scene.instantiate()
 	model.name="ImportedCyclist"
 	model.rotation.y=PI
 	# Tyre outer radius .3355 m, wheel axle .335 m: align contact with y=0.

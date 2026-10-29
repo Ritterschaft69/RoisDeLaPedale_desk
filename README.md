@@ -5,6 +5,10 @@
 
 Prototype **desktop natif**, Godot **4.6.3**, quatre circuits et données géographiques hors ligne. Aucun serveur ni navigateur requis.
 
+## Deux cyclistes au choix — 0.6.7
+
+Depuis **Accueil → Cycliste**, choisir le modèle orange fourni ou la nouvelle cycliste bleu marine à bandes tricolores, casque blanc ajouré et tresse, inspirée des vues de référence. Un aperçu 3D animé permet de comparer les deux modèles. Le choix est mémorisé et les vues avec V sont conservées. [Détails du nouveau modèle](assets/models/tricolour-cyclist/README.md).
+
 ## Cycliste fourni — 0.6.6
 
 Le cycliste et son vélo sont remplacés par le GLB de l’archive fournie, avec ses matériaux et son squelette. Les jambes suivent la cadence et les roues la vitesse, indépendamment. Les trois vues et le masquage en vue du cycliste sont conservés. [Provenance et intégration](assets/models/imported-cyclist/README.md).
@@ -78,6 +82,7 @@ godot --headless --path . --script tests/test_secondary_roads.gd
 godot --headless --path . --script tests/test_route_smoothing.gd
 godot --headless --path . --script tests/test_rider_model.gd
 godot --headless --path . --script tests/test_imported_rider.gd
+godot --headless --path . --script tests/test_rider_choice.gd
 godot --headless --path . --script tests/test_garment_joints.gd
 godot --headless --path . --script tests/test_camera_follow.gd
 godot --headless --path . --script tests/test_circuit_geography.gd

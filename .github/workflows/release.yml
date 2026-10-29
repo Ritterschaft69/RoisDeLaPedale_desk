@@ -10,7 +10,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: release-v0.6.6
+  group: release-v0.6.7
   cancel-in-progress: false
 
 jobs:
@@ -78,6 +78,7 @@ jobs:
           godot --headless --path . --script tests/test_route_smoothing.gd
           godot --headless --path . --script tests/test_rider_model.gd
           godot --headless --path . --script tests/test_imported_rider.gd
+          godot --headless --path . --script tests/test_rider_choice.gd
           godot --headless --path . --script tests/test_garment_joints.gd
           godot --headless --path . --script tests/test_camera_follow.gd
           godot --headless --path . --script tests/test_circuit_geography.gd
@@ -87,11 +88,11 @@ jobs:
       - name: Upload installer and publish prerelease
         shell: bash
         run: |
-          if ! gh release view v0.6.6 > /dev/null 2>&1; then
-            gh release create v0.6.6 --target "$GITHUB_SHA" --title "Rois de la Pédale v0.6.6 — Cycliste GLB fourni" --notes-file docs/RELEASE_v0.6.6.md --draft --prerelease
+          if ! gh release view v0.6.7 > /dev/null 2>&1; then
+            gh release create v0.6.7 --target "$GITHUB_SHA" --title "Rois de la Pédale v0.6.7 — Deux cyclistes au choix" --notes-file docs/RELEASE_v0.6.7.md --draft --prerelease
           fi
           cd build
-          sha256sum RoisDeLaPedale-0.6.6-Setup.exe > SHA256SUMS.txt
-          gh release upload v0.6.6 RoisDeLaPedale-0.6.6-Setup.exe SHA256SUMS.txt --clobber
-          gh release upload v0.6.6 ../docs/previews/v0.6.6-rider-*.png --clobber
-          gh release edit v0.6.6 --draft=false --prerelease
+          sha256sum RoisDeLaPedale-0.6.7-Setup.exe > SHA256SUMS.txt
+          gh release upload v0.6.7 RoisDeLaPedale-0.6.7-Setup.exe SHA256SUMS.txt --clobber
+          gh release upload v0.6.7 ../docs/previews/v0.6.7-tricolour-*.png ../docs/previews/v0.6.7-choice-*.png --clobber
+          gh release edit v0.6.7 --draft=false --prerelease

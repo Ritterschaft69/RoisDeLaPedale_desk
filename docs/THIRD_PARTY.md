@@ -19,3 +19,5 @@ Sources et bases dérivées de cette version : https://github.com/Ritterschaft69
 - **Ambiances La Sonothèque** : dix enregistrements fournis par l’utilisateur sous **CC0 1.0 Universel**, doublons retirés, niveau ajusté et conversion Ogg avec raccords fondus. [Notice et identifiants](../assets/audio/LICENSE.md), noms sources et empreintes dans `assets/audio/catalog.json`. Les ambiances sont illustratives, sans relevé acoustique local.
 
 - **Cycliste et vélo GLB fournis par l’utilisateur**, intégrés en 0.6.6 : géométries, skin, matériaux et clips fournis dans `cycliste-autonome.zip`, sans nouvelle licence attribuée par ce projet. Provenance et empreintes dans `assets/models/imported-cyclist/`. La déclaration CC0 des sons ne s’étend pas à ces géométries.
+
+- **Cycliste tricolore, 0.6.7** : géométrie du personnage créée pour ce projet d’après les vues de référence utilisateur, sans intégrer l’image comme texture. Vélo, squelette et animations dérivés du modèle utilisateur précédent, dont la provenance est conservée. Recette Blender et empreintes dans `tools/build_tricolour_cyclist.py` et `assets/models/tricolour-cyclist/`.
