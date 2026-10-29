@@ -12,3 +12,5 @@ Le cycliste et le vélo sont remplacés par le modèle de `cycliste-autonome.zip
 L’ancien modèle procédural reste dans les outils de création et les tests historiques ; ses vêtements ne sont plus inclus dans l’export du jeu. Les quatre circuits, les routes corrigées, les sons et les trois vues restent disponibles.
 
 Validation : 293 contrôles réussis, dont douze contrôles dédiés à l’import, aux deux clips indépendants, au sens de rotation, au skinning et au cycle complet. Le SHA-256 confirme que le GLB est inchangé. Captures natives de profil, de face, de dos et en simulation vérifiées. Export Linux lancé avec succès sur les quatre circuits, avec les sons et les activités.
+
+Installateur publié et téléchargé pour contrôle : 114903181 octets ; SHA-256 `311a531ca4a024a05a652c960f98a1a3da60b7008a2c3b6df30d208900941961`, conforme à `SHA256SUMS.txt`. Compilation réussie : https://github.com/Ritterschaft69/RoisDeLaPedale_desk/actions/runs/40912698733.

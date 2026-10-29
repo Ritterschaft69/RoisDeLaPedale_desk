@@ -28,7 +28,7 @@ Godot 4.6.3 standard : rendu, interface, boucle physique et fichiers applicatifs
 | `scripts/world.gd` | Bande de route, terrain, végétation et fenêtre de visibilité |
 | `scripts/geoworld.gd` | Lecture du cache IGN, interpolation terrain, emprises, routes voisines et jonctions |
 | `scripts/terrain_overlay.gd` | Index spatial des faces visibles, découpage et projection des chaussées secondaires |
-| `scripts/rider.gd` | Avatar/vélo procéduraux et animation des membres |
+| `scripts/rider.gd` | Modèle GLB fourni, conversion des axes et pilotage indépendant des deux clips |
 | `scripts/hud.gd` | Indicateurs et tracé GPX, sans tuiles distantes |
 | `scripts/recorder.gd` | Activités JSON et statistiques intégrées dans le temps |
 | `scripts/main.gd` | Écrans, cycle de session, paramètres et caméra |
@@ -80,3 +80,5 @@ Version 0.6.3 : dix sons CC0 dédoublonnés et convertis en Ogg stéréo, avec r
 Version 0.6.4 : le même repère stabilisé propose trois cadrages (arrière d’origine, première personne et arrière éloigné). V change le cadrage sans réinitialiser le cap filtré, même à l’arrêt ou en pause. La vue du cycliste utilise sa position latérale, masque l’avatar et élargit le champ à 65° ; les vues arrière gardent 48°. Le mode est mémorisé dans les paramètres locaux.
 
 Version 0.6.5 : les routes secondaires sont découpées sur les faces du terrain affiché via un index de 32 m. Le même découpage retire le chevauchement de l’arrière-plan sur le terrain proche et raccorde leurs bords. Les revêtements partagent les matériaux de la chaussée principale et sont regroupés en quatre lots au maximum. Les formes de voies sont lissées avec une correction bornée à 45 cm et gardées dans un cache de 64 entrées. Les carrefours ouvrent les accotements et les lignes de rive ; les ponts, tunnels et niveaux distincts explicitement signalés n’ouvrent pas de jonction. La préparation reste fractionnée sur plusieurs images.
+
+Version 0.6.6 : le jeu instancie le GLB utilisateur sans modifier ses octets. Le repère complet est tourné de 180° autour de Y et conserve son échelle métrique. Deux lecteurs d’animation manuels, avec bibliothèques filtrées distinctes, empêchent les pistes constantes ajoutées par Godot de réinitialiser les roues ou le pédalage. Les phases suivent respectivement la cadence et la vitesse ; les grands sauts de phase de pédalage restent bornés. Le contact des pneus est aligné sur la chaussée. L’ancien modèle est conservé dans `tools/legacy_rider.gd`, hors export, pour les recettes de création et leurs tests historiques.
