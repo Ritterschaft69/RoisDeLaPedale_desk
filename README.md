@@ -1,9 +1,13 @@
 # Rois de la Pédale
 
-**Windows : [télécharger l’installeur v0.6.8](https://github.com/Ritterschaft69/RoisDeLaPedale_desk/releases/download/v0.6.8/RoisDeLaPedale-0.6.8-Setup.exe)** · [Page de la préversion](https://github.com/Ritterschaft69/RoisDeLaPedale_desk/releases/tag/v0.6.8)
+**Windows : [télécharger l’installeur v0.6.9](https://github.com/Ritterschaft69/RoisDeLaPedale_desk/releases/download/v0.6.9/RoisDeLaPedale-0.6.9-Setup.exe)** · [Page de la préversion](https://github.com/Ritterschaft69/RoisDeLaPedale_desk/releases/tag/v0.6.9)
 [Voir les circuits reconstruits et les captures natives](https://github.com/Ritterschaft69/RoisDeLaPedale_desk/releases/tag/v0.6.0)
 
 Prototype **desktop natif**, Godot **4.6.3**, quatre circuits et données géographiques hors ligne. Aucun serveur ni navigateur requis.
+
+## Tracés et paysages optimisés — 0.6.9
+
+Les quatre circuits sont révisés : suppression de courts allers-retours parasites, GPX originaux et vrais demi-tours conservés. Les fenêtres sont intégrées à une texture de façade partagée, sans volumes par fenêtre. Les parcelles boisées IGN deviennent des canopées continues, avec leurs ouvertures, complétées par quelques arbres proches. Les secteurs sont compressés, chargés à proximité et raccordés au terrain affiché. Le mode Léger réduit la portée des volumes et conserve les boisements lointains par la couleur du relief. [Corrections, méthode et mesures](docs/RELEASE_v0.6.9.md).
 
 ## Cycliste tricolore remodelée — 0.6.8
 
@@ -72,7 +76,7 @@ godot --path .
 
 ## Vérifier
 
-Les tests Python utilisent uniquement la bibliothèque standard. Les suites natives nécessitent Godot 4.6.3.
+Les tests Python des caches utilisent la bibliothèque standard ; le test du découpage des parcelles nécessite Shapely (`python -m pip install -r tools/requirements-geography.txt`). Les suites natives nécessitent Godot 4.6.3. Python et Shapely ne sont pas nécessaires pour jouer.
 
 ```sh
 python -m unittest discover -s tests -v
@@ -91,6 +95,7 @@ godot --headless --path . --script tests/test_garment_joints.gd
 godot --headless --path . --script tests/test_camera_follow.gd
 godot --headless --path . --script tests/test_circuit_geography.gd
 godot --headless --path . --script tests/test_performance.gd
+godot --headless --path . --script tests/test_landscape.gd
 ```
 
 Isoler `XDG_DATA_HOME`, `XDG_CONFIG_HOME` et `XDG_CACHE_HOME` dans des répertoires accessibles en écriture pour les tests cloud. Le rendu natif sans écran est disponible via `python tools/run_cloud.py` ; ce rendu logiciel ne mesure pas les performances d’un GPU Windows.

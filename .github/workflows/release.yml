@@ -10,7 +10,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: release-v0.6.8
+  group: release-v0.6.9
   cancel-in-progress: false
 
 jobs:
@@ -67,6 +67,7 @@ jobs:
           mkdir -p "$XDG_DATA_HOME" "$XDG_CONFIG_HOME" "$XDG_CACHE_HOME"
           python tools/prepare_route.py --all
           godot --headless --editor --path . --import --quit
+          python -m pip install -r tools/requirements-geography.txt
           python -m unittest discover -s tests -v
           godot --headless --path . --script tests/test_ambience.gd
           godot --headless --path . --script tests/test_simulation.gd
@@ -83,16 +84,17 @@ jobs:
           godot --headless --path . --script tests/test_camera_follow.gd
           godot --headless --path . --script tests/test_circuit_geography.gd
           godot --headless --path . --script tests/test_performance.gd
+          godot --headless --path . --script tests/test_landscape.gd
       - name: Build the Windows installer
         run: python tools/build.py --templates --target windows --installer
       - name: Upload installer and publish prerelease
         shell: bash
         run: |
-          if ! gh release view v0.6.8 > /dev/null 2>&1; then
-            gh release create v0.6.8 --target "$GITHUB_SHA" --title "Rois de la Pédale v0.6.8 — Cycliste tricolore remodelée" --notes-file docs/RELEASE_v0.6.8.md --draft --prerelease
+          if ! gh release view v0.6.9 > /dev/null 2>&1; then
+            gh release create v0.6.9 --target "$GITHUB_SHA" --title "Rois de la Pédale v0.6.9 — Tracés corrigés et paysages optimisés" --notes-file docs/RELEASE_v0.6.9.md --draft --prerelease
           fi
           cd build
-          sha256sum RoisDeLaPedale-0.6.8-Setup.exe > SHA256SUMS.txt
-          gh release upload v0.6.8 RoisDeLaPedale-0.6.8-Setup.exe SHA256SUMS.txt --clobber
-          gh release upload v0.6.8 ../docs/previews/v0.6.8-tricolour-*.png ../docs/previews/v0.6.8-choice-*.png --clobber
-          gh release edit v0.6.8 --draft=false --prerelease
+          sha256sum RoisDeLaPedale-0.6.9-Setup.exe > SHA256SUMS.txt
+          gh release upload v0.6.9 RoisDeLaPedale-0.6.9-Setup.exe SHA256SUMS.txt --clobber
+          gh release upload v0.6.9 ../docs/previews/v0.6.9-landscape-*.png --clobber
+          gh release edit v0.6.9 --draft=false --prerelease

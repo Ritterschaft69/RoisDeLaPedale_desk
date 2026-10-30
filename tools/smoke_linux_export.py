@@ -22,7 +22,7 @@ def main():
                 env=dict(os.environ,XDG_DATA_HOME=str(folder/'data'),XDG_CONFIG_HOME=str(folder/'config'),XDG_CACHE_HOME=str(folder/'cache'))
                 result=subprocess.run([str(binary),'--headless','--fixed-fps','60','--','--smoke','--smoke-circuit='+circuit,'--smoke-rider='+character],
                     cwd=binary.parent,env=env,capture_output=True,text=True,timeout=60)
-                if result.returncode or "SCRIPT ERROR" in result.stdout+result.stderr or "AUDIO_SMOKE clips=10" not in result.stdout:raise RuntimeError(result.stdout[-3000:]+result.stderr[-3000:])
+                if result.returncode or "SCRIPT ERROR" in result.stdout+result.stderr or "AUDIO_SMOKE clips=10" not in result.stdout or "FOREST_SMOKE tiles=" not in result.stdout:raise RuntimeError(result.stdout[-3000:]+result.stderr[-3000:])
                 if 'RIDER_SMOKE id='+character not in result.stdout:
                     raise RuntimeError('Wrong rider model in exported executable: '+character)
                 activities=list((folder/'data').rglob('activities/*.json'))

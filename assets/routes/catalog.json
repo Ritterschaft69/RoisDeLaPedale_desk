@@ -9,8 +9,8 @@
     "length_m": 66299.17883116264,
     "ascent_raw_m": 1585.4000000000005,
     "point_count": 3383,
-    "simulation_length_m": 66603.30117278484,
-    "simulation_ascent_m": 1182.4656731603143,
+    "simulation_length_m": 66603.30477062718,
+    "simulation_ascent_m": 1182.465705847669,
     "start_m": 0.0
   },
   {
@@ -24,8 +24,8 @@
     "ascent_raw_m": 2233.1999999999007,
     "point_count": 19641,
     "start_m": 0.0,
-    "simulation_length_m": 102156.63829702519,
-    "simulation_ascent_m": 2354.832090773639
+    "simulation_length_m": 102075.81643569763,
+    "simulation_ascent_m": 2353.694552101568
   },
   {
     "id": "oderen_grand_ballon",
@@ -38,8 +38,8 @@
     "ascent_raw_m": 2229.200000000002,
     "point_count": 20459,
     "start_m": 0.0,
-    "simulation_length_m": 120652.09994809596,
-    "simulation_ascent_m": 2380.87929462581
+    "simulation_length_m": 120618.19512985641,
+    "simulation_ascent_m": 2380.9238412980026
   },
   {
     "id": "home_sweet_home",
@@ -52,7 +52,7 @@
     "ascent_raw_m": 247.5,
     "point_count": 1659,
     "start_m": 0.0,
-    "simulation_length_m": 12290.793453343138,
-    "simulation_ascent_m": 171.57766320328955
+    "simulation_length_m": 12279.699129828643,
+    "simulation_ascent_m": 171.55291938772893
   }
 ]

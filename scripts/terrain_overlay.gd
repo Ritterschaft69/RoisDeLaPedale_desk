@@ -88,9 +88,18 @@ func paint(surface: SurfaceTool, polygon: PackedVector2Array, lift: float, origi
 					for j in range(0,faces.size(),3):
 						var order := [faces[j],faces[j+1],faces[j+2]]
 						if (clipped[order[1]]-clipped[order[0]]).cross(clipped[order[2]]-clipped[order[0]])<0:order.reverse()
+						var actual := PackedVector3Array()
 						for vertex in order:
 							var p: Vector2 = clipped[vertex]+origin
+							actual.append(Vector3(p.x,plane_height(p,tri)+lift,p.y))
+						# Tiny clipping slivers can collapse after float32 quantisation at
+						# coordinates tens of kilometres from the route origin.
+						var area := Vector2(actual[1].x-actual[0].x,actual[1].z-actual[0].z).cross(Vector2(actual[2].x-actual[0].x,actual[2].z-actual[0].z))
+						if absf(area)<.01:continue
+						if area<0:actual.reverse()
+						for v in actual:
+							var p := Vector2(v.x,v.z)
 							surface.set_uv(Vector2((p-origin).dot(side),station+(p-origin).dot(forward)))
-							surface.add_vertex(Vector3(p.x,plane_height(p,tri)+lift,p.y))
+							surface.add_vertex(v)
 						count+=1
 	return count

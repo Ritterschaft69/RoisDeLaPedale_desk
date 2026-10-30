@@ -57,3 +57,9 @@ Les formats, licences et attributions sont dans [la notice des caches](../assets
 Les 84 m non raccordés d’Oderen correspondent aux stations GPX 108–192 m. Ils gardent le GPX et sont signalés dans le jeu. Le pourcentage de raccord est un résultat topologique automatique, pas une certification de terrain.
 
 Home sweet home a été ajouté le 28 octobre 2026 : 538 bâtiments IGN retenus, aucun rejet de triangulation et aucune altitude LiDAR manquante sur la route. Le tronçon GPX 1 740–1 764 m reste sans raccord OSM certifié par l’algorithme et utilise le GPX. Le relief lointain partagé a été étendu pour conserver la couverture des quatre circuits.
+
+## Révision 0.6.9
+
+Les GPX sources restent identiques. Les fichiers `route_cleanup.json` décrivent les observations ignorées dans la simulation et les courts retours de recalage supprimés. Les vrais demi-tours sont conservés par un contrôle de la direction mesurée. Le pas de simulation reste au maximum de 2 m.
+
+Les nouvelles enveloppes forestières sont dérivées des parcelles IGN et du MNH/MNT existants, avec exclusions géométriques des voies OSM, bâtiments et eau. Elles ne constituent ni un inventaire d’arbres ni une acquisition plus récente. `forest.json` indique la provenance, la hauteur interprétée quand le MNH manque, les secteurs, le format et l’empreinte du binaire gzip par blocs. Les fichiers source de végétation ne sont pas réécrits.

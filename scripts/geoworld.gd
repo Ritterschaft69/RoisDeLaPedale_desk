@@ -18,6 +18,12 @@ var road_segments := PackedInt64Array()
 var road_shapes: Dictionary = {}
 var road_shape_order: Array[int] = []
 var junctions: Array[Dictionary] = []
+var forest_data: Dictionary = {}
+var forest_tiles: Dictionary = {}
+var forest_cache: Dictionary = {}
+var forest_order: Array[Vector2i] = []
+var forest_directory := ""
+var last_forest_triangles := 0
 const CELL := 128.0
 
 func index_bounds(index: Dictionary, bounds: Rect2, item: int) -> void:
@@ -52,6 +58,14 @@ func _init(path: String = "res://assets/geodata/world.json") -> void:
 					var box := Rect2(Vector2(a[0],a[2]),Vector2.ZERO).expand(Vector2(b[0],b[2]))
 					road_segments.append((road_index<<32)|i)
 					index_bounds(road_cells,box,road_segments.size()-1)
+	forest_directory=path.get_base_dir()+"/"
+	var forest_path := forest_directory+"forest.json"
+	if FileAccess.file_exists(forest_path):
+		var prepared: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(forest_path))
+		if prepared.get("route_source_sha256","")==data.get("route_source_sha256",""):
+			forest_data=prepared
+			for tile in forest_data.tiles:
+				forest_tiles[Vector2i(roundi(float(tile.x)/float(forest_data.tile_size_m)),roundi(float(tile.z)/float(forest_data.tile_size_m)))]=tile
 	for building in data.buildings:
 		var ring := PackedVector2Array()
 		for p in building.footprint: ring.append(Vector2(p[0],p[1]))
@@ -376,8 +390,9 @@ func build(parent: Node3D, building: Dictionary, detailed: bool) -> void:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = building.seed
 	var palette := [Color("d3c4a6"),Color("d8d0b9"),Color("c5bc9b"),Color("d4c5b6")]
-	var wall_material := M.toon(palette[rng.randi_range(0,palette.size()-1)],detailed,true)
-	var roof_material := M.toon(Color("786754") if rng.randf()>0.45 else Color("855b4c"),detailed,true)
+	var wall_tint: Color = palette[rng.randi_range(0,palette.size()-1)].srgb_to_linear()
+	var wall_material := M.facade()
+	var roof_material := M.toon(Color("786754") if rng.randf()>0.45 else Color("855b4c"),false,true)
 	var axis := Vector2.RIGHT
 	var longest := 0.0
 	for i in range(polygon.size()):
@@ -397,9 +412,6 @@ func build(parent: Node3D, building: Dictionary, detailed: bool) -> void:
 	var eave := maxf(2.2,float(building.height)-rise)
 	var walls := SurfaceTool.new()
 	walls.begin(Mesh.PRIMITIVE_TRIANGLES)
-	var facade := SurfaceTool.new()
-	facade.begin(Mesh.PRIMITIVE_TRIANGLES)
-	var facade_vertices := 0
 	for i in range(polygon.size()):
 		var a := polygon[i]
 		var b := polygon[(i+1)%polygon.size()]
@@ -414,12 +426,16 @@ func build(parent: Node3D, building: Dictionary, detailed: bool) -> void:
 			var b_top := eave+rise*(1-absf(q.dot(across)-ridge)/half_width)
 			var vertices := [Vector3(p.x,-1,p.y),Vector3(q.x,-1,q.y),Vector3(q.x,b_top,q.y),Vector3(p.x,a_top,p.y)]
 			var winding := [0,2,1,0,3,2] if Geometry2D.is_polygon_clockwise(polygon) else [0,1,2,0,2,3]
-			for index in winding: walls.add_vertex(vertices[index])
-		if detailed: facade_vertices += windows(facade,a,b,eave,Geometry2D.is_polygon_clockwise(polygon),int(building.seed),i==0)
+			var repeats := maxi(1,mini(6,int(a.distance_to(b)/2.8)))
+			for index in winding:
+				var vertex: Vector3 = vertices[index]
+				var along := Vector2(vertex.x,vertex.z).distance_to(a)/maxf(a.distance_to(b),.01)
+				walls.set_color(wall_tint)
+				walls.set_uv(Vector2(along*repeats,1.0-vertex.y/2.7))
+				walls.set_uv2(Vector2(vertex.y,eave if detailed else 0.0))
+				walls.add_vertex(vertex)
 	walls.generate_normals()
 	M.mesh(node,walls.commit(),wall_material,Vector3.ZERO)
-	if facade_vertices>0:
-		M.mesh(node,facade.commit(),M.toon(Color.WHITE,false,true),Vector3.ZERO)
 	var roof := SurfaceTool.new()
 	roof.begin(Mesh.PRIMITIVE_TRIANGLES)
 	for sign_side in [-1.0,1.0]:
@@ -440,34 +456,6 @@ func build(parent: Node3D, building: Dictionary, detailed: bool) -> void:
 	if not detailed:
 		roof_mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 
-func windows(surface: SurfaceTool, a: Vector2, b: Vector2, height: float, clockwise: bool, seed_value: int, entrance: bool) -> int:
-	var length := a.distance_to(b)
-	if length<3: return 0
-	var direction := (b-a).normalized()
-	var normal := Vector2(-direction.y,direction.x)*(1.0 if clockwise else -1.0)
-	var angles := Vector3(0,-atan2(direction.y,direction.x),0)
-	var count := mini(6,int(length/2.8))
-	var shutter := Color("526759") if seed_value%2==0 else Color("79554b")
-	var shape := BoxMesh.new()
-	shape.size = Vector3.ONE
-	for floor_index in range(mini(3,maxi(1,int(height/3)))):
-		for i in range(count):
-			var at := a.lerp(b,float(i+1)/(count+1))
-			var y := 1.65+floor_index*2.7
-			var center := Vector3(at.x,y,at.y)+Vector3(normal.x,0,normal.y)*0.08
-			if entrance and i==0 and floor_index==0:
-				center.y = 1.05
-				preload("res://scripts/scenery.gd").append_shape(surface,shape,center,Vector3(1.05,2.1,0.18),Color("e7ddc4"),angles)
-				preload("res://scripts/scenery.gd").append_shape(surface,shape,center+Vector3(normal.x,0,normal.y)*0.10,Vector3(0.82,1.95,0.09),shutter,angles)
-				continue
-			preload("res://scripts/scenery.gd").append_shape(surface,shape,center,Vector3(1.02,1.32,0.12),Color("e4dcc4"),angles)
-			preload("res://scripts/scenery.gd").append_shape(surface,shape,center+Vector3(normal.x,0,normal.y)*0.08,Vector3(0.82,1.11,0.08),Color("455b60"),angles)
-			for side in [-1.0,1.0]:
-				var panel_at: Vector3 = center+Vector3(direction.x,0,direction.y)*side*0.65
-				preload("res://scripts/scenery.gd").append_shape(surface,shape,panel_at,Vector3(0.23,1.2,0.10),shutter,angles)
-			preload("res://scripts/scenery.gd").append_shape(surface,shape,center+Vector3(normal.x,0,normal.y)*0.14,Vector3(0.035,1.12,0.03),Color("c7bfa6"),angles)
-	return count
-
 func clip_ridge(polygon: PackedVector2Array, normal: Vector2, offset: float, side: float) -> PackedVector2Array:
 	var result := PackedVector2Array()
 	for i in range(polygon.size()):
@@ -478,3 +466,61 @@ func clip_ridge(polygon: PackedVector2Array, normal: Vector2, offset: float, sid
 		if da>=0: result.append(a)
 		if (da>=0) != (db>=0): result.append(a.lerp(b,da/(da-db)))
 	return result
+
+func forest_masses(parent: Node3D, center: Vector3, quality: int, ground_height: Callable, tick: Signal = Signal(), guard: Callable = Callable()) -> void:
+	last_forest_triangles=0
+	if forest_data.is_empty():return
+	var radius := 1450.0 if quality>0 else 550.0
+	var size := float(forest_data.tile_size_m)
+	var file := FileAccess.open(forest_directory+str(forest_data.file),FileAccess.READ)
+	if file==null:return
+	var budget := Time.get_ticks_usec()
+	for x in range(floori((center.x-radius)/size),floori((center.x+radius)/size)+1):
+		for z in range(floori((center.z-radius)/size),floori((center.z+radius)/size)+1):
+			if not tick.is_null() and Time.get_ticks_usec()-budget>6000:
+				await tick
+				if not guard.is_valid() or not guard.call():return
+				budget=Time.get_ticks_usec()
+			var key := Vector2i(x,z)
+			if not forest_tiles.has(key):continue
+			var tile: Dictionary = forest_tiles[key]
+			if Vector2(tile.x+size*.5,tile.z+size*.5).distance_to(Vector2(center.x,center.z))>radius+size*.5:continue
+			if not forest_cache.has(key):
+				file.seek(int(tile.offset))
+				var block := file.get_buffer(int(tile.byte_length)).decompress(int(tile.vertices)*16,FileAccess.COMPRESSION_GZIP)
+				var loaded := block.to_float32_array()
+				if loaded.size()!=int(tile.vertices)*4:continue
+				forest_cache[key]=loaded;forest_order.append(key)
+				if forest_order.size()>192:forest_cache.erase(forest_order.pop_front())
+			var packed: PackedFloat32Array = forest_cache[key]
+			var vertices := PackedVector3Array();var normals := PackedVector3Array()
+			vertices.resize(int(tile.vertices));normals.resize(int(tile.vertices))
+			var projected: Dictionary = {}
+			for i in range(int(tile.vertices)):
+				if i%192==0 and not tick.is_null() and Time.get_ticks_usec()-budget>6000:
+					await tick
+					if not guard.is_valid() or not guard.call():return
+					budget=Time.get_ticks_usec()
+				var p := Vector2(packed[i*4],packed[i*4+2])
+				var position_key := Vector2i(roundi(p.x*100),roundi(p.y*100))
+				if not projected.has(position_key):
+					var visible_height: float = ground_height.call(p)
+					projected[position_key]=visible_height-packed[i*4+3] if is_finite(visible_height) else 0.0
+				vertices[i]=Vector3(p.x,packed[i*4+1]+float(projected[position_key]),p.y)
+			for i in range(0,vertices.size(),3):
+				var normal := (vertices[i+1]-vertices[i]).cross(vertices[i+2]-vertices[i]).normalized()
+				if normal.y<0:normal=-normal
+				for j in range(3):normals[i+j]=normal
+			var arrays: Array=[];arrays.resize(Mesh.ARRAY_MAX)
+			arrays[Mesh.ARRAY_VERTEX]=vertices;arrays[Mesh.ARRAY_NORMAL]=normals
+			var mesh := ArrayMesh.new();mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,arrays)
+			var item := M.mesh(parent,mesh,M.forest_canopy(),Vector3.ZERO)
+			item.name="ForestParcel_%d_%d"%[x,z]
+			item.cast_shadow=GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+			last_forest_triangles+=int(tile.vertices)/3
+
+func forest_fraction(p: Vector2) -> float:
+	if forest_data.is_empty():return 0.0
+	var size := float(forest_data.tile_size_m)
+	var tile: Dictionary = forest_tiles.get(Vector2i(floori(p.x/size),floori(p.y/size)),{})
+	return float(tile.get("forest_fraction",0.0))

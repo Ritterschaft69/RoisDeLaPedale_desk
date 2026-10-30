@@ -124,10 +124,71 @@ def inverse_lambert93(x, y):
     return math.degrees(phi), 3+math.degrees(math.atan2(x-700000,12655612.049876-y)/.725607765053267)
 
 
+def turn_degrees(a, b, c):
+    u=(b['x']-a['x'],b['z']-a['z']);v=(c['x']-b['x'],c['z']-b['z'])
+    size=math.hypot(*u)*math.hypot(*v)
+    return math.degrees(math.acos(max(-1,min(1,sum(x*y for x,y in zip(u,v))/size)))) if size>1e-8 else 0.
+
+
+def clean_observations(points):
+    """Reject isolated short reversals only when the surrounding GPX continues.
+
+    Keep the original station/altitude and endpoints; a genuine out-and-back
+    or hairpin has reversing approach/departure tangents and is retained.
+    """
+    kept=[dict(p) for p in points];removed=[]
+    for _ in range(128):
+        changed=False
+        for i in range(3,len(kept)-3):
+            a,b,c=kept[i-1:i+2]
+            left=(a['x']-kept[i-3]['x'],a['z']-kept[i-3]['z'])
+            right=(kept[i+3]['x']-c['x'],kept[i+3]['z']-c['z'])
+            size=math.hypot(*left)*math.hypot(*right)
+            continuing=size>1 and sum(x*y for x,y in zip(left,right))/size>.5
+            ab=math.hypot(b['x']-a['x'],b['z']-a['z']);bc=math.hypot(c['x']-b['x'],c['z']-b['z'])
+            chord=math.hypot(c['x']-a['x'],c['z']-a['z'])
+            if continuing and .5<chord and max(ab,bc)<35 and ab+bc>2.5*chord and ab+bc-chord>4 and turn_degrees(a,b,c)>145:
+                removed.append({'source_station_m':b['s'],'x':b['x'],'z':b['z'],'reason':'isolated GPS reversal; surrounding tangents continue'})
+                kept.pop(i);changed=True;break
+        if not changed:break
+    return kept,removed
+
+
+def clean_alignment(path, track):
+    """Remove short OSM spurs unsupported by the measured GPX direction.
+
+    Never use an angle alone: real measured U-turns remain. No broad corner
+    cutting or simplification of the network polyline takes place here.
+    """
+    path=[dict(p) for p in path];removed=[]
+    for p in path:
+        if p.get('osm_way') is None:
+            clean=track.sample(p['source_s']);p.update(x=clean['x'],z=clean['z'])
+    for _ in range(12):
+        compact=[]
+        for p in path:
+            if compact and math.hypot(p['x']-compact[-1]['x'],p['z']-compact[-1]['z'])<.005:
+                compact[-1]=p
+            else:compact.append(p)
+        path=compact;bad=[]
+        for i in range(1,len(path)-1):
+            a,b,c=path[i-1:i+2]
+            if turn_degrees(a,b,c)<150:continue
+            ab=math.hypot(b['x']-a['x'],b['z']-a['z']);bc=math.hypot(c['x']-b['x'],c['z']-b['z'])
+            raw=track.sample(b['source_s'])
+            before=track.sample(max(0,b['source_s']-12));after=track.sample(min(track.stations[-1],b['source_s']+12))
+            if max(ab,bc)<30 and c['source_s']-a['source_s']<48 and turn_degrees(before,raw,after)<80:
+                bad.append(i);removed.append({'source_station_m':b['source_s'],'x':b['x'],'z':b['z'],'osm_way':b.get('osm_way'),'reason':'short network reversal unsupported by GPX'})
+        if not bad:break
+        rejected=set(bad);path=[p for i,p in enumerate(path) if i not in rejected]
+    path[0]['source_s']=0.;path[-1]['source_s']=track.stations[-1]
+    return path,removed
+
+
 class Track:
     def __init__(self, route):
         self.route = route
-        self.points = route['points']
+        self.points,self.rejected = clean_observations(route['points'])
         self.stations = [p['s'] for p in self.points]
 
     def sample(self, s):
@@ -669,7 +730,7 @@ def water_meshes(features,route,terrain,nearby):
     return result
 
 
-def build(entry):
+def build(entry, cached_alignment=False):
     route=json.loads((ROOT/entry['data'].removeprefix('res://')).read_text())
     track=Track(route)
     raw=RAW/entry['id']
@@ -678,12 +739,24 @@ def build(entry):
     ways=json.loads((raw/'osm.json').read_text())['elements']
     graph=RoadGraph(ways,route['origin'])
     print(entry['id'],'matching',len(graph.edges),'directed OSM segments',flush=True)
-    path,report=match_track(track,graph)
+    if cached_alignment:
+        saved=json.loads((directory/'osm_alignment.json').read_text())
+        if saved['source_sha256']!=route['source_sha256']:raise ValueError('Stale OSM alignment')
+        path=[dict(x=p[0],z=p[1],source_s=p[2],osm_way=p[3]) for p in saved['points']]
+        report=saved['report']
+    else:
+        path,report=match_track(track,graph)
     print(entry['id'],'OSM match',round(100*report['matched_fraction'],2),'%',flush=True)
     # Persist the graph-derived polyline independently for ODbL inspection.
     save(directory/'osm_alignment.json',{'schema':1,'source_sha256':route['source_sha256'],
         'licence':'ODbL 1.0','attribution':'© OpenStreetMap contributors',
         'report':report,'points':[[round(p['x'],3),round(p['z'],3),round(p['source_s'],3),p['osm_way']] for p in path]})
+    path,rejected=clean_alignment(path,track)
+    cleanup={'schema':1,'source_sha256':route['source_sha256'],'source_points_preserved':True,
+        'rejected_gpx_observations':track.rejected,'rejected_network_vertices':rejected,
+        'method':'short reversals with continuing GPX tangents; measured hairpins and out-and-back turns retained',
+        'clean_alignment_points':len(path)}
+    save(directory/'route_cleanup.json',cleanup)
     points,spacing,_=resample(path,1)
     # One metre temporary grid, bounded binomial smoothing. Maximum added
     # lateral displacement 0.6m; preserve tight corners and narrow road corridors.
@@ -737,7 +810,7 @@ def build(entry):
         'ascent_m':ascent,'source_length_m':route['length_m'],'source_ascent_raw_m':route['ascent_raw_m'],
         'altitude_source':'IGN LiDAR HD MNT, IGN69; Gaussian sigma 5m along road',
         'missing_lidar_stations_m':missing,'bridge_tunnel_approach_interpolations_m':spans,
-        'structures':structures,
+        'structures':structures,'cleanup_file':'route_cleanup.json','rejected_gpx_observations':len(track.rejected),'rejected_network_vertices':len(rejected),
         'osm_match':report,'licence':'OSM-derived alignment ODbL 1.0; IGN elevations Licence Ouverte 2.0; original GPX retained separately'}
     save(directory/'route.json',metadata)
     nearby=NearbyRoute(points)
@@ -863,7 +936,7 @@ def build(entry):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--stage',choices=['plan','vectors','water','rasters','horizon','build','all'],default='plan')
+    parser.add_argument('--stage',choices=['plan','vectors','water','rasters','horizon','build','refine','all'],default='plan')
     parser.add_argument('--circuit',choices=[entry['id'] for entry in json.loads((ROOT/'assets/routes/catalog.json').read_text())])
     parser.add_argument('--osm-api',action='store_true',help='Prefer small official OSM map extracts when Overpass is unavailable')
     args=parser.parse_args()
@@ -880,8 +953,8 @@ def main():
     # The horizon raster is shared: a circuit-specific import must retain all routes.
     if args.stage in ('horizon','all'):
         acquire_horizon(json.loads((ROOT/'assets/routes/catalog.json').read_text()),client)
-    if args.stage in ('build','all'):
-        for entry in entries: build(entry)
+    if args.stage in ('build','refine','all'):
+        for entry in entries: build(entry,cached_alignment=args.stage=='refine')
 
 
 if __name__=='__main__': main()

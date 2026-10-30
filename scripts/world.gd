@@ -24,6 +24,10 @@ var road_cells: Dictionary = {}
 var tree_batches: Dictionary = {}
 var terrain_samples: Array[Dictionary] = []
 var terrain_cells: Dictionary = {}
+var backdrop_center := Vector3.ZERO
+var backdrop_radii: Array = []
+var backdrop_vertices := PackedVector3Array()
+var backdrop_segments := 0
 var life: Node3D
 
 func set_route(source: CyclingRoute) -> void:
@@ -37,6 +41,8 @@ func set_route(source: CyclingRoute) -> void:
 		geographic.vegetation_cells.clear()
 		geographic.building_bounds.clear()
 		geographic.roads.clear()
+		geographic.forest_data.clear()
+		geographic.forest_tiles.clear()
 		geographic.terrain_source = null
 	road_cells.clear()
 	for i in range(route.points.size()-1):
@@ -184,10 +190,11 @@ func rebuild(distance: float, force: bool, ticket: int, target: Node3D) -> void:
 	# Shared tree meshes and GPU instancing, with simpler silhouettes at distance.
 	var spacing := 9 if quality>0 else 17
 	for index in range(maxi(0,int(start/spacing)),int(end/spacing)):
+		if not geographic.forest_data.is_empty() and absf(index*spacing-distance)>(115 if quality>0 else 85):continue
 		var rng := RandomNumberGenerator.new()
 		rng.seed = index*7919+20261025
 		for side in [-1,1]:
-			for band in range(2 if quality>0 else 1):
+			for band in range(1 if not geographic.forest_data.is_empty() else (2 if quality>0 else 1)):
 				var lateral: float = side*rng.randf_range(8+band*27,30+band*30)
 				var at := roadside(index*spacing,lateral,true)
 				if (not geographic.covers(index*spacing) or geographic.forest(at)) and safe_land(at):
@@ -219,6 +226,10 @@ func rebuild(distance: float, force: bool, ticket: int, target: Node3D) -> void:
 	else:
 		await backdrop(distance,tick,guard)
 		if not await next_stage(ticket): return
+	if force:geographic.forest_masses(build_target,roadside(distance,0),quality,displayed_ground)
+	else:
+		await geographic.forest_masses(build_target,roadside(distance,0),quality,displayed_ground,tick,guard)
+		if not await next_stage(ticket):return
 	if force: geographic.side_roads(build_target,self,roadside(distance,0))
 	else:
 		await geographic.side_roads(build_target,self,roadside(distance,0),tick,guard)
@@ -482,9 +493,12 @@ func backdrop(distance: float, tick: Signal = Signal(), guard: Callable = Callab
 			if geographic.terrain_source != null:
 				at.y = geographic.elevation_at(Vector2(at.x,at.z),distance,0,at.y)-.06
 			var tint := Color("728c74").lerp(Color("94b0b5"),float(ring)/(radii.size()-1))
+			var cover := geographic.forest_fraction(Vector2(at.x,at.z))
+			tint=tint.lerp(Color("426347").lerp(Color("94b0b5"),clampf(radii[ring]/7000.0,0,1)),cover*.85)
 			surface.set_color(tint.srgb_to_linear())
 			surface.add_vertex(at)
 			ring_vertices.append(at)
+	backdrop_center=center;backdrop_radii=radii.duplicate();backdrop_vertices=ring_vertices;backdrop_segments=segments
 	var next_vertex := ring_vertices.size()
 	for ring in range(radii.size()-1):
 		for i in range(segments):
@@ -538,3 +552,22 @@ func backdrop(distance: float, tick: Signal = Signal(), guard: Callable = Callab
 	cloud_cache = clouds.commit()
 	var cloud_mesh := M.mesh(build_target,cloud_cache,grass_material,center)
 	cloud_mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+
+func displayed_ground(p: Vector2) -> float:
+	var near_height: float = road_overlay.height(p)
+	if is_finite(near_height):return near_height
+	if backdrop_radii.is_empty():return NAN
+	var delta := p-Vector2(backdrop_center.x,backdrop_center.z)
+	var distance := delta.length()
+	var ring := -1
+	for i in range(backdrop_radii.size()-1):
+		if distance>=float(backdrop_radii[i]) and distance<=float(backdrop_radii[i+1]):ring=i;break
+	if ring<0:return NAN
+	var segment := mini(backdrop_segments-1,floori(fposmod(atan2(delta.y,delta.x),TAU)/TAU*backdrop_segments))
+	var a := ring*(backdrop_segments+1)+segment
+	var b := a+backdrop_segments+1
+	for face in [[a,b,b+1],[a,b+1,a+1]]:
+		var triangle := PackedVector3Array([backdrop_vertices[face[0]],backdrop_vertices[face[1]],backdrop_vertices[face[2]]])
+		var weights := road_overlay.weights(p,triangle)
+		if weights.x>=-.0001 and weights.y>=-.0001 and weights.x+weights.y<=1.0001:return road_overlay.plane_height(p,triangle)
+	return NAN

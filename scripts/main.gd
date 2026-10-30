@@ -93,6 +93,9 @@ func _ready() -> void:
 				push_error("SMOKE_MISSING_GEOGRAPHY "+str(selected_circuit.id))
 				get_tree().quit(3)
 				return
+			if world.geographic.forest_data.is_empty() or not FileAccess.file_exists(world.geographic.forest_directory+str(world.geographic.forest_data.get("file",""))):
+				push_error("SMOKE_MISSING_FOREST "+str(selected_circuit.id));get_tree().quit(5);return
+			print("FOREST_SMOKE tiles=",world.geographic.forest_tiles.size()," cache=",world.geographic.forest_cache.size())
 			print("GEOGRAPHY_SMOKE route=",selected_circuit.id," samples=",route.curve.size()," source_points=",route.source_points.size())
 			var audio_catalog: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://assets/audio/catalog.json"))
 			for clip in audio_catalog.clips:

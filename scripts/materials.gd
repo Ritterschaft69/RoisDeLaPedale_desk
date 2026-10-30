@@ -123,3 +123,53 @@ static func anatomy(parent: Node3D, profile: Array, material: Material) -> MeshI
 	for point in profile:
 		rings.append({"center":Vector3(0,float(point[0])-0.5,0),"width":float(point[1]),"depth":float(point[2])})
 	return loft(parent,rings,material,32)
+
+static func facade() -> ShaderMaterial:
+	if cache.has("facade_texture"):return cache.facade_texture
+	var shader := Shader.new()
+	shader.code = """shader_type spatial;
+render_mode specular_disabled, cull_disabled, shadows_disabled;
+uniform sampler2D windows : source_color, filter_linear_mipmap, repeat_enable;
+varying float camera_distance;
+void vertex(){camera_distance=length((MODELVIEW_MATRIX*vec4(VERTEX,1.0)).xyz);}
+void fragment(){
+ vec4 detail=texture(windows,UV);
+ float fade=1.0-smoothstep(100.0,185.0,camera_distance);
+ float wall=step(0.35,UV2.x)*step(UV2.x,UV2.y-0.25);
+ ALBEDO=mix(COLOR.rgb,detail.rgb,detail.a*fade*wall);
+ ROUGHNESS=1.0;
+}
+"""
+	var material := ShaderMaterial.new();material.shader=shader
+	material.set_shader_parameter("windows",preload("res://assets/textures/facade-window.png"))
+	cache.facade_texture=material;return material
+
+static func forest_canopy() -> ShaderMaterial:
+	if cache.has("forest_texture"):return cache.forest_texture
+	var shader := Shader.new()
+	shader.code = """shader_type spatial;
+render_mode specular_disabled, cull_disabled, shadows_disabled;
+uniform sampler2D foliage : source_color, filter_linear_mipmap, repeat_enable;
+uniform sampler2D crowns : filter_linear_mipmap, repeat_enable;
+varying vec3 world_position;
+varying vec3 view_x;
+varying vec3 view_z;
+varying float surface_up;
+void vertex(){
+ world_position=(MODEL_MATRIX*vec4(VERTEX,1.0)).xyz;
+ view_x=(VIEW_MATRIX*vec4(1.0,0.0,0.0,0.0)).xyz;
+ view_z=(VIEW_MATRIX*vec4(0.0,0.0,1.0,0.0)).xyz;
+ surface_up=abs(NORMAL.y);
+}
+void fragment(){
+ vec2 uv=mix(vec2(world_position.x+world_position.z,world_position.y),world_position.xz,smoothstep(0.1,0.65,surface_up))/36.0;
+ vec3 leaves=texture(foliage,uv).rgb;
+ vec2 bump=texture(crowns,uv).rg*2.0-1.0;
+ NORMAL=normalize(NORMAL+(view_x*bump.x+view_z*bump.y)*0.7*surface_up);
+ ALBEDO=leaves*COLOR.rgb;ROUGHNESS=1.0;
+}
+"""
+	var material := ShaderMaterial.new();material.shader=shader
+	material.set_shader_parameter("foliage",preload("res://assets/textures/forest-canopy.png"))
+	material.set_shader_parameter("crowns",preload("res://assets/textures/forest-normal.png"))
+	cache.forest_texture=material;return material

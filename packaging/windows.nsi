@@ -2,15 +2,15 @@ Unicode True
 !include "MUI2.nsh"
 !define PRODUCT "Rois de la Pédale"
 !define UNINSTALL_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\RoisDeLaPedale"
-Name "${PRODUCT} 0.6.8"
-OutFile "${__FILEDIR__}/../build/RoisDeLaPedale-0.6.8-Setup.exe"
+Name "${PRODUCT} 0.6.9"
+OutFile "${__FILEDIR__}/../build/RoisDeLaPedale-0.6.9-Setup.exe"
 InstallDir "$LOCALAPPDATA\Programs\RoisDeLaPedale"
 RequestExecutionLevel user
 SetCompressor /SOLID lzma
-VIProductVersion "0.6.8.0"
+VIProductVersion "0.6.9.0"
 VIAddVersionKey "ProductName" "${PRODUCT}"
 VIAddVersionKey "FileDescription" "Installation du prototype de simulation cycliste"
-VIAddVersionKey "FileVersion" "0.6.8.0"
+VIAddVersionKey "FileVersion" "0.6.9.0"
 VIAddVersionKey "LegalCopyright" "Contributeurs du projet — GPL-2.0"
 
 !insertmacro MUI_PAGE_WELCOME
@@ -40,7 +40,7 @@ Section "Application"
  CreateShortCut "$SMPROGRAMS\Rois de la Pédale\Rois de la Pédale.lnk" "$INSTDIR\RoisDeLaPedale.exe"
  CreateShortCut "$SMPROGRAMS\Rois de la Pédale\Désinstaller.lnk" "$INSTDIR\Desinstaller.exe"
  WriteRegStr HKCU "${UNINSTALL_KEY}" "DisplayName" "${PRODUCT}"
- WriteRegStr HKCU "${UNINSTALL_KEY}" "DisplayVersion" "0.6.8"
+ WriteRegStr HKCU "${UNINSTALL_KEY}" "DisplayVersion" "0.6.9"
  WriteRegStr HKCU "${UNINSTALL_KEY}" "InstallLocation" "$INSTDIR"
  WriteRegStr HKCU "${UNINSTALL_KEY}" "UninstallString" '$\"$INSTDIR\Desinstaller.exe$\"'
  WriteRegDWORD HKCU "${UNINSTALL_KEY}" "NoModify" 1
