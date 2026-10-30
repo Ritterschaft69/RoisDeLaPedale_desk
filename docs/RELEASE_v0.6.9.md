@@ -37,3 +37,9 @@ La réduction des fenêtres aide nettement les scènes bâties ; les forêts ajo
 322 contrôles réussis : conservation des sources et des vrais virages, hauteurs et intégrité des forêts, trous et exclusions des parcelles, façades sans géométrie par fenêtre, raccord à deux terrains d’affichage différents, cache borné, routes secondaires, audio, personnages, vues et quatre circuits. Les micro-triangles de découpe routière qui s’effondrent à grande distance de l’origine sont écartés pour conserver des normales valides.
 
 Export Linux contrôlé sur les huit combinaisons de quatre circuits et deux personnages, y compris la présence des caches forestiers et des sons.
+
+## Captures natives
+
+[Façades texturées en village](https://github.com/Ritterschaft69/RoisDeLaPedale_desk/releases/download/v0.6.9/v0.6.9-landscape-oderen_grand_ballon-32000.png) · [Parcelles boisées en montagne](https://github.com/Ritterschaft69/RoisDeLaPedale_desk/releases/download/v0.6.9/v0.6.9-landscape-oderen_grand_ballon-89099.png) · [Campagne et lisières](https://github.com/Ritterschaft69/RoisDeLaPedale_desk/releases/download/v0.6.9/v0.6.9-landscape-home_sweet_home-3000.png).
+
+Installateur publié et téléchargé pour contrôle : 134731717 octets ; SHA-256 `3c25f553f00a99805e042325585f53779fc9b3d16f238ed09aae68da557a8909`, conforme à `SHA256SUMS.txt`. Compilation réussie : https://github.com/Ritterschaft69/RoisDeLaPedale_desk/actions/runs/41030837575.
