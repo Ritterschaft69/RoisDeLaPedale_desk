@@ -62,6 +62,17 @@ def main():
         output = ROOT/'build'/platform
         output.mkdir(parents=True,exist_ok=True)
         subprocess.run(['godot','--headless','--path',str(ROOT),'--export-release',preset,str(output/binary)],check=True)
+        bridge_dir=ROOT/'build/bluetooth'/platform
+        bridge_name='RoisBluetooth.exe' if platform=='windows' else 'RoisBluetooth'
+        if (bridge_dir/bridge_name).exists():
+            if (output/'bluetooth').exists():shutil.rmtree(output/'bluetooth')
+            shutil.copy(bridge_dir/bridge_name,output/bridge_name)
+            shutil.copy(bridge_dir/'Bluetooth-LICENSES.txt',output/'Bluetooth-LICENSES.txt')
+        elif platform=='windows':
+            raise RuntimeError('Windows Bluetooth bridge missing; build tools/build_bluetooth.py on Windows first')
+        else:
+            scripts=output/'bluetooth';scripts.mkdir(exist_ok=True)
+            for name in ['bridge.py','protocol.py','requirements.txt']:shutil.copy(ROOT/'bluetooth'/name,scripts/name)
         for source in [ROOT/'LICENSE',ROOT/'docs/THIRD_PARTY.md',ROOT/'assets/fonts/Apache-2.0.txt',
                        ROOT/'docs/licenses/Godot-LICENSE.txt',ROOT/'docs/licenses/Godot-COPYRIGHT.txt']:
             shutil.copy(source,output/source.name)
@@ -69,10 +80,11 @@ def main():
         shutil.copy(ROOT/'docs/sources/licence_ouverte.md',output/'IGN-Licence-Ouverte.md')
         shutil.copy(ROOT/'assets/geodata/circuits/LICENSE.md',output/'GEOGRAPHIC-DATA-LICENSE.md')
         shutil.copy(ROOT/'assets/audio/LICENSE.md',output/'AUDIO-CC0-LICENSE.md')
-        (output/'LISEZMOI.txt').write_text('Rois de la Pédale 0.6.9 — prototype démo natif\nLancer '+binary+' depuis ce dossier, sans serveur ni Internet.\nConserver les fichiers du dossier ensemble. F11 : plein écran.\nChoisir un circuit : Saint-Dié, Sortie vélo le matin, Oderen / Grand Ballon, Home sweet home.\nFlèches haut/bas : puissance démo. Espace : pause. H : masquer l’interface. V : changer de vue.\nAccueil > Cycliste : choix Orange ou Tricolore, mémorisé. Conduite à droite et évitement automatiques. Faune et passants procéduraux.\nQuatre circuits recalés OSM, relief IGN LiDAR HD et bâtiments IGN hors ligne. Toits et arbres interprétés.\nAmbiances sonores CC0 incluses, volume dans Paramètres. Bluetooth non intégré. Données OSM : ODbL 1.0, attribution dans THIRD_PARTY.md.\nVersion portable non signée. Données IGN : Licence Ouverte, voir notices.\n',encoding='utf-8')
-        archive = ROOT/'build'/f'RoisDeLaPedale-0.6.9-{platform}.zip'
+        (output/'LISEZMOI.txt').write_text('Rois de la Pédale 0.7.0 — prototype démo natif\nLancer '+binary+' depuis ce dossier, sans serveur ni Internet.\nConserver les fichiers du dossier ensemble. F11 : plein écran.\nChoisir un circuit : Saint-Dié, Sortie vélo le matin, Oderen / Grand Ballon, Home sweet home.\nFlèches haut/bas : puissance démo. Espace : pause. H : masquer l’interface. V : changer de vue.\nAccueil > Cycliste : choix Orange ou Tricolore, mémorisé. Conduite à droite et évitement automatiques. Faune et passants procéduraux.\nQuatre circuits recalés OSM, relief IGN LiDAR HD et bâtiments IGN hors ligne. Toits et arbres interprétés.\nAmbiances sonores CC0 incluses, volume dans Paramètres. Bluetooth LE : Accueil > Périphériques > Rechercher > connecter le Suito-T. Démarrer avec le home trainer. Pente FTMS optionnelle, bornée à ±10 %. Données OSM : ODbL 1.0, attribution dans THIRD_PARTY.md.\nVersion portable non signée. Données IGN : Licence Ouverte, voir notices.\n',encoding='utf-8')
+        archive = ROOT/'build'/f'RoisDeLaPedale-0.7.0-{platform}.zip'
         with zipfile.ZipFile(archive,'w',compression=zipfile.ZIP_DEFLATED) as bundle:
-            for path in sorted(output.iterdir()): bundle.write(path,arcname='RoisDeLaPedale/'+path.name)
+            for path in sorted(output.rglob('*')):
+                if path.is_file():bundle.write(path,arcname='RoisDeLaPedale/'+str(path.relative_to(output)))
         print(archive.name,hashlib.sha256(archive.read_bytes()).hexdigest())
     if args.installer:
         nsis = shutil.which('makensis')

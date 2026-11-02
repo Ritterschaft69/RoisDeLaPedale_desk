@@ -6,6 +6,7 @@ const Route = preload("res://scripts/route.gd")
 const World = preload("res://scripts/world.gd")
 const Rider = preload("res://scripts/rider.gd")
 const HUD = preload("res://scripts/hud.gd")
+const Bluetooth = preload("res://scripts/bluetooth.gd")
 const InputAdapter = preload("res://scripts/trainer_input.gd")
 const Recorder = preload("res://scripts/recorder.gd")
 const CameraFollow = preload("res://scripts/camera_follow.gd")
@@ -17,6 +18,12 @@ var selected_circuit: Dictionary = circuits[0]
 var ambience := Ambience.new()
 var physics := Physics.new()
 var input := InputAdapter.new()
+var bluetooth := Bluetooth.new()
+var device_status: Label
+var device_values: Label
+var devices_return := "home"
+var device_ui_pending := false
+var home_connection_state := false
 var recorder := Recorder.new()
 var lane := LanePlanner.new()
 var world := World.new()
@@ -41,6 +48,11 @@ var smoke_frames := -1
 
 func _ready() -> void:
 	settings.load("user://settings.cfg")
+	bluetooth.follow_grade=settings.get_value("bluetooth","follow_grade",false)
+	bluetooth.measurement.connect(func(values: Dictionary):input.observe_metrics(values,int(values.get("received_ms",Time.get_ticks_msec()))))
+	bluetooth.lost.connect(func():input.invalidate())
+	bluetooth.changed.connect(bluetooth_changed)
+	add_child(bluetooth)
 	rider.set_variant(settings.get_value("rider","model","original"))
 	camera_follow.set_view(settings.get_value("graphics","camera_view",0))
 	add_child(ambience)
@@ -145,7 +157,7 @@ func card(title: String, subtitle: String, wide: bool = false) -> VBoxContainer:
 	clear_overlay()
 	var panel := PanelContainer.new()
 	overlay.add_child(panel)
-	panel.position = Vector2(32,65) if screen in ["home","circuits","riders"] else Vector2(440,185)
+	panel.position = Vector2(32,65) if screen in ["home","circuits","riders","devices"] else Vector2(440,185)
 	panel.custom_minimum_size = Vector2(510 if not wide else 650,0)
 	var style := StyleBoxFlat.new()
 	style.bg_color = Color(0.045,0.09,0.085,0.96)
@@ -203,6 +215,7 @@ func show_home() -> void:
 	hud.show()
 	overlay.show()
 	screen = "home"
+	home_connection_state=bluetooth.connected
 	position_scene(0,true)
 	var column := card("Prenez la route.",str(selected_circuit.short_name)+"\n%d circuits installés, disponibles hors ligne." % circuits.size())
 	label_in(column,"%.1f km   ·   D+ %.0f m\nGPX source : %s points conservés" % [route.length_m/1000,route.ascent_m,route.source_points.size()])
@@ -214,18 +227,24 @@ func show_home() -> void:
 	var rider_button := button_in(choices,"Cycliste · "+Rider.CHARACTERS[rider.variant_id].short_name,show_riders)
 	rider_button.name="ChooseRider"
 	rider_button.size_flags_horizontal=Control.SIZE_EXPAND_FILL
-	var power_label := label_in(column,"Puissance démo : %d W" % input.demo_watts)
-	var slider := HSlider.new()
-	slider.min_value = 0
-	slider.max_value = 500
-	slider.step = 5
-	slider.value = input.demo_watts
-	slider.custom_minimum_size.y = 26
-	slider.value_changed.connect(func(value: float):
-		input.demo_watts = value
-		power_label.text = "Puissance démo : %d W" % value)
-	column.add_child(slider)
-	button_in(column,"Démarrer en mode démo  →",start_session,true)
+	if bluetooth.connected:
+		label_in(column,bluetooth.device_name+" connecté en Bluetooth.",true)
+	else:
+		var power_label := label_in(column,"Puissance démo : %d W" % input.demo_watts)
+		var slider := HSlider.new()
+		slider.min_value = 0
+		slider.max_value = 500
+		slider.step = 5
+		slider.value = input.demo_watts
+		slider.custom_minimum_size.y = 26
+		slider.value_changed.connect(func(value: float):
+			input.demo_watts = value
+			power_label.text = "Puissance démo : %d W" % value)
+		column.add_child(slider)
+	if bluetooth.connected:
+		button_in(column,"Démarrer avec le home trainer  →",start_bluetooth_session,true)
+	else:
+		button_in(column,"Démarrer en mode démo  →",start_demo_session,true)
 	button_in(column,"Périphériques",show_devices)
 	button_in(column,"Paramètres",show_settings)
 	button_in(column,"Activités enregistrées",show_history)
@@ -293,11 +312,65 @@ func select_circuit(circuit_id: String) -> bool:
 	show_home()
 	return true
 
+func bluetooth_changed() -> void:
+	if not is_inside_tree() or screen not in ["devices","home"] or device_ui_pending:return
+	if screen=="home" and home_connection_state==bluetooth.connected:return
+	device_ui_pending=true
+	call_deferred("refresh_devices")
+
+func refresh_devices() -> void:
+	device_ui_pending=false
+	if not is_inside_tree():return
+	if screen=="devices":show_devices()
+	elif screen=="home":show_home()
+
 func show_devices() -> void:
-	var column := card("Périphériques", "Le mode démo est disponible sans matériel.")
-	label_in(column,"Bluetooth FTMS : adaptateur natif non intégré.\nAucun appareil découvert ni connecté.\nANT+ FE-C : extension future.\nAucune commande de résistance n’est envoyée.")
-	label_in(column,"L’intégration et la validation sur home trainer réel\nnécessitent un lot matériel dédié.",true)
-	button_in(column,"Retour",show_home)
+	var entering := screen!="devices"
+	if entering:devices_return="paused" if screen=="paused" else "home"
+	screen="devices"
+	var outer := card("Connexion Bluetooth", "Elite Suito-T · FTMS / puissance Bluetooth LE",true)
+	var scroll := ScrollContainer.new();scroll.custom_minimum_size.y=425;outer.add_child(scroll)
+	var column := VBoxContainer.new();column.size_flags_horizontal=Control.SIZE_EXPAND_FILL
+	column.add_theme_constant_override("separation",10);scroll.add_child(column)
+	device_status=label_in(column,bluetooth.status,true)
+	device_status.name="BluetoothStatus"
+	device_values=label_in(column,"Puissance : —     Cadence : —",true)
+	device_values.name="BluetoothValues"
+	if entering and bluetooth.process_id<=0:bluetooth.start_bridge()
+	if bluetooth.process_id<=0:button_in(column,"Réessayer le Bluetooth",func():bluetooth.start_bridge())
+	var search:=button_in(column,"Rechercher les appareils (10 s)",bluetooth.scan)
+	if bluetooth.connecting:button_in(column,"Annuler la connexion",bluetooth.disconnect_device)
+	search.name="BluetoothScan";search.disabled=bluetooth.peer==null or bluetooth.scanning or bluetooth.connecting
+	if not bluetooth.devices.is_empty():
+		var rows:=VBoxContainer.new();rows.size_flags_horizontal=Control.SIZE_EXPAND_FILL;column.add_child(rows)
+		for id in bluetooth.devices:
+			var identity: String=id
+			var item:=button_in(rows,str(bluetooth.devices[id].name),func():bluetooth.connect_device(identity))
+			item.name="BluetoothDevice";item.disabled=bluetooth.connecting or bluetooth.scanning
+	if bluetooth.connected:
+		var follow:=CheckBox.new();follow.text="Adapter la résistance à la pente (±10 % max.)"
+		follow.name="BluetoothGrade";follow.button_pressed=bluetooth.follow_grade
+		follow.disabled=not bluetooth.control_available
+		follow.toggled.connect(func(enabled: bool):bluetooth.follow_grade=enabled;save_settings())
+		column.add_child(follow)
+		label_in(column,"Retour neutre demandé en pause. Pilotage interrompu si le signal est perdu. Fermez My E-Training, Zwift et les autres applications vélo." if bluetooth.control_available else "Lecture des mesures uniquement : pilotage de pente FTMS non annoncé par cet appareil.",true)
+		button_in(column,"Déconnecter",bluetooth.disconnect_device)
+		if devices_return=="home":button_in(outer,"Démarrer avec le home trainer  →",start_bluetooth_session,true)
+	else:
+		label_in(column,"Activez le Bluetooth du PC et pédalez pour réveiller le Suito-T. Le mode ANT+ n’est pas pris en charge.",true)
+	if devices_return=="home":button_in(column,"Utiliser le mode démo",start_demo_session)
+	button_in(outer,"Retour",return_from_devices)
+
+func return_from_devices() -> void:
+	if devices_return=="paused":screen="ride";toggle_pause()
+	else:show_home()
+
+func start_demo_session() -> void:
+	input.mode="demo";start_session()
+
+func start_bluetooth_session() -> void:
+	if not bluetooth.connected:return
+	input.mode="bluetooth";start_session()
 
 func show_settings() -> void:
 	var column := card("À votre rythme.","Préférences enregistrées localement.")
@@ -361,7 +434,7 @@ func show_history() -> void:
 			if not path.ends_with(".json"): continue
 			var activity = JSON.parse_string(FileAccess.get_file_as_string("user://activities/"+path))
 			if not activity is Dictionary: continue
-			label_in(entries,"%s\n%s · %.2f km · %.0f W · DÉMO" % [activity.get("route_name","Boucle de Saint-Dié-des-Vosges"),str(activity.get("started_at_utc","")).replace("T"," "),float(activity.get("distance_m",0))/1000,float(activity.get("average_watts",0))],true)
+			label_in(entries,"%s\n%s · %.2f km · %.0f W · %s" % [activity.get("route_name","Boucle de Saint-Dié-des-Vosges"),str(activity.get("started_at_utc","")).replace("T"," "),float(activity.get("distance_m",0))/1000,float(activity.get("average_watts",0)),"BLUETOOTH" if activity.get("input_source","demo")=="bluetooth" else "DÉMO"],true)
 			count += 1
 			if count == 6: break
 	label_in(column,"Dossier :\n"+ProjectSettings.globalize_path("user://activities"),true)
@@ -379,6 +452,8 @@ func start_session() -> void:
 	world.life.set_route(world)
 	physics.mass_kg = rider_mass+9
 	physics.effective_mass_kg = physics.mass_kg+2
+	recorder.input_source=input.mode
+	recorder.trainer_name=bluetooth.device_name if input.mode=="bluetooth" else ""
 	recorder.begin(route.sample(route.start_m).position.y)
 	recorder.route_id = selected_circuit.id
 	recorder.route_name = selected_circuit.name
@@ -395,6 +470,7 @@ func show_ride_controls() -> void:
 	var pause_button := button_in(overlay,"Ⅱ  Pause",toggle_pause)
 	pause_button.position = Vector2(740,60)
 	pause_button.custom_minimum_size.x = 115
+	if input.mode!="demo":return
 	var power_box := HBoxContainer.new()
 	overlay.add_child(power_box)
 	power_box.position = Vector2(32,195)
@@ -407,10 +483,12 @@ func toggle_pause() -> void:
 		ambience.stop_all()
 		hud.show()
 		overlay.show()
+		bluetooth.update_ride(false,0)
 		screen = "paused"
 		var column := card("Une respiration.","La simulation et le chronomètre sont en pause.")
 		button_in(column,"Reprendre  →",resume_session,true)
 		button_in(column,"Terminer et enregistrer",finish_session)
+		if input.mode=="bluetooth":button_in(column,"Connexion Bluetooth",show_devices)
 	elif screen == "paused": resume_session()
 
 func resume_session() -> void:
@@ -419,11 +497,13 @@ func resume_session() -> void:
 	show_ride_controls()
 
 func finish_session() -> void:
+	bluetooth.update_ride(false,0)
 	ambience.stop_all()
 	var result := recorder.save(distance-route.start_m,distance >= route.length_m)
 	screen = "summary"
-	var column := card("Belle échappée.",str(selected_circuit.short_name)+"\nSession démo · aucune puissance mesurée.")
+	var column := card("Belle échappée.",str(selected_circuit.short_name)+("\nSession Bluetooth · "+recorder.trainer_name if recorder.input_source=="bluetooth" else "\nSession démo · aucune puissance mesurée."))
 	label_in(column,"%.2f km     %02d:%02d     D+ %.0f m" % [(distance-route.start_m)/1000,int(elapsed)/60,int(elapsed)%60,recorder.ascent_m])
+	if recorder.missing_power_s>0:label_in(column,"Signal de puissance absent pendant %.1f s" % recorder.missing_power_s,true)
 	label_in(column,"%.0f W de moyenne · %.0f W maximum" % [recorder.sum_watts/maxf(elapsed,0.001),recorder.max_watts])
 	if result.has("error"):
 		label_in(column,result.error)
@@ -434,6 +514,7 @@ func finish_session() -> void:
 	button_in(column,"Retour à l’accueil",show_home,true)
 
 func save_settings() -> void:
+	settings.set_value("bluetooth","follow_grade",bluetooth.follow_grade)
 	settings.set_value("audio","enabled",ambience.enabled)
 	settings.set_value("audio","volume",ambience.volume)
 	settings.set_value("route","selected_id",selected_circuit.id)
@@ -463,8 +544,10 @@ func _unhandled_key_input(event: InputEvent) -> void:
 				overlay.visible = hud.visible
 		KEY_SPACE,KEY_ESCAPE:
 			if screen == "ride" or screen == "paused": toggle_pause()
-		KEY_UP: input.demo_watts = minf(500,input.demo_watts+10)
-		KEY_DOWN: input.demo_watts = maxf(0,input.demo_watts-10)
+		KEY_UP:
+			if input.mode=="demo":input.demo_watts=minf(500,input.demo_watts+10)
+		KEY_DOWN:
+			if input.mode=="demo":input.demo_watts=maxf(0,input.demo_watts-10)
 
 func _physics_process(dt: float) -> void:
 	if screen != "ride": return
@@ -478,13 +561,14 @@ func _physics_process(dt: float) -> void:
 	if terrain_kind == 2: rolling *= 1.12
 	world.life.step(dt,distance,speed,lane.lateral)
 	lane.step(distance,speed,dt,world.life.observations(distance,speed))
+	if input.mode=="bluetooth" and observation.stale:input.samples.clear()
 	var smoothed := input.smooth(watts)
 	var braking := physics.effective_mass_kg*3.5 if lane.blocked else 0.0
 	var result := physics.step(speed,0.0 if lane.blocked else smoothed,route.grade(distance),dt,0,rolling,0,braking)
 	speed = result.speed
 	distance = minf(route.length_m,distance+result.distance)
 	elapsed += dt
-	recorder.tick(dt,distance-route.start_m,speed,watts,cadence,route.sample(distance) if recorder.geographic_route else route.sample_raw(distance),lane.lateral)
+	recorder.tick(dt,distance-route.start_m,speed,watts,cadence,route.sample(distance) if recorder.geographic_route else route.sample_raw(distance),lane.lateral,not observation.stale)
 	if distance >= route.length_m: finish_session()
 
 func cycle_camera_view() -> void:
@@ -526,6 +610,13 @@ func position_scene(dt: float, immediate: bool = false) -> void:
 		camera.transform = camera_follow.step(route,station,lateral,speed,dt,immediate)
 
 func _process(dt: float) -> void:
+	var current:=input.read(Time.get_ticks_msec())
+	bluetooth.update_ride(screen=="ride" and input.mode=="bluetooth" and not current.stale,route.grade(distance)*100)
+	if screen=="devices" and is_instance_valid(device_values):
+		var now:=Time.get_ticks_msec()
+		var power := str(roundi(input.measured_watts))+" W" if input.last_observation_ms>=0 and now-input.last_observation_ms<=2000 else "—"
+		var rpm := str(roundi(input.measured_cadence))+" tr/min" if input.last_cadence_ms>=0 and now-input.last_cadence_ms<=2000 else "—"
+		device_values.text="Puissance : "+power+"     Cadence : "+rpm
 	ambience.step(dt,world,distance,speed,screen=="ride")
 	position_scene(dt)
 	if screen == "ride": rider.animate(dt,cadence,speed)
@@ -544,8 +635,9 @@ func _process(dt: float) -> void:
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_WM_CLOSE_REQUEST:
-		if screen in ["ride","paused"]: recorder.save(distance-route.start_m,false)
+		if screen in ["ride","paused"] or (screen=="devices" and devices_return=="paused"): recorder.save(distance-route.start_m,false)
 		save_settings()
+		bluetooth.shutdown()
 	if what == NOTIFICATION_APPLICATION_FOCUS_OUT and screen == "ride" and smoke_frames < 0:
 		toggle_pause()
 

@@ -16,7 +16,7 @@ Le GPX et le cahier des charges ont été fournis en pièces jointes. Le GPX a �
 
 ## Choix desktop
 
-Godot 4.6.3 standard : rendu, interface, boucle physique et fichiers applicatifs natifs ; exports x64 Linux et Windows ; pas de navigateur, serveur ou compte. L’absence de code antérieur permet ce choix sans migration ni perte de composants. Le renderer GL Compatibility privilégie l’accessibilité matérielle et les tests logiciels cloud. Compromis : intégrer FTMS demandera une extension native par OS ; Godot ne fournit pas un accès FTMS universel prêt à l’emploi. Une interface de données et une politique d’expiration existent, mais aucun appareil n’est annoncé connecté.
+Godot 4.6.3 standard : rendu, interface, boucle physique et fichiers applicatifs natifs ; exports x64 Linux et Windows ; pas de navigateur, serveur ou compte. L’absence de code antérieur permet ce choix sans migration ni perte de composants. Le renderer GL Compatibility privilégie l’accessibilité matérielle et les tests logiciels cloud. Godot ne fournit pas un accès FTMS universel prêt à l’emploi. Depuis 0.7.0, un processus compagnon natif Bleak/WinRT fournit cet accès sur Windows ; une interface de données et une politique d’expiration séparent les mesures de la simulation.
 
 ## Modules
 
@@ -56,7 +56,7 @@ Les échantillons RGE ALTI ne constituent ni un nuage de points LiDAR HD ni un M
 ## Suite du développement
 
 1. Valider le référentiel vertical et produire des tuiles terrain, routes secondaires et sols urbains sur toute la boucle ; optimiser le streaming et la géométrie des épingles.
-2. Extension native Bluetooth Windows FTMS : scan, notifications, contrôle borné séparé, tests sur matériel réel ; ANT+ seulement avec matériel adapté.
+2. Bluetooth Windows FTMS intégré en 0.7.0 : validation radio, notifications et résistance sur un vrai Suito-T à poursuivre ; ANT+ seulement avec matériel adapté.
 3. Remplacer les modèles de prototype, enrichir les façades et paysages ; instancing/LOD et profilage sur matériel de référence.
 4. Audio local livré en 0.6.3 sous CC0, avec volume et désactivation ; validation sur les sorties audio Windows réelles à poursuivre.
 5. Valider sur Windows l’installeur NSIS déjà produit, l’installation/désinstallation et le hors ligne ; sessions longues et signature si certificat disponible.
@@ -90,3 +90,9 @@ Version 0.6.9 : `clean_observations()` conserve les fichiers et stations GPX mai
 Les façades partagent une texture opaque, des UV métriques et une seconde coordonnée pour masquer les fenêtres dans les fondations et pignons. Le découpage routier ignore les micro-faces effondrées après quantification float32.
 
 `prepare_forests.py` soustrait aux boisements les routes, bâtiments, eaux et clairières MNH, conserve les trous et construit des enveloppes par secteur de 256 m. Les blocs gzip contiennent seulement x/y/z et l’altitude MNT de référence. `GeographicWorld.forest_masses()` charge un cache brut borné puis replace les volumes sur `CyclingWorld.displayed_ground()` ; cette fonction interroge le terrain proche ou les vrais triangles des anneaux d’arrière-plan. Les normales sont recalculées après ce raccord. La préparation respecte le budget de streaming, les ombres restent désactivées et les textures sont opaques. Les arbres individuels sont réservés à la proximité ; les fractions boisées des secteurs colorent le relief plus lointain sans géométrie supplémentaire.
+
+Version 0.7.0 : `CyclingBluetooth` lance à la demande un module compagnon gelé par PyInstaller. `bluetooth/bridge.py` utilise Bleak (WinRT Windows / BlueZ Linux), découvre les services FTMS/CPS et fournit des notifications JSON délimitées par des lignes sur un socket IPv4 lié uniquement à 127.0.0.1, authentifié avec une capacité aléatoire de 256 bits. Aucun point d’accès distant. Les paquets et commandes sont bornés ; le jeu n’attend jamais une recherche BLE dans le thread de rendu.
+
+`TrainerInput` conserve des timestamps séparés pour les watts et la cadence ; les horloges sont rapprochées par échanges locaux de faible RTT pour rejeter les notifications tamponnées anciennes. `SessionRecorder` distingue démo/Bluetooth et marque la puissance manquante. Le mode est choisi au début de la session, sans repli automatique vers une valeur démo.
+
+Le pilotage FTMS est optionnel et utilise uniquement les capacités annoncées. Un travailleur unique coalesce les demandes, consulte le dernier contexte de sortie après chaque réponse GATT, et laisse le lecteur recevoir immédiatement une pause. Les indications confirment les opcodes, le contrôle expire avec les mesures ou les messages du jeu, et la fermeture/EOF déclenche un arrêt borné. Les faux périphériques sont confinés aux tests et exclus des exports. Le module Windows est compilé et auto-testé sur un runner Windows avant d’être ajouté à l’installateur NSIS construit sur Ubuntu.

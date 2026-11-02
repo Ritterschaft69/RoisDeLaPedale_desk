@@ -65,6 +65,7 @@ func _draw() -> void:
 		source_note = "DÉMO · © OPENSTREETMAP · IGN BD TOPO® / LIDAR HD · FAÇADES ET ARBRES INTERPRÉTÉS"
 		if not app.route.osm_verified_at(app.distance): source_note = "DÉMO · TRONÇON GPX NON RECALÉ OSM · RELIEF IGN LIDAR HD"
 	draw_rect(Rect2(24,h-38,w-48,28),Color(0.045,0.095,0.095,0.9))
+	if app.input.mode=="bluetooth":source_note=source_note.replace("DÉMO","BLUETOOTH")
 	text_at(Vector2(32,h-21),source_note,11,CREAM)
 	if app.screen in ["home","circuits"]:
 		panel(Rect2(w-325,65,293,330))
@@ -104,8 +105,14 @@ func _draw() -> void:
 	text_at(Vector2(w-266,363),"PROFIL DU CIRCUIT",11,MUTED,true)
 	draw_profile(Rect2(w-266,376,214,39))
 	panel(Rect2(w-338,h-147,306,104))
-	text_at(Vector2(w-318,h-118),"MODE DÉMO · %d W" % app.input.demo_watts,12,GOLD,true)
-	text_at(Vector2(w-318,h-91),"↑ ↓  Puissance     Espace  Pause",12,CREAM)
+	var source := "MODE DÉMO · %d W" % app.input.demo_watts
+	var hint := "↑ ↓  Puissance     Espace  Pause"
+	if app.input.mode=="bluetooth":
+		var observation: Dictionary=app.input.read(Time.get_ticks_msec())
+		source="BLUETOOTH · SIGNAL PERDU" if observation.stale else "BLUETOOTH · "+app.bluetooth.device_name.left(23)
+		hint="Signal perdu : puissance à zéro" if observation.stale else "Puissance mesurée · Espace  Pause"
+	text_at(Vector2(w-318,h-118),source,12,GOLD,true)
+	text_at(Vector2(w-318,h-91),hint,12,CREAM)
 	text_at(Vector2(w-318,h-66),"V  Vue   F11  Plein écran   H  Interface",12,MUTED)
 	if app.screen == "paused":
 		draw_rect(Rect2(Vector2.ZERO,size),Color(0.03,0.07,0.07,0.38))

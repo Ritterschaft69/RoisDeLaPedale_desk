@@ -1,6 +1,8 @@
 class_name SessionRecorder
 extends RefCounted
 
+var input_source := "demo"
+var trainer_name := ""
 var points: Array[Dictionary] = []
 var started_at := ""
 var sum_watts := 0.0
@@ -9,6 +11,7 @@ var ascent_m := 0.0
 var previous_altitude := 0.0
 var cadence_sum := 0.0
 var elapsed_s := 0.0
+var missing_power_s := 0.0
 var route_id := "saint_die"
 var route_name := "Boucle de Saint-Dié-des-Vosges"
 var route_source_sha256 := ""
@@ -24,10 +27,12 @@ func begin(altitude: float) -> void:
 	previous_altitude = altitude
 	cadence_sum = 0
 	elapsed_s = 0
+	missing_power_s = 0
 
-func tick(dt: float, distance: float, speed: float, watts: float, cadence: float, location: Dictionary, lateral_m: float = 0.0) -> void:
+func tick(dt: float, distance: float, speed: float, watts: float, cadence: float, location: Dictionary, lateral_m: float = 0.0, power_valid: bool = true) -> void:
 	var previous_second := int(elapsed_s)
 	elapsed_s += dt
+	if not power_valid:missing_power_s+=dt
 	sum_watts += watts * dt
 	cadence_sum += cadence * dt
 	max_watts = maxf(watts,max_watts)
@@ -35,14 +40,14 @@ func tick(dt: float, distance: float, speed: float, watts: float, cadence: float
 	previous_altitude = location.position.y
 	if int(elapsed_s) > previous_second:
 		points.append({"t": elapsed_s,"distance_m": distance,"speed_mps": speed,"watts": watts,
-			"cadence_rpm": cadence,"lat": location.lat,"lon": location.lon,"alt_m": location.position.y,"lateral_m":lateral_m})
+			"cadence_rpm": cadence,"power_valid":power_valid,"lat": location.lat,"lon": location.lon,"alt_m": location.position.y,"lateral_m":lateral_m})
 		if geographic_route:
 			points[-1].source_gpx = {"lat":location.source_lat,"lon":location.source_lon,"alt_m":location.source_alt_m,"station_m":location.source_station_m}
 
 func save(distance: float, complete: bool) -> Dictionary:
 	var summary := {"schema":1,"started_at_utc":started_at,"duration_s":elapsed_s,"distance_m":distance,
 		"ascent_m":ascent_m,"average_watts":sum_watts/maxf(elapsed_s,0.001),"max_watts":max_watts,
-		"average_cadence_rpm":cadence_sum/maxf(elapsed_s,0.001),"completed":complete,"input_source":"demo",
+		"average_cadence_rpm":cadence_sum/maxf(elapsed_s,0.001),"completed":complete,"input_source":input_source,"missing_power_s":missing_power_s,"trainer_name":trainer_name,
 		"route":route_id,"route_name":route_name,"route_source_sha256":route_source_sha256,"route_start_m":route_start_m,"samples":points}
 	summary["altitude_source"] = "IGN LiDAR HD, IGN69, smoothed simulation route" if geographic_route else "original GPX, unspecified vertical datum"
 	summary["route_geometry"] = "OSM matched simulation; source_gpx retained per sample" if geographic_route else "original GPX"

@@ -1,9 +1,13 @@
 # Rois de la Pédale
 
-**Windows : [télécharger l’installeur v0.6.9](https://github.com/Ritterschaft69/RoisDeLaPedale_desk/releases/download/v0.6.9/RoisDeLaPedale-0.6.9-Setup.exe)** · [Page de la préversion](https://github.com/Ritterschaft69/RoisDeLaPedale_desk/releases/tag/v0.6.9)
+**Windows : [télécharger l’installeur v0.7.0](https://github.com/Ritterschaft69/RoisDeLaPedale_desk/releases/download/v0.7.0/RoisDeLaPedale-0.7.0-Setup.exe)** · [Page de la préversion](https://github.com/Ritterschaft69/RoisDeLaPedale_desk/releases/tag/v0.7.0)
 [Voir les circuits reconstruits et les captures natives](https://github.com/Ritterschaft69/RoisDeLaPedale_desk/releases/tag/v0.6.0)
 
-Prototype **desktop natif**, Godot **4.6.3**, quatre circuits et données géographiques hors ligne. Aucun serveur ni navigateur requis.
+Prototype **desktop natif**, Godot **4.6.3**, quatre circuits et données géographiques hors ligne. Aucun service en ligne ni navigateur requis.
+
+## Bluetooth Elite Suito-T — 0.7.0
+
+Dans **Périphériques → Rechercher**, sélectionner le Suito-T réveillé, puis **Démarrer avec le home trainer**. La puissance reçue pilote la simulation et la cadence reçue anime le cycliste. La résistance suivant la pente est optionnelle, désactivée par défaut, limitée à ±10 % et disponible seulement si le périphérique annonce la simulation FTMS. Le module autonome est inclus dans l’installateur Windows, sans Python à installer. [Utilisation et validation](docs/BLUETOOTH.md).
 
 ## Tracés et paysages optimisés — 0.6.9
 
@@ -72,7 +76,7 @@ Ouvrir `project.godot` dans Godot 4.6.3 standard, ou exécuter :
 godot --path .
 ```
 
-**Choisir un circuit**, puis **Démarrer en mode démo**. Flèches haut/bas : watts simulés ; Espace/Échap : pause ; F11 : plein écran ; H : masquer l’interface ; **V : vue du cycliste, arrière éloignée, puis arrière actuelle**. Conduite à droite et évitement automatiques ; passants et faune procéduraux. Le dernier circuit est mémorisé. Activités et paramètres sont stockés dans le répertoire applicatif de l’utilisateur.
+**Choisir un circuit**, puis **Démarrer en mode démo** ou connecter le Suito-T dans **Périphériques** et choisir **Démarrer avec le home trainer**. Flèches haut/bas : watts simulés ; Espace/Échap : pause ; F11 : plein écran ; H : masquer l’interface ; **V : vue du cycliste, arrière éloignée, puis arrière actuelle**. Conduite à droite et évitement automatiques ; passants et faune procéduraux. Le dernier circuit est mémorisé. Activités et paramètres sont stockés dans le répertoire applicatif de l’utilisateur.
 
 ## Vérifier
 
@@ -96,6 +100,7 @@ godot --headless --path . --script tests/test_camera_follow.gd
 godot --headless --path . --script tests/test_circuit_geography.gd
 godot --headless --path . --script tests/test_performance.gd
 godot --headless --path . --script tests/test_landscape.gd
+godot --headless --path . --script tests/test_bluetooth.gd
 ```
 
 Isoler `XDG_DATA_HOME`, `XDG_CONFIG_HOME` et `XDG_CACHE_HOME` dans des répertoires accessibles en écriture pour les tests cloud. Le rendu natif sans écran est disponible via `python tools/run_cloud.py` ; ce rendu logiciel ne mesure pas les performances d’un GPU Windows.
@@ -109,7 +114,13 @@ python tools/prepare_route.py --all
 python -m pip install -r tools/requirements-geography.txt
 python tools/circuit_geography.py --stage plan
 python tools/circuit_geography.py --stage all
-python tools/build.py --templates --target windows --installer
+# Sur l’OS cible, construire le module Bluetooth autonome :
+python -m pip install -r bluetooth/requirements-build.txt
+python tools/build_bluetooth.py
+# Linux local :
+python tools/build.py --templates --target linux
+# Windows : la GitHub Action construit le module sur Windows,
+# puis l’export Godot et l’installateur sur Ubuntu.
 ```
 
 Les requêtes brutes sont mises en cache dans `build/geography/cache/`, les reçus et données de rendu dans `assets/geodata/circuits/`. Les données sources OSM dérivées et les formats binaires sont publiés avec leur attribution et leur licence. Les exports et installeurs restent dans `build/`, hors historique Git ; les installeurs publics sont joints aux GitHub Releases.
@@ -118,6 +129,6 @@ Les requêtes brutes sont mises en cache dans `build/geography/cache/`, les reç
 
 Le MNT/MNH LiDAR HD est rééchantillonné à 10 m près du parcours et le relief lointain à 100 m ; les nuages LAZ complets ne sont pas embarqués. Les façades, toitures et formes individuelles des arbres sont procédurales ; les largeurs routières sans mesure sont estimées. Les tunnels ne sont pas reconstruits comme des ouvrages souterrains complets. Le recalage automatique reste une interprétation du GPX, et les intervalles non raccordés sont signalés dans les rapports et dans le jeu.
 
-Bluetooth FTMS/ANT+, résistance du home trainer ne sont pas intégrés. Installeur non signé ; exécution et désinstallation sur Windows restent à vérifier sur un vrai poste. Le cycliste utilise désormais le modèle GLB fourni par l’utilisateur.
+Bluetooth LE FTMS et Cycling Power sont intégrés ; la validation radio avec un vrai Elite Suito-T reste à effectuer sur un PC équipé. ANT+, calibration/spin-down, profils propriétaires et capteurs CSC séparés ne sont pas intégrés. Installeur non signé ; exécution et désinstallation sur Windows restent à vérifier sur un vrai poste. Le cycliste utilise désormais le modèle GLB fourni par l’utilisateur.
 
 [Architecture](docs/ARCHITECTURE.md) · [Licences](docs/THIRD_PARTY.md) · [Cahier des charges](docs/CAHIER_DES_CHARGES.md)
