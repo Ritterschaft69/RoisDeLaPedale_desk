@@ -11,3 +11,7 @@ La recherche et les opérations Bluetooth tournent dans un module autonome sépa
 357 contrôles logiciels réussis, avec paquets FTMS/CPS, module de test local, priorité à la pause, mesures périmées, provenance des activités et tests de l’application existante. Le module gelé vérifie l’import du backend réel. Le cloud n’a ni adaptateur radio ni Suito-T à portée : **la connexion radio et la résistance physique restent à vérifier sur le PC équipé**.
 
 [Guide Bluetooth](https://github.com/Ritterschaft69/RoisDeLaPedale_desk/blob/main/docs/BLUETOOTH.md). Les captures montrent l’écran réel et le diagnostic d’absence d’adaptateur dans le cloud ; elles ne présentent pas un Suito-T réel comme connecté.
+
+[Écran Bluetooth prêt](https://github.com/Ritterschaft69/RoisDeLaPedale_desk/releases/download/v0.7.0/v0.7.0-bluetooth-ready.png) · [Diagnostic sans adaptateur radio](https://github.com/Ritterschaft69/RoisDeLaPedale_desk/releases/download/v0.7.0/v0.7.0-bluetooth-no-adapter.png).
+
+Module Bluetooth Windows compilé et auto-testé sur Windows ; installateur téléchargé pour contrôle : 145104369 octets ; SHA-256 `3676649dcbc5c7ab4974800fcff67f15c9c4a8e836b0600617fb689599410f27`, conforme à `SHA256SUMS.txt`. Compilation réussie : https://github.com/Ritterschaft69/RoisDeLaPedale_desk/actions/runs/41517292645.
