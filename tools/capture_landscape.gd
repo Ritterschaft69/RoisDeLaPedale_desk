@@ -11,6 +11,6 @@ func run():
   app.world.update_at(app.distance,true);app.position_scene(0,true);app.hud.queue_redraw()
   for i in range(3):await process_frame
   await RenderingServer.frame_post_draw
-  root.get_texture().get_image().save_png("res://docs/previews/v0.6.9-landscape-"+item[0]+"-"+str(item[1])+".png")
+  root.get_texture().get_image().save_png("res://docs/previews/v0.7.1-landscape-"+item[0]+"-"+str(item[1])+".png")
   print("LANDSCAPE ",item[0]," forest_triangles=",app.world.geographic.last_forest_triangles)
  app.free();await process_frame;quit()

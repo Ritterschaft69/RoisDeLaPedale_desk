@@ -134,7 +134,7 @@ varying float camera_distance;
 void vertex(){camera_distance=length((MODELVIEW_MATRIX*vec4(VERTEX,1.0)).xyz);}
 void fragment(){
  vec4 detail=texture(windows,UV);
- float fade=1.0-smoothstep(100.0,185.0,camera_distance);
+ float fade=1.0-smoothstep(220.0,340.0,camera_distance);
  float wall=step(0.35,UV2.x)*step(UV2.x,UV2.y-0.25);
  ALBEDO=mix(COLOR.rgb,detail.rgb,detail.a*fade*wall);
  ROUGHNESS=1.0;
@@ -156,6 +156,12 @@ varying vec3 view_x;
 varying vec3 view_z;
 varying float surface_up;
 void vertex(){
+ // Close parcels read as textured forest floor beneath real border crowns.
+ // The distant envelope rises continuously, avoiding foreground green walls.
+ if(COLOR.a>0.75){
+  float d=length((MODELVIEW_MATRIX*vec4(VERTEX,1.0)).xyz);
+  VERTEX.y=UV2.x+max(0.035,(VERTEX.y-UV2.x)*smoothstep(220.0,550.0,d));
+ }
  world_position=(MODEL_MATRIX*vec4(VERTEX,1.0)).xyz;
  view_x=(VIEW_MATRIX*vec4(1.0,0.0,0.0,0.0)).xyz;
  view_z=(VIEW_MATRIX*vec4(0.0,0.0,1.0,0.0)).xyz;
@@ -166,10 +172,33 @@ void fragment(){
  vec3 leaves=texture(foliage,uv).rgb;
  vec2 bump=texture(crowns,uv).rg*2.0-1.0;
  NORMAL=normalize(NORMAL+(view_x*bump.x+view_z*bump.y)*0.7*surface_up);
- ALBEDO=leaves*COLOR.rgb;ROUGHNESS=1.0;
+ // Only the sparse border crowns/trunks fade, not the parcel envelope.
+ if(COLOR.a<0.75){
+  float fade=1.0-smoothstep(235.0,330.0,length(VERTEX));
+  float threshold=fract(dot(floor(FRAGCOORD.xy),vec2(0.75487766,0.56984029)));
+  if(threshold>fade)discard;
+ }
+ ALBEDO=COLOR.a<0.25?COLOR.rgb:leaves*COLOR.rgb;ROUGHNESS=1.0;
 }
 """
 	var material := ShaderMaterial.new();material.shader=shader
 	material.set_shader_parameter("foliage",preload("res://assets/textures/forest-canopy.png"))
 	material.set_shader_parameter("crowns",preload("res://assets/textures/forest-normal.png"))
 	cache.forest_texture=material;return material
+
+static func woodland() -> ShaderMaterial:
+	if cache.has("woodland"):return cache.woodland
+	var shader:=Shader.new()
+	shader.code="""shader_type spatial;
+render_mode specular_disabled, cull_disabled, shadows_disabled;
+void fragment(){
+ float fade=1.0-smoothstep(235.0,330.0,length(VERTEX));
+ if(fade<1.0){
+  float threshold=fract(dot(floor(FRAGCOORD.xy),vec2(0.75487766,0.56984029)));
+  if(threshold>fade)discard;
+ }
+ ALBEDO=COLOR.rgb;ROUGHNESS=1.0;
+}
+"""
+	var material:=ShaderMaterial.new();material.shader=shader
+	cache.woodland=material;return material

@@ -9,7 +9,7 @@ static func append_shape(surface: SurfaceTool, shape: Mesh, at: Vector3, scale_s
 	var arrays := shape.surface_get_arrays(0)
 	var vertices: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
 	var normals: PackedVector3Array = arrays[Mesh.ARRAY_NORMAL]
-	var indices: PackedInt32Array = arrays[Mesh.ARRAY_INDEX]
+	var indices: PackedInt32Array = arrays[Mesh.ARRAY_INDEX] if arrays[Mesh.ARRAY_INDEX]!=null else PackedInt32Array()
 	var transform := Transform3D(Basis.from_euler(angles).scaled(scale_size),at)
 	var normal_matrix := transform.basis.inverse().transposed()
 	var tint := color.srgb_to_linear()
@@ -88,3 +88,38 @@ static func rock_mesh(kind: int) -> ArrayMesh:
 	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,arrays)
 	rocks[kind] = mesh
 	return mesh
+
+static func crown_blob() -> ArrayMesh:
+	if trees.has("crown_blob"):return trees.crown_blob
+	var t:float=(1.0+sqrt(5.0))/2.0
+	var points=[Vector3(-1,t,0),Vector3(1,t,0),Vector3(-1,-t,0),Vector3(1,-t,0),Vector3(0,-1,t),Vector3(0,1,t),Vector3(0,-1,-t),Vector3(0,1,-t),Vector3(t,0,-1),Vector3(t,0,1),Vector3(-t,0,-1),Vector3(-t,0,1)]
+	var faces=[[0,11,5],[0,5,1],[0,1,7],[0,7,10],[0,10,11],[1,5,9],[5,11,4],[11,10,2],[10,7,6],[7,1,8],[3,9,4],[3,4,2],[3,2,6],[3,6,8],[3,8,9],[4,9,5],[2,4,11],[6,2,10],[8,6,7],[9,8,1]]
+	var surface:=SurfaceTool.new();surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+	for face in faces:
+		for i in [face[0],face[2],face[1]]:
+			var p:Vector3=points[i].normalized();surface.set_normal(p);surface.add_vertex(p)
+	surface.index()
+	var mesh:=surface.commit();trees.crown_blob=mesh;return mesh
+
+static func woodland_tree(kind: int) -> ArrayMesh:
+	var key:="woodland"+str(kind)
+	if trees.has(key):return trees[key]
+	var surface:=SurfaceTool.new();surface.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var trunk:=CylinderMesh.new();trunk.height=5.2;trunk.bottom_radius=.20;trunk.top_radius=.065;trunk.radial_segments=5;trunk.rings=1
+	append_shape(surface,trunk,Vector3(0,2.6,0),Vector3.ONE,Color("6b5641"))
+	if kind<2:
+		var rings=[Vector2(2.25,2.25),Vector2(3.9,1.95),Vector2(5.8,1.2),Vector2(7.9,.04)]
+		for level in range(3):
+			for j in range(7):
+				var corners:Array[Vector3]=[]
+				for pair in [[level,j],[level,j+1],[level+1,j+1],[level+1,j]]:
+					var ring:Vector2=rings[pair[0]];var angle:float=pair[1]*TAU/7.0
+					var radius:float=ring.y*(1.0+.10*sin(pair[1]*2.3+pair[0]*1.4+kind))
+					corners.append(Vector3(cos(angle)*radius,ring.x,sin(angle)*radius))
+				for i in [0,2,1,0,3,2]:
+					var p:Vector3=corners[i];surface.set_color(Color("416546").srgb_to_linear())
+					surface.set_normal(Vector3(p.x,.65,p.z).normalized());surface.add_vertex(p)
+	else:
+		append_shape(surface,crown_blob(),Vector3(-.65,5.1,0),Vector3(2.8,2.7,2.6),Color("557a45"))
+		append_shape(surface,crown_blob(),Vector3(.8,5.9,.25),Vector3(2.5,2.2,2.4),Color("688648"))
+	var mesh:=surface.commit();trees[key]=mesh;return mesh

@@ -43,6 +43,40 @@ def forest_mask(world,roads):
     return make_valid(forest)
 
 
+def crown_mesh(x,z,height,conifer,survey):
+    """Small shared-shape crown cluster; interpreted foliage, not a tree survey."""
+    leaves=[];trunks=[]
+    def point(dx,y,dz):
+        px,pz=round(x+dx,3),round(z+dz,3);ground,_=survey(px,pz)
+        return None if ground is None else (px,ground+y,pz,ground)
+    radius=min(4.4,max(2.1,height*.24))
+    if conifer:
+        rings=[(.34,1),(.55,.86),(.77,.50),(1,.02)]
+        for level in range(3):
+            for j in range(6):
+                corners=[]
+                for k,n in [(level,j),(level,j+1),(level+1,j+1),(level+1,j)]:
+                    y,r=rings[k];angle=n*math.tau/6
+                    r*=1+.12*math.sin(n*2.4+k)
+                    corners.append(point(math.cos(angle)*radius*r,height*y,math.sin(angle)*radius*r))
+                for face in [(0,1,2),(0,2,3)]:leaves.append(tuple(corners[k] for k in face))
+    else:
+        t=(1+math.sqrt(5))/2
+        vertices=[(-1,t,0),(1,t,0),(-1,-t,0),(1,-t,0),(0,-1,t),(0,1,t),(0,-1,-t),(0,1,-t),(t,0,-1),(t,0,1),(-t,0,-1),(-t,0,1)]
+        faces=[(0,11,5),(0,5,1),(0,1,7),(0,7,10),(0,10,11),(1,5,9),(5,11,4),(11,10,2),(10,7,6),(7,1,8),(3,9,4),(3,4,2),(3,2,6),(3,6,8),(3,8,9),(4,9,5),(2,4,11),(6,2,10),(8,6,7),(9,8,1)]
+        for offset,cy,ry,scale in [(-.25,.70,.28,1.0),(.30,.81,.22,.84)]:
+            blob=[]
+            for vx,vy,vz in vertices:
+                norm=math.sqrt(vx*vx+vy*vy+vz*vz)
+                blob.append(point(radius*(offset+vx/norm*scale),height*(cy+vy/norm*ry),radius*vz/norm*scale))
+            leaves.extend(tuple(blob[i] for i in face) for face in faces)
+    for j in range(5):
+        a=j*math.tau/5;b=(j+1)*math.tau/5;r=max(.12,min(.30,height*.012))
+        q=[point(math.cos(a)*r,-.15,math.sin(a)*r),point(math.cos(b)*r,-.15,math.sin(b)*r),point(math.cos(b)*r*.4,height*.68,math.sin(b)*r*.4),point(math.cos(a)*r*.4,height*.68,math.sin(a)*r*.4)]
+        trunks.extend([(q[0],q[1],q[2]),(q[0],q[2],q[3])])
+    return leaves,trunks
+
+
 def bake(entry):
     directory=ROOT/'assets/geodata/circuits'/entry['id']
     world=json.loads((directory/'world.json').read_text())
@@ -51,7 +85,7 @@ def bake(entry):
     route=[(p[0],p[2]) for p in struct.iter_unpack('<ffff',(directory/'route.bin').read_bytes())]
     mask=mask.intersection(LineString(route[::8]+[route[-1]]).buffer(1800,quad_segs=3))
     mask=mask.difference(LineString(route).buffer(12,quad_segs=2))
-    prepared=prep(mask);terrain=Terrain();projection=world['terrain_transform'];tiles=defaultdict(list)
+    prepared=prep(mask);fringe_zone=prep(LineString(route[::6]+[route[-1]]).buffer(110,quad_segs=3));terrain=Terrain();projection=world['terrain_transform'];tiles=defaultdict(list)
     for polygon in polygon_parts(mask):
         left,bottom,right,top=polygon.bounds
         for tx in range(math.floor(left/TILE),math.floor(right/TILE)+1):
@@ -88,7 +122,7 @@ def bake(entry):
             h=max(4,min(25,measured)) if measured is not None else 13.
             # Rounded stand margins and coherent height between adjacent tiles.
             edge=boundary.distance(Point(x,z)) if not boundary.is_empty else 48.
-            envelope=2.0+(h-2)*min(1,edge/14)
+            envelope=h*(.74+.26*min(1,edge/18))
             variation=1.2*math.sin(x*.105+math.sin(z*.07))*math.cos(z*.11)
             return (x,ground+max(1.5,envelope+variation),z,ground)
         def triangle(a,b,c):
@@ -116,7 +150,7 @@ def bake(entry):
                         corners=[vertex(round(p[0],3),round(p[1],3)) for p in list(tri.exterior.coords)[:3]]
                         if None in corners:missing+=1;continue
                         triangle(*corners)
-                    # Close real stand margins below terrain. Internal grid
+                    # Close the upper foliage layer at real stand margins. Internal grid
                     # seams have no walls or redundant hidden faces.
                     for ring in [polygon.exterior,*polygon.interiors]:
                         coords=list(ring.coords)
@@ -124,21 +158,41 @@ def bake(entry):
                             if any(abs(p[k]-q[k])<.001 and (abs(p[k]-[x,z][k])<.001 or abs(p[k]-([x,z][k]+STEP))<.001) for k in (0,1)):continue
                             a=vertex(round(p[0],3),round(p[1],3));b=vertex(round(q[0],3),round(q[1],3))
                             if a is None or b is None:continue
-                            base_a=(a[0],a[1]-40,a[2],a[3]);base_b=(b[0],b[1]-40,b[2],b[3])
+                            base_a=(a[0],a[3]+max(1.5,a[1]-a[3]-4.5),a[2],a[3]);base_b=(b[0],b[3]+max(1.5,b[1]-b[3]-4.5),b[2],b[3])
                             triangle(a,base_b,b);triangle(a,base_a,base_b)
+        canopy_area=covered_area;crown_start=count;trunks=[];clusters=0
+        if fringe_zone.intersects(tilebox):
+            candidates=[]
+            for gx in range(tx*TILE,(tx+1)*TILE,16):
+                for gz in range(tz*TILE,(tz+1)*TILE,16):
+                    seed=(gx*73856093 ^ gz*19349663)&0xffffffff
+                    px=gx+8+((seed%97)/96-.5)*4;pz=gz+8+(((seed//97)%97)/96-.5)*4
+                    candidate=Point(px,pz)
+                    if not fringe_zone.contains(candidate) or not nearby.contains(candidate):continue
+                    edge=boundary.distance(candidate) if not boundary.is_empty else 48
+                    if not 1.5<edge<11:continue
+                    ground,h=survey(round(px,3),round(pz,3))
+                    if ground is None or h is not None and h<4:continue
+                    candidates.append((seed,px,pz,max(6,min(24,h if h is not None else 13))))
+            for seed,px,pz,h in sorted(candidates)[:28]:
+                crowns,wood=crown_mesh(px,pz,h,seed%3==0,survey)
+                for face in crowns:triangle(*face)
+                trunks.extend(wood);clusters+=1
+        trunk_start=count
+        for face in trunks:triangle(*face)
         if count:
             compressed=gzip.compress(bytes(data[start:]),compresslevel=6,mtime=0)
             del data[start:];data.extend(compressed)
-            records.append({'key':f'{tx}_{tz}','x':tx*TILE,'z':tz*TILE,'offset':start,'byte_length':len(compressed),'vertices':count,'forest_fraction':min(1,covered_area/(TILE*TILE))})
+            records.append({'key':f'{tx}_{tz}','x':tx*TILE,'z':tz*TILE,'offset':start,'byte_length':len(compressed),'vertices':count,'forest_fraction':min(1,canopy_area/(TILE*TILE)),'crown_start':crown_start,'trunk_start':trunk_start,'fringe_clusters':clusters})
             triangle_count+=count//3
         if number%150==0:print(entry['id'],'forest',number,'/',len(tiles),flush=True)
     (directory/'forest.bin').write_bytes(data)
-    metadata={'schema':2,'source':'IGN BD TOPO wooded parcels with holes; LiDAR MNT + MNH heights when available',
+    metadata={'schema':3,'source':'IGN BD TOPO wooded parcels with holes; LiDAR MNT + MNH heights when available',
       'licence':'Licence Ouverte 2.0; road exclusions derived from OSM ODbL 1.0',
       'route_source_sha256':world['route_source_sha256'],'file':'forest.bin','sha256':hashlib.sha256(data).hexdigest(),
       'compression':'gzip_tiles','format':'float32 little endian x,y,z,ground_y; triangle list; offsets in bytes',
       'tile_size_m':TILE,'grid_m':STEP,'triangles':triangle_count,'missing_terrain_triangles':missing,
-      'forest_area_m2':mask.area,'tiles':records,'note':'Canopy envelope, not individually reconstructed trees; height fallback 13m where no MNH canopy sample'}
+      'forest_area_m2':mask.area,'tiles':records,'note':'Canopy envelope with sparse interpreted border crowns and trunks, not an inventory of individual trees; height fallback 13m where no MNH canopy sample'}
     (directory/'forest.json').write_text(json.dumps(metadata,separators=(',',':'))+'\n')
     print(entry['id'],'FOREST_BUILT',len(data),'bytes',triangle_count,'triangles',len(records),'cells',flush=True)
 

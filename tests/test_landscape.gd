@@ -24,6 +24,23 @@ func run():
  check(textured==1 and valid_uv,"windows use the wall surface UVs rather than separate window geometry")
  check(M.facade()==M.facade() and M.facade().next_pass==null,"facades share one opaque material without an extra outline pass")
  house.free()
+ var distant:=Node3D.new();root.add_child(distant);geo.build(distant,fixture,false)
+ var distant_windows:=false
+ for item in distant.get_child(0).get_children():
+  if item is MeshInstance3D and item.material_override==M.facade():
+   var uv2:PackedVector2Array=item.mesh.surface_get_arrays(0)[Mesh.ARRAY_TEX_UV2]
+   for uv in uv2:
+    if uv.y>1.0:distant_windows=true
+ check(distant_windows,"distant facades retain window coordinates without detailed geometry")
+ distant.free()
+ var silhouettes:=true
+ for kind in range(4):
+  var silhouette=preload("res://scripts/scenery.gd").woodland_tree(kind)
+  var bounds: AABB=silhouette.get_aabb()
+  var arrays=silhouette.surface_get_arrays(0)
+  var count:int=arrays[Mesh.ARRAY_INDEX].size() if arrays[Mesh.ARRAY_INDEX]!=null else arrays[Mesh.ARRAY_VERTEX].size()
+  silhouettes=silhouettes and bounds.size.y>7 and bounds.size.x>4 and count/3<100
+ check(silhouettes,"all four lightweight trees retain crowns and trunks below 100 triangles")
  var route=preload("res://scripts/route.gd").new("res://assets/routes/home_sweet_home.json")
  var center:Vector3=route.smooth_position(3000)
  var first:=Node3D.new();root.add_child(first)
@@ -35,7 +52,7 @@ func run():
   var arrays=node.mesh.surface_get_arrays(0)
   for i in range(0,arrays[Mesh.ARRAY_VERTEX].size(),17):
    var p:Vector3=arrays[Mesh.ARRAY_VERTEX][i]
-   if arrays[Mesh.ARRAY_NORMAL][i].y>.05 and (p.y<101.3 or p.y>128):valid=false
+   if arrays[Mesh.ARRAY_COLOR][i].a>.1 and arrays[Mesh.ARRAY_NORMAL][i].y>.05 and (p.y<101.3 or p.y>128):valid=false
  check(valid,"canopy is rooted on the displayed ground instead of floating above the IGN mesh")
  var cached:int=geo.forest_cache.size();var second:=Node3D.new();root.add_child(second)
  geo.forest_masses(second,center,0,func(_p: Vector2):return 200.0)

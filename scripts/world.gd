@@ -187,35 +187,6 @@ func rebuild(distance: float, force: bool, ticket: int, target: Node3D) -> void:
 		var strip := M.mesh(build_target,surfaces[i].commit(),[road_material,shoulder_material,stripe_material][i],Vector3.ZERO)
 		strip.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	if not force and not await next_stage(ticket): return
-	# Shared tree meshes and GPU instancing, with simpler silhouettes at distance.
-	var spacing := 9 if quality>0 else 17
-	for index in range(maxi(0,int(start/spacing)),int(end/spacing)):
-		if not geographic.forest_data.is_empty() and absf(index*spacing-distance)>(115 if quality>0 else 85):continue
-		var rng := RandomNumberGenerator.new()
-		rng.seed = index*7919+20261025
-		for side in [-1,1]:
-			for band in range(1 if not geographic.forest_data.is_empty() else (2 if quality>0 else 1)):
-				var lateral: float = side*rng.randf_range(8+band*27,30+band*30)
-				var at := roadside(index*spacing,lateral,true)
-				if (not geographic.covers(index*spacing) or geographic.forest(at)) and safe_land(at):
-					var canopy := geographic.canopy_at(Vector2(at.x,at.z))
-					var size := clampf(canopy/7,.65,3.5) if is_finite(canopy) else rng.randf_range(.8,1.35)
-					tree(at,size,rng.randf()>0.35,absf(index*spacing-distance)<95,rng.randf()*TAU)
-	for key in tree_batches:
-		var batch: Dictionary = tree_batches[key]
-		var instances := MultiMesh.new()
-		instances.transform_format = MultiMesh.TRANSFORM_3D
-		instances.use_colors = true
-		instances.mesh = Scenery.tree_mesh(batch.kind,batch.detailed)
-		instances.instance_count = batch.transforms.size()
-		for i in range(batch.transforms.size()):
-			instances.set_instance_transform(i,batch.transforms[i])
-			instances.set_instance_color(i,batch.colors[i])
-		var item := MultiMeshInstance3D.new()
-		item.multimesh = instances
-		item.material_override = grass_material
-		if not batch.detailed: item.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-		build_target.add_child(item)
 	if force: verges(start,end)
 	else:
 		await verges(start,end,tick,guard)
@@ -226,6 +197,10 @@ func rebuild(distance: float, force: bool, ticket: int, target: Node3D) -> void:
 	else:
 		await backdrop(distance,tick,guard)
 		if not await next_stage(ticket): return
+	if force:woodland_trees(distance)
+	else:
+		await woodland_trees(distance,tick,guard)
+		if not await next_stage(ticket):return
 	if force:geographic.forest_masses(build_target,roadside(distance,0),quality,displayed_ground)
 	else:
 		await geographic.forest_masses(build_target,roadside(distance,0),quality,displayed_ground,tick,guard)
@@ -571,3 +546,40 @@ func displayed_ground(p: Vector2) -> float:
 		var weights := road_overlay.weights(p,triangle)
 		if weights.x>=-.0001 and weights.y>=-.0001 and weights.x+weights.y<=1.0001:return road_overlay.plane_height(p,triangle)
 	return NAN
+
+func woodland_trees(distance: float, tick: Signal = Signal(), guard: Callable = Callable()) -> void:
+	# Shared tree meshes and GPU instancing, with simpler silhouettes at distance.
+	var spacing := 9 if quality>0 else 17
+	var budget:=Time.get_ticks_usec()
+	for index in range(maxi(0,int(maxf(0,distance-140)/spacing)),int(minf(route.length_m,distance+480)/spacing)):
+		if not tick.is_null() and Time.get_ticks_usec()-budget>6000:
+			await tick
+			if not guard.is_valid() or not guard.call():return
+			budget=Time.get_ticks_usec()
+		var rng := RandomNumberGenerator.new()
+		rng.seed = index*7919+20261025
+		for side in [-1,1]:
+			for band in range(1 if not geographic.forest_data.is_empty() else (2 if quality>0 else 1)):
+				var lateral: float = side*rng.randf_range(8+band*27,30+band*30)
+				var at := roadside(index*spacing,lateral,true)
+				if (not geographic.covers(index*spacing) or geographic.forest(at)) and safe_land(at):
+					var canopy := geographic.canopy_at(Vector2(at.x,at.z))
+					var size := clampf(canopy/8,.65,3.5) if is_finite(canopy) else rng.randf_range(.8,1.35)
+					var ground:=displayed_ground(Vector2(at.x,at.z))
+					if is_finite(ground):at.y=ground
+					tree(at,size,rng.randf()>0.35,false,rng.randf()*TAU)
+	for key in tree_batches:
+		var batch: Dictionary = tree_batches[key]
+		var instances := MultiMesh.new()
+		instances.transform_format = MultiMesh.TRANSFORM_3D
+		instances.use_colors = true
+		instances.mesh = Scenery.woodland_tree(batch.kind)
+		instances.instance_count = batch.transforms.size()
+		for i in range(batch.transforms.size()):
+			instances.set_instance_transform(i,batch.transforms[i])
+			instances.set_instance_color(i,batch.colors[i])
+		var item := MultiMeshInstance3D.new()
+		item.multimesh = instances
+		item.material_override = M.woodland()
+		item.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		build_target.add_child(item)

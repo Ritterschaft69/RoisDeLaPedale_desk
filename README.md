@@ -1,9 +1,13 @@
 # Rois de la Pédale
 
-**Windows : [télécharger l’installeur v0.7.0](https://github.com/Ritterschaft69/RoisDeLaPedale_desk/releases/download/v0.7.0/RoisDeLaPedale-0.7.0-Setup.exe)** · [Page de la préversion](https://github.com/Ritterschaft69/RoisDeLaPedale_desk/releases/tag/v0.7.0)
+**Windows : [télécharger l’installeur v0.7.1](https://github.com/Ritterschaft69/RoisDeLaPedale_desk/releases/download/v0.7.1/RoisDeLaPedale-0.7.1-Setup.exe)** · [Page de la préversion](https://github.com/Ritterschaft69/RoisDeLaPedale_desk/releases/tag/v0.7.1)
 [Voir les circuits reconstruits et les captures natives](https://github.com/Ritterschaft69/RoisDeLaPedale_desk/releases/tag/v0.6.0)
 
 Prototype **desktop natif**, Godot **4.6.3**, quatre circuits et données géographiques hors ligne. Aucun service en ligne ni navigateur requis.
+
+## Lisières et visibilité — 0.7.1
+
+Les lisières associent désormais des troncs et des couronnes irrégulières au couvert forestier. Les arbres sont préparés en avance et s’effacent progressivement entre 235 et 330 mètres. Les fenêtres restent texturées et visibles plus loin, sans ajouter de géométrie. Les silhouettes simplifiées et les lots instanciés limitent le coût sur Intel UHD 600. [Détails et captures](docs/RELEASE_v0.7.1.md).
 
 ## Bluetooth Elite Suito-T — 0.7.0
 

@@ -426,13 +426,13 @@ func build(parent: Node3D, building: Dictionary, detailed: bool) -> void:
 			var b_top := eave+rise*(1-absf(q.dot(across)-ridge)/half_width)
 			var vertices := [Vector3(p.x,-1,p.y),Vector3(q.x,-1,q.y),Vector3(q.x,b_top,q.y),Vector3(p.x,a_top,p.y)]
 			var winding := [0,2,1,0,3,2] if Geometry2D.is_polygon_clockwise(polygon) else [0,1,2,0,2,3]
-			var repeats := maxi(1,mini(6,int(a.distance_to(b)/2.8)))
+			var repeats := maxf(1.0,a.distance_to(b)/2.8)
 			for index in winding:
 				var vertex: Vector3 = vertices[index]
 				var along := Vector2(vertex.x,vertex.z).distance_to(a)/maxf(a.distance_to(b),.01)
 				walls.set_color(wall_tint)
 				walls.set_uv(Vector2(along*repeats,1.0-vertex.y/2.7))
-				walls.set_uv2(Vector2(vertex.y,eave if detailed else 0.0))
+				walls.set_uv2(Vector2(vertex.y,eave))
 				walls.add_vertex(vertex)
 	walls.generate_normals()
 	M.mesh(node,walls.commit(),wall_material,Vector3.ZERO)
@@ -493,8 +493,8 @@ func forest_masses(parent: Node3D, center: Vector3, quality: int, ground_height:
 				forest_cache[key]=loaded;forest_order.append(key)
 				if forest_order.size()>192:forest_cache.erase(forest_order.pop_front())
 			var packed: PackedFloat32Array = forest_cache[key]
-			var vertices := PackedVector3Array();var normals := PackedVector3Array()
-			vertices.resize(int(tile.vertices));normals.resize(int(tile.vertices))
+			var vertices := PackedVector3Array();var normals := PackedVector3Array();var colors:=PackedColorArray();var grounding:=PackedVector2Array();var floor_min:=INF
+			vertices.resize(int(tile.vertices));normals.resize(int(tile.vertices));colors.resize(int(tile.vertices));grounding.resize(int(tile.vertices))
 			var projected: Dictionary = {}
 			for i in range(int(tile.vertices)):
 				if i%192==0 and not tick.is_null() and Time.get_ticks_usec()-budget>6000:
@@ -507,13 +507,18 @@ func forest_masses(parent: Node3D, center: Vector3, quality: int, ground_height:
 					var visible_height: float = ground_height.call(p)
 					projected[position_key]=visible_height-packed[i*4+3] if is_finite(visible_height) else 0.0
 				vertices[i]=Vector3(p.x,packed[i*4+1]+float(projected[position_key]),p.y)
+				var base_height:=packed[i*4+3]+float(projected[position_key]);grounding[i]=Vector2(base_height,0);floor_min=minf(floor_min,base_height)
+				colors[i]=Color(1,1,1,1) if i<int(tile.get("crown_start",tile.vertices)) else Color(1,1,1,.5)
+				if i>=int(tile.get("trunk_start",tile.vertices)):colors[i]=Color(.095,.066,.044,0)
 			for i in range(0,vertices.size(),3):
 				var normal := (vertices[i+1]-vertices[i]).cross(vertices[i+2]-vertices[i]).normalized()
 				if normal.y<0:normal=-normal
 				for j in range(3):normals[i+j]=normal
 			var arrays: Array=[];arrays.resize(Mesh.ARRAY_MAX)
-			arrays[Mesh.ARRAY_VERTEX]=vertices;arrays[Mesh.ARRAY_NORMAL]=normals
+			arrays[Mesh.ARRAY_VERTEX]=vertices;arrays[Mesh.ARRAY_NORMAL]=normals;arrays[Mesh.ARRAY_COLOR]=colors;arrays[Mesh.ARRAY_TEX_UV2]=grounding
 			var mesh := ArrayMesh.new();mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,arrays)
+			var bounds:=mesh.get_aabb();var ceiling:=bounds.end.y
+			bounds.position.y=minf(bounds.position.y,floor_min);bounds.size.y=ceiling-bounds.position.y;mesh.custom_aabb=bounds
 			var item := M.mesh(parent,mesh,M.forest_canopy(),Vector3.ZERO)
 			item.name="ForestParcel_%d_%d"%[x,z]
 			item.cast_shadow=GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
