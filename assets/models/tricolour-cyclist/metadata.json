@@ -1,17 +1,9 @@
 {
-  "name": "Cycliste tricolore",
-  "source_bicycle_sha256": "bb1b9a9385bc27e0c18f88979c0d1feed14b44c29c7cbbab205b9e0368a6e9e3",
-  "sha256": "8e97d77124b983042b4e8374b44c42fd38904dd8615baa4512053093083c76b3",
-  "character_triangles": 33590,
-  "character_materials": 12,
-  "reference": "User supplied multi-view image, navy tricolour kit, white vented helmet, brown braid",
-  "revision": 2,
-  "proportions": {
-    "back_angle_degrees": 28.2,
-    "shoulder_width_m": 0.322,
-    "head_height_m": 0.18,
-    "upper_arm_radius_m": 0.041,
-    "thigh_radius_m": 0.088
-  },
-  "authoring": "tools/build_tricolour_cyclist.py; original character geometry removed; donor bicycle, rig and animation retained"
+  "source_file": "cycliste_lowpoly_roadbike_rigged (1).glb",
+  "sha256": "bc9e434a777498e08e319f985977927ce75aedc916ecb0b1a8bca35d015ed3bf",
+  "bytes": 1649484,
+  "triangles": 23456,
+  "bones": 18,
+  "pedal_animation": "Pedal_60_RPM",
+  "provenance": "GLB fourni par l’utilisateur, conservé sans modification ; licence non précisée."
 }

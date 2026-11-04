@@ -100,3 +100,7 @@ Le pilotage FTMS est optionnel et utilise uniquement les capacités annoncées. 
 ### Visibilité des lisières (0.7.1)
 
 Le format forestier 3 conserve les blocs float4 compressés et ajoute deux indices de séparation pour distinguer enveloppe, couronnes et troncs. Des groupes clairsemés sont limités à 28 par secteur, dans un corridor de 110 m autour du circuit et sur les limites boisées IGN. Le shader rabat l’enveloppe proche sur le sol, puis la relève entre 220 et 550 m ; couronnes et arbres instanciés disparaissent par tramage opaque entre 235 et 330 m. Aucun rendu transparent empilé ni ombre supplémentaire. Les quatre silhouettes instanciées comportent moins de 100 triangles chacune. Les façades gardent leurs UV de fenêtres en mode distant, avec atténuation entre 220 et 340 m.
+
+### GLB tricolore fourni (0.7.2)
+
+L’identifiant persistant `tricolour` charge le nouveau GLB utilisateur intact. Son clip `Pedal_60_RPM` est échantillonné sur la phase de cadence ; les roues `Front_Wheel` / `Rear_Wheel` tournent séparément sur X, rayon 0,34 m. Les suffixes automatiques d’import sont désactivés pour cet asset afin d’éviter leur conversion en VehicleWheel3D. Le modèle Orange conserve ses clips et son rayon propres. Les deux rigs ne sont pas retargetés l’un vers l’autre.

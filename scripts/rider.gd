@@ -20,6 +20,7 @@ var wheels: Array[Node3D] = []
 var pedals: Array[Node3D] = []
 var crank := 0.0
 var wheel_phase := 0.0
+var wheel_radius := WHEEL_RADIUS
 
 func _ready() -> void:
 	if not CHARACTERS.has(variant_id):variant_id="original"
@@ -41,20 +42,27 @@ func build_model() -> void:
 	model.name="ImportedCyclist"
 	model.rotation.y=PI
 	# Tyre outer radius .3355 m, wheel axle .335 m: align contact with y=0.
-	model.position.y=.0005
+	model.position.y=.0005 if variant_id=="original" else 0.0
+	wheel_radius=WHEEL_RADIUS if variant_id=="original" else .34
 	add_child(model)
 	pedal_player=model.find_child("AnimationPlayer",true,false) as AnimationPlayer
 	assert(pedal_player!=null,"The supplied cyclist must contain its animation player")
-	wheel_player=pedal_player.duplicate() as AnimationPlayer
-	wheel_player.name="IndependentWheelPlayer"
-	pedal_player.get_parent().add_child(wheel_player)
-	# Godot's glTF importer adds constant reset tracks for unrelated targets.
-	# Give each player its own filtered library so it cannot reset the other clip.
-	for item in [[pedal_player,PEDAL_CLIP,false],[wheel_player,WHEEL_CLIP,true]]:
+	var pedal_clip:=PEDAL_CLIP if variant_id=="original" else "Pedal_60_RPM"
+	var players:Array=[[pedal_player,pedal_clip,false]]
+	if variant_id=="original":
+		wheel_player=pedal_player.duplicate() as AnimationPlayer
+		wheel_player.name="IndependentWheelPlayer"
+		pedal_player.get_parent().add_child(wheel_player)
+		players.append([wheel_player,WHEEL_CLIP,true])
+	# The supplied GLBs use different rigs. Keep their body animation intact,
+	# and isolate wheel tracks so cadence never controls road-wheel speed.
+	for item in players:
 		var player: AnimationPlayer=item[0]
+		assert(player.has_animation(item[1]),"Missing cyclist animation: "+str(item[1]))
 		var animation: Animation=player.get_animation(item[1]).duplicate(true)
 		for track in range(animation.get_track_count()-1,-1,-1):
-			var is_wheel := "/Wheel_" in str(animation.track_get_path(track))
+			var path:=str(animation.track_get_path(track))
+			var is_wheel := "/Wheel_" in path or "/Front_Wheel" in path or "/Rear_Wheel" in path
 			if is_wheel!=bool(item[2]):animation.remove_track(track)
 		animation.loop_mode=Animation.LOOP_LINEAR
 		for library in player.get_animation_library_list():player.remove_animation_library(library)
@@ -64,7 +72,8 @@ func build_model() -> void:
 		player.play(item[1])
 
 	skeleton=model.find_child("Skeleton3D",true,false) as Skeleton3D
-	for name in ["Wheel_Front","Wheel_Rear"]:wheels.append(model.find_child(name,true,false) as Node3D)
+	var wheel_names: Array=["Wheel_Front","Wheel_Rear"] if variant_id=="original" else ["Front_Wheel","Rear_Wheel"]
+	for name in wheel_names:wheels.append(model.find_child(name,true,false) as Node3D)
 	for name in ["Pedal_L","Pedal_R"]:pedals.append(model.find_child(name,true,false) as Node3D)
 	animate(0,0,0)
 
@@ -76,8 +85,10 @@ func animate(dt: float, cadence: float, speed: float) -> void:
 	# Preserve the anti-aliasing bound used by the original rider after stalls.
 	var phase_step := clampf(maxf(dt,0)*maxf(cadence,0)*TAU/60,0,PI/3)
 	crank=fposmod(crank+phase_step,TAU)
-	wheel_phase=fposmod(wheel_phase+maxf(dt,0)*maxf(speed,0)/WHEEL_RADIUS,TAU)
+	wheel_phase=fposmod(wheel_phase+maxf(dt,0)*maxf(speed,0)/wheel_radius,TAU)
 	# Seeking each independent clip avoids one AnimationPlayer replacing the other.
 	pedal_player.seek(crank/TAU,true)
-	wheel_player.seek(wheel_phase/TAU,true)
+	if wheel_player!=null:wheel_player.seek(wheel_phase/TAU,true)
+	else:
+		for wheel in wheels:wheel.rotation.x=wheel_phase
 	if skeleton!=null:skeleton.force_update_all_bone_transforms()

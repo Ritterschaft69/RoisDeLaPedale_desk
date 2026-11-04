@@ -1,19 +1,9 @@
-# Cycliste tricolore — seconde option
+# Cycliste tricolore — GLB fourni
 
-La géométrie de cette cycliste a été créée pour le projet à partir des caractéristiques des vues de référence fournies : silhouette sportive, tenue ajustée bleu marine à bandes bleu/blanc/rouge, casque blanc ventilé, lunettes, gants, chaussettes et chaussures blanches, tresse brune composée de trois brins entrelacés.
+Depuis 0.7.2, cette option utilise exactement le fichier utilisateur `cycliste_lowpoly_roadbike_rigged (1).glb`, renommé `cycliste-tricolore.glb`. Le binaire est conservé sans transformation ; son empreinte est enregistrée dans `metadata.json`. Il remplace le modèle procédural créé en 0.6.7–0.6.8. La licence du fichier fourni n’a pas été précisée ; aucune licence des sons ou des données géographiques ne lui est attribuée.
 
-Révision 0.6.8 : silhouette reconstruite avec un dos abaissé, un cou raccourci, une tête adulte agrandie, des bras et des cuisses affinés. Les épaules rejoignent le maillot continu ; la taille du maillot entre dans le bassin. La tresse suit le dos et les chaussettes couvrent les mollets sans surfaces superposées. Les proportions sont exprimées en mètres relativement au vélo.
+Le GLB autonome contient le vélo et la cycliste, 23 456 triangles, 18 os et le clip `Pedal_60_RPM` d’une seconde. Godot conserve les noms des nœuds sans interpréter le suffixe `_Wheel` comme un élément physique de véhicule. Les proportions et les matériaux sont ceux du fichier fourni. Le modèle est retourné de 180° pour suivre l’axe de la simulation, avec les pneus au sol.
 
-Le maillot et le cuissard sont construits comme des volumes continus puis remesillés et allégés. Les bandes sont découpées dans les triangles afin de conserver des bords nets. Le corps est skinné ; le casque, le visage, la tresse et les détails sont de la géométrie 3D, sans texture tirée de l’image.
+Le clip fourni suit la cadence reçue, ou celle de la démonstration. Les deux roues tournent indépendamment selon la vitesse de déplacement et leur rayon de 0,34 m ; en roue libre, les jambes s’arrêtent et les roues continuent. L’option Orange conserve son propre modèle et ses deux clips. Le choix Tricolore reste mémorisé, et les trois vues avec V sont conservées.
 
-Le vélo, le squelette à 22 os et les deux clips proviennent du GLB utilisateur existant. Les anciennes surfaces du personnage sont retirées de cette nouvelle scène. Le fichier du cycliste orange reste inchangé. La provenance du vélo et des animations reste celle du modèle fourni ; la licence CC0 des sons ne leur est pas appliquée.
-
-Une décimation hors ligne maintient le personnage sous 35 000 triangles sans ajouter de traitement au jeu. Les bandes sont découpées après cette réduction.
-
-`metadata.json` conserve les empreintes et le nombre de triangles de la nouvelle géométrie. Recette de création hors ligne (Blender 4.3.2, non requis pour jouer) :
-
-```sh
-blender -b --factory-startup -t 2 --python-exit-code 1 --python tools/build_tricolour_cyclist.py
-```
-
-L’option est sélectionnée depuis Accueil → Cycliste. Un seul modèle est instancié à la fois, le choix est mémorisé et les phases de pédalage/roulement sont conservées lors du changement. Les trois vues restent utilisables ; l’aperçu du sélecteur reste visible même lorsqu’une vue du cycliste est enregistrée.
+L’ancien outil `tools/build_tricolour_cyclist.py` est une recette historique de la version 0.6.8 ; il ne sert pas à reconstruire cet asset fourni et ne doit pas être exécuté pour cette version.

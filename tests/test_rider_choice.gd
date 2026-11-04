@@ -34,20 +34,36 @@ func run():
  var old:=rider.model
  check(rider.set_variant("tricolour") and rider.variant_id=="tricolour" and not is_instance_valid(old),"selecting tricolour replaces the old scene instead of stacking avatars")
  check(absf(rider.crank-.7)<.001 and absf(rider.wheel_phase-1.2)<.001,"model switch preserves pedal and wheel phases")
- check(rider.model.find_child("TricolourFemaleCharacter",true,false)!=null,"second model contains its newly authored character geometry")
- var male_meshes:=false
- for mesh in rider.model.find_children("*","MeshInstance3D",true,false):
-  if str(mesh.name).begins_with("Cyclist_Mesh") or "Hy3d" in str(mesh.name):male_meshes=true
- check(not male_meshes,"donor character geometry is absent from the tricolour scene")
+ check(rider.model.find_child("Cyclist_Mesh",true,false)!=null and rider.skeleton.get_bone_count()==18,"replacement GLB loads its supplied character and 18-bone rig")
+ check(rider.pedal_player.has_animation("Pedal_60_RPM"),"replacement uses its supplied pedal animation")
  var valid:=true
  for phase in range(32):
   rider.crank=phase*TAU/32;rider.animate(0,0,0)
   if not deformed_bounds(rider):valid=false
  check(valid,"new skinned body stays finite and within rider bounds for a full cycle")
+ var anchored:=true
+ for phase in range(32):
+  rider.crank=phase*TAU/32;rider.animate(0,0,0)
+  for side in range(2):
+   var foot:Vector3=rider.to_local(rider.skeleton.to_global(rider.skeleton.get_bone_global_pose(rider.skeleton.find_bone("Foot_L" if side==0 else "Foot_R")).origin))
+   if (foot-rider.pedal_position(side)).distance_to(Vector3(0,.085,.075))>.004:anchored=false
+ check(anchored,"replacement ankle positions stay aligned with their pedals for a full cycle")
+ rider.crank=PI;rider.animate(0,0,0)
+ var top:Vector3=rider.pedal_position(0);rider.animate(.05,60,0)
+ check(rider.pedal_position(0).z<top.z and rider.pedal_position(0).y<top.y,"replacement top pedal moves forward and down")
+ var phase_before:float=rider.crank;var wheel_before:Basis=rider.wheels[0].basis
+ rider.animate(.05,0,8)
+ check(rider.crank==phase_before and not rider.wheels[0].basis.is_equal_approx(wheel_before),"coasting turns road wheels while stopping the supplied leg animation")
+ wheel_before=rider.wheels[0].basis;rider.animate(.05,60,0)
+ check(rider.wheels[0].basis.is_equal_approx(wheel_before),"pedalling at zero road speed does not rotate road wheels")
+ var top_direction:Vector3=rider.to_local(rider.wheels[0].to_global(Vector3.UP))-rider.to_local(rider.wheels[0].global_position)
+ rider.wheel_phase=0;rider.animate(0,0,0);rider.animate(.01,0,1)
+ top_direction=rider.to_local(rider.wheels[0].to_global(Vector3.UP))-rider.to_local(rider.wheels[0].global_position)
+ check(top_direction.z<0,"replacement wheel top rolls toward the simulation forward direction")
  var active:=rider.model
  check(not rider.set_variant("unknown") and rider.model==active,"invalid character leaves current choice intact")
  rider.set_variant("original")
- check(rider.model.find_child("TricolourFemaleCharacter",true,false)==null and rider.skeleton.get_bone_count()==22,"switching back restores the original supplied rider")
+ check(rider.skeleton.get_bone_count()==22,"switching back restores the original supplied rider")
  rider.free()
  var app=load("res://main.tscn").instantiate();root.add_child(app)
  app.set_process(false);app.set_physics_process(false);app.show_home()

@@ -19,18 +19,18 @@ func run():
   sun.rotation_degrees.y=rad_to_deg(atan2(item[1].x,item[1].z))-30
   for i in range(3):await process_frame
   await RenderingServer.frame_post_draw
-  root.get_texture().get_image().save_png("res://docs/previews/v0.6.8-tricolour-"+item[0]+".png")
+  root.get_texture().get_image().save_png("res://docs/previews/v0.7.2-tricolour-"+item[0]+".png")
  camera.position=Vector3(3,1.05,0);camera.look_at(Vector3(0,.78,0),Vector3.UP)
  for phase in range(4):
   rider.crank=phase*TAU/4;rider.animate(0,0,0)
   for i in range(3):await process_frame
   await RenderingServer.frame_post_draw
-  root.get_texture().get_image().save_png("res://docs/previews/v0.6.8-tricolour-pedal-"+str(phase)+".png")
+  root.get_texture().get_image().save_png("res://docs/previews/v0.7.2-tricolour-pedal-"+str(phase)+".png")
  rider.crank=.85;rider.animate(0,0,0)
  camera.size=.55;camera.position=Vector3(.9,1.48,-1.4);camera.look_at(Vector3(0,1.416,-.38),Vector3.UP)
  for i in range(3):await process_frame
  await RenderingServer.frame_post_draw
- root.get_texture().get_image().save_png("res://docs/previews/v0.6.8-tricolour-portrait.png")
+ root.get_texture().get_image().save_png("res://docs/previews/v0.7.2-tricolour-portrait.png")
  stage.free();await process_frame
  var app=load("res://main.tscn").instantiate();root.add_child(app)
  app.set_process(false);app.set_physics_process(false);app.rider.set_variant("tricolour");app.start_session()
@@ -40,5 +40,5 @@ func run():
   app.camera_follow.set_view(view);app.position_scene(0,true);app.hud.queue_redraw()
   for i in range(3):await process_frame
   await RenderingServer.frame_post_draw
-  root.get_texture().get_image().save_png("res://docs/previews/v0.6.8-tricolour-ride-"+str(view)+".png")
+  root.get_texture().get_image().save_png("res://docs/previews/v0.7.2-tricolour-ride-"+str(view)+".png")
  app.free();await process_frame;quit()
